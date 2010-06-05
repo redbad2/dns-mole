@@ -1,11 +1,12 @@
 #ifndef DNSM_TYPES_H
 #define DNSM_TYPES_H
 
-typedef unsigned int u_int32_t;
-typedef unsigned short u_int16_t;
-typedef unsigned char u_int8_t;
-typedef int int32_t;
-typedef short int16_t;
-typedef char int8_t;
+typedef int int32;
+typedef short int16;
+typedef unsigned int uint32;
+typedef unsigned short uint16;
+typedef unsigned char uchar;
 
-#endif /* DNSM_TYPES_H */
+#define MAX_LENGTH 256
+
+#endif /* DNM_TYPES_H */
