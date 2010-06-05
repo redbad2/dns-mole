@@ -1,12 +1,11 @@
-#ifndef DNM_TYPES_H
-#define DNM_TYPES_H
+#ifndef DNSM_TYPES_H
+#define DNSM_TYPES_H
 
-typedef int int32;
-typedef short int16;
-typedef char int8;
-typedef unsigned int uint32;
-typedef unsigned short uint16;
-typedef unsigned char uint8;
+typedef unsigned int u_int32_t;
+typedef unsigned short u_int16_t;
+typedef unsigned char u_int8_t;
+typedef int int32_t;
+typedef short int16_t;
+typedef char int8_t;
 
-
-#endif /* DNM_TYPES_H */
+#endif /* DNSM_TYPES_H */
