@@ -12,7 +12,7 @@ typedef enum {
 } RR_type;
 
 struct Query {
-	char q_domain_name[MAX_DN_LENGTH];
+	char q_domain_name[MAX_LENGTH];
 	time_t q_time;
 	unsigned int q_ttl;
 	RR_type q_type;
