@@ -1,0 +1,12 @@
+#ifndef DNSM_ERROR_H
+#define DNSM_ERROR_H
+
+
+#define PCAP_ROOT_ERROR -1
+#define PCAP_LOOKUPDEV_ERROR -2
+#define PCAP_OPEN_LIVE_ERROR -3
+#define PCAP_COMPILE_ERROR -4
+#define PCAP_SETFILTER_ERROR -5
+#define E_NO_MEM -6
+
+#endif
