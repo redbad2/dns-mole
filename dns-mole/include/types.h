@@ -1,6 +1,9 @@
 #ifndef DNSM_TYPES_H
 #define DNSM_TYPES_H
 
+#define FALSE 0
+#define TRUE 1
+
 typedef int int32;
 typedef short int16;
 typedef unsigned int uint32;

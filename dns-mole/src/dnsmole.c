@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "../include/types.h"
+#include "../include/knowndomain.h"
 
 #define VERSION 0.1
 
@@ -29,7 +30,8 @@ int main(int argc,char **argv){
 	char *whitelist_file = NULL;
 	char *logfile = NULL;
 	char *dboutput = NULL;
-	uint16 type = 0 , daemonize = 0, sniffer = 0;
+	int32 type = 0 , daemonize = 0, sniffer = 0;
+        kdomain *root_list = new_domain_structure("ROOT");
 
 	while((option = getopt(argc,argv,"b:w:t:l:o:dsh?")) > 0){
 		switch(option){
@@ -77,9 +79,12 @@ int main(int argc,char **argv){
 		fprintf(stderr,"\n[*] Please choose detection mode [ -t ]\n");
 		usage(argv[0],EXIT_FAILURE);
 	}
-	if(blacklist_file ){
-		read_blacklist(blacklist_file);
-	}
-
-	return(EXIT_SUCCESS);
+	if(blacklist_file)
+    	        read_list(root_list,blacklist_file,1);
+        
+        if(whitelist_file)
+                read_list(root_list,whitelist_file,0);
+        
+	
+        return(EXIT_SUCCESS);
 }

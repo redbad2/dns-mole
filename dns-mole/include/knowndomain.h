@@ -10,14 +10,14 @@ struct KnownDomain {
     struct KnownDomain *kd_child;
     struct KnownDomain *next;
     struct KnownDomain *prev;
-    int suspicious;
+    int32 suspicious;
 };
 
 typedef struct KnownDomain kdomain;
 
-kdomain *add_domain(kdomain *, kdomain *);
+kdomain *add_domain(kdomain *, kdomain *,int32 );
 kdomain *new_domain_structure(char *);
-void load_url(char *,pcre *,kdomain *);
-void read_blacklist(const char *);
+void load_url(char *,pcre *,kdomain *,int32);
+void read_list(kdomain *,const char *,int32);;
 
 #endif
