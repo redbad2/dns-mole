@@ -18,7 +18,7 @@ void usage(char *pname,const int exit_val){
 		   "\t\t\t\t 0 - blacklist comparsion\n"
 		   "\t\t\t\t 1 - Anomaly detection using entropy\n\n"
 		   "\t\t -d\t\t :daemonize\n"
-		   "\t\t -s\t\t :sniffer mode\n"
+		   "\t\t -s [-i]\t\t :sniffer mode [with specified interface]\n"
 		   "\t\t -h\t\t :display this usage screen\n\n", pname);
 
 	exit(exit_val);
@@ -30,10 +30,11 @@ int main(int argc,char **argv){
 	char *whitelist_file = NULL;
 	char *logfile = NULL;
 	char *dboutput = NULL;
+	char *interface = NULL;
 	int32 type = 0 , daemonize = 0, sniffer = 0;
         kdomain *root_list = new_domain_structure("ROOT");
 
-	while((option = getopt(argc,argv,"b:w:t:l:o:dsh?")) > 0){
+	while((option = getopt(argc,argv,"b:w:t:l:i:o:dsh?")) > 0){
 		switch(option){
 			case 'b':
 				blacklist_file = optarg;
@@ -49,6 +50,10 @@ int main(int argc,char **argv){
 
 			case 'l':
 				logfile = optarg;
+				break;
+
+			case 'i':
+				interface = optarg;
 				break;
 
 			case 't':
@@ -82,7 +87,7 @@ int main(int argc,char **argv){
 	if(blacklist_file)
     	        read_list(root_list,blacklist_file,1);
         
-        if(whitelist_file)
+	if(whitelist_file)
                 read_list(root_list,whitelist_file,0);
         
 	

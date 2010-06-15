@@ -1,8 +1,19 @@
 #include "../include/pktcapture.h"
 #include "../include/error.h"
 #include <time.h>
+#include <pcap.h>
+#include "../include/query.h"
 
-int packet_capture_loop(int count) {
+
+/*
+ * main packet capture loop
+ * interface -- the device you want to touch, set NULL if you want
+ *              to use pcap_lookupdev
+ * count     -- number of packets
+ *              -1 for infinite
+ *              0 for until error
+ */
+int packet_capture_loop(char * interface, int count) {
 	char * dev;
 	char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -11,7 +22,10 @@ int packet_capture_loop(int count) {
 	}
 
 	/* look up device */
-	dev = pcap_lookupdev(errbuf);
+	if (interface == NULL) {
+		dev = pcap_lookupdev(errbuf);
+	}
+	else dev = interface;
 	if (dev == NULL) {
 		return PCAP_LOOKUPDEV_ERROR;
 	}
@@ -44,10 +58,12 @@ int packet_capture_loop(int count) {
 	return 0;
 }
 
-// just test ..
+/*
+ * handle every packet captured
+ */
 void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet) {
-	uint16 type = get_ethernet_type(args, pkthdr, packet);
+	unsigned short type = get_ethernet_type(args, pkthdr, packet);
 	switch (type) {
 	case ETHERTYPE_IP:
 		ip_handler(args, pkthdr, packet);
@@ -56,53 +72,46 @@ void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
 	};
 }
 
-uint16 get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkthdr,
+/*
+ * get type of ethernet packet, e.g. IP, ARP
+ */
+unsigned short get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet) {
-	uint32 length = pkthdr->len;
+	unsigned int length = pkthdr->len;
 	struct ether_header * ehdr;
-	uint16 ether_type;
+	unsigned short ether_type;
 	ehdr = (struct ether_header *) packet;
 	ether_type = ntohs(ehdr->ether_type);
 	return ether_type;
 }
 
-void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr,
-		const u_char * packet) {
+/*
+ * parse ip packet to query
+ */
+void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr, const u_char * packet) {
 	query * q = (query *)malloc(sizeof(query));
-	parse_to_query(pkthdr, q);
+	memset(q, 0, sizeof(query));
+	parse_to_query(packet, q);
+	q->q_time = pkthdr->ts;
 	qlist_insert(q);
 }
 
-int validate_iphdr(struct ip_header * ih) {
 
-}
-
-int validate_udp(uchar * packet) {
-
-}
-
-int validate_tcp(uchar * packet) {
-
-}
-
-void parse_to_query(uchar * packet, struct Query * q_store) {
-	struct ip_header * ih = (struct ip_header *) (packet
-				+ sizeof(struct ether_header));
+void parse_to_query(unsigned char * packet, query * q_store) {
+	struct ip_header * ih = (struct ip_header *) (packet + sizeof(struct ether_header));
 	struct dns_query_header * dqh;
 	if (ih->ip_proto == IP_PROTOCOL_TCP) {
-		dqh = (struct dns_query_header *)(packet
-				+ sizeof(struct ether_header) + ih->ip_ihl * 4 + sizeof(struct tcp_header));
+		dqh = (struct dns_query_header *)(packet + sizeof(struct ether_header) + ih->ip_ihl * 4 + sizeof(struct tcp_header));
 	}
 	else if (ih->ip_proto == IP_PROTOCOL_UDP) {
-		dqh = (struct dns_query_header *)(packet
-					+ sizeof(struct ether_header) + ih->ip_ihl * 4 + sizeof(struct udp_header));
+		dqh = (struct dns_query_header *)(packet + sizeof(struct ether_header) + ih->ip_ihl * 4 + sizeof(struct udp_header));
 	}
 	q_store->q_srcip = ih->ip_src;
-	q_store->q_time = time(NULL);
+	//q_store->q_time = time(NULL);
 
 
 /*
- * Resource Record format
+ * Resource Record format(Answer section)
  * 0                16                32
  * +--------+--------+--------+--------+
  * |                                   |
@@ -120,9 +129,17 @@ void parse_to_query(uchar * packet, struct Query * q_store) {
  * |                                   |
  * +-----------------------------------+
  */
-	char * dname = (char *)(packet	+ ih->ip_ihl * 4 + sizeof(struct udp_header)
+	char * dname;
+	if (ih->ip_proto == IP_PROTOCOL_TCP) {
+		dname = (char *)(packet	+ ih->ip_ihl * 4 + sizeof(struct tcp_header)
 				+ sizeof(struct ether_header) + sizeof(struct dns_query_header));
-	dname += ntohs(dqh->dq_qc);
+	}
+	else if (ih->ip_proto == IP_PROTOCOL_UDP) {
+		dname = (char *)(packet	+ ih->ip_ihl * 4 + sizeof(struct udp_header)
+				+ sizeof(struct ether_header) + sizeof(struct dns_query_header));
+	}
+
+	dname++;
 	char name[MAX_LENGTH];
 	int i = 0;
 	char t;
@@ -139,14 +156,25 @@ void parse_to_query(uchar * packet, struct Query * q_store) {
 
 	if (i % 4 != 0)
 		dname += 4 - (i % 4);
+	dname += 5;
 
-	q_store->q_type = ntohs(*((uint16 *)dname));
+	int count = 0;
+	while ((*dname) != 0) {
+		count++;
+		dname++;
+	}
+	count++;
+	if (count % 4 != 0)
+		dname += 4 - (count % 4);
+	dname += 5;
+
+	q_store->q_type = ntohs(*((unsigned short *)dname));
 
 	dname += 4;
-	q_store->q_ttl = ntohl(*((uint32 *)dname));
+	q_store->q_ttl = ntohl(*((unsigned int *)dname));
 
 	dname += 4;
-	uint16 dlen = ntohs(*((uint16 *)dname));
+	unsigned short dlen = ntohs(*((unsigned short *)dname));
 
 	q_store->q_value = (char *)malloc(dlen);
 	strcpy(q_store->q_value, dname + 2);
