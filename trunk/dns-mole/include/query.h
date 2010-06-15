@@ -1,8 +1,10 @@
 #ifndef DNSM_QUERY_H
 #define DNSM_QUERY_H
 
-#include "knowndomain.h"
-#include "types.h"
+#include <time.h>
+#include <sys/types.h>
+
+#define MAX_LENGTH 256
 
 typedef enum {
 	A = 1,
@@ -14,11 +16,11 @@ typedef enum {
 
 struct Query {
 	char q_dname[MAX_LENGTH];
-	time_t q_time;
-	uint32 q_ttl;
+	struct timeval q_time;
+	unsigned int q_ttl;
 	RR_type q_type;
 	char * q_value;
-	uint32 q_srcip;
+	unsigned int q_srcip;
 };
 
 typedef struct Query query;

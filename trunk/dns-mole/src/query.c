@@ -1,19 +1,18 @@
-#include "../include/query.h"
+#include "query.h"
+#include "error.h"
 
 void qlist_init() {
-	qlist.head = NULL;
-	qlist.rear = NULL;
+	qlist.head = malloc(sizeof(qentry));
+	qlist.head->qe_qry = NULL;
+	qlist.rear = qlist.head;
 }
 
 qentry * qlist_next(qentry * q) {
-	return q->ql_next;
+	return q->qe_next;
 }
 
 int qlist_insert(query * q) {
-	if (qlist.head == NULL) {
-		qlist.head = (qentry *)malloc(sizeof(qentry));
-		if (qlist.head == NULL)
-			return E_NO_MEM;
+	if (qlist.head->qe_qry == NULL) {
 		qlist.head->qe_qry = q;
 		qlist.head->qe_next = NULL;
 		qlist.head->qe_prev = NULL;
@@ -34,7 +33,7 @@ int qlist_insert(query * q) {
 
 void qlist_delete(qentry * q) {
 	if (q == qlist.head) {
-		qentry * next = q->next;
+		qentry * next = q->qe_next;
 		free(q->qe_qry->q_value);
 		free(q->qe_qry);
 		free(q);
