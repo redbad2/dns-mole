@@ -6,17 +6,23 @@
 
 #define MAX_LENGTH 256
 
+#define RR_TYPE_A 1
+#define RR_TYPE_NS 2
+#define RR_TYPE_CNAME 5
+#define RR_TYPE_PTR 12
+#define RR_TYPE_MX 15
+
 typedef enum {
-	A = 1,
-	MX = 15,
-	PTR = 12,
-	NS = 2,
-	CNAME = 5
+	A = RR_TYPE_A,
+	MX = RR_TYPE_MX,
+	PTR = RR_TYPE_PTR,
+	NS = RR_TYPE_NS,
+	CNAME = RR_TYPE_CNAME
 } RR_type;
 
 struct Query {
 	char q_dname[MAX_LENGTH];
-	struct timeval q_time;
+	time_t q_time;
 	unsigned int q_ttl;
 	RR_type q_type;
 	char * q_value;
@@ -41,8 +47,12 @@ struct Qlist {
 struct Qlist qlist;
 
 void qlist_init();
-qentry * qlist_next(qentry * q);
-int qlist_insert(query * q);
-void qlist_delete(qentry * q);
+void qlist_reset();
+int qlist_append(query * q);
+int qlist_insert_before(qentry * qe, query * q);
+int qlist_insert_after(qentry * qe, query * q);
+void qlist_remove(qentry * q);
+
+void check_free(void * p);
 
 #endif /* DNSM_QUERY_H */
