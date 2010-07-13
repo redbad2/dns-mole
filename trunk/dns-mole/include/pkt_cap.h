@@ -5,7 +5,7 @@
 #include <net/ethernet.h>
 #include "query.h"
 
-#define DNS_QUERY_FILTER "tcp port 53 or udp port 53"
+#define DNS_QUERY_FILTER "tcp src port 53 or udp src port 53"
 #define IP_PROTOCOL_TCP 6
 #define IP_PROTOCOL_UDP 17
 
@@ -72,13 +72,7 @@ unsigned short get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkth
 void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet);
 
-
-/* examine the validation of udp packet */
-int validate_iphdr(struct ip_header * ih);
-int validate_udp(unsigned char * packet);
-int validate_tcp(unsigned char * packet);
-
 /* parse an ethernet packet to a query */
-void parse_to_query(unsigned char * packet, query * q_store);
+void parse_to_query(unsigned char * packet, int len, query * q_store);
 
 #endif

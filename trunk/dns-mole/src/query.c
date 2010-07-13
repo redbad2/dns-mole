@@ -1,5 +1,6 @@
-#include "query.h"
-#include "error.h"
+#include "../include/query.h"
+#include "../include/error.h"
+#include <stdlib.h>
 
 void qlist_init() {
 	qlist.head = malloc(sizeof(qentry));
@@ -7,11 +8,23 @@ void qlist_init() {
 	qlist.rear = qlist.head;
 }
 
-qentry * qlist_next(qentry * q) {
-	return q->qe_next;
+void qlist_reset() {
+	if (qlist.head == NULL)
+		return;
+	qentry * q = qlist.head;
+	qentry * p = q;
+	while (q != NULL) {
+		p = q->qe_next;
+		free(q->qe_qry->q_value);
+		free(q->qe_qry);
+		free(q);
+		q = p;
+	}
+	qlist.head = NULL;
+	qlist.rear = NULL;
 }
 
-int qlist_insert(query * q) {
+int qlist_append(query * q) {
 	if (qlist.head->qe_qry == NULL) {
 		qlist.head->qe_qry = q;
 		qlist.head->qe_next = NULL;
@@ -31,8 +44,64 @@ int qlist_insert(query * q) {
 	return 0;
 }
 
-void qlist_delete(qentry * q) {
+
+int qlist_insert_before(qentry * qe, query * q) {
+	if (qe == qlist.head) {
+		qentry * temp = (qentry *)malloc(sizeof(qentry));
+		if (temp == NULL)
+			return E_NO_MEM;
+		temp->qe_qry = q;
+		temp->qe_next = qe;
+		temp->qe_prev = NULL;
+		qe->qe_prev = temp;
+		qlist.head = temp;
+	}
+	else {
+		qentry * temp = (qentry *)malloc(sizeof(qentry));
+		if (temp == NULL)
+			return E_NO_MEM;
+		temp->qe_qry = q;
+		temp->qe_next = qe;
+		
+		qentry * p = qe->qe_prev;
+		temp->qe_prev = p;
+		qe->qe_prev = temp;
+		p->qe_next = temp;
+	}
+}
+
+
+int qlist_insert_after(qentry * qe, query * q) {
+	if (qe == qlist.rear) {
+		qentry * temp = (qentry *)malloc(sizeof(qentry));
+		if (temp == NULL)
+			return E_NO_MEM;
+		temp->qe_qry = q;
+		temp->qe_prev = qe;
+		temp->qe_next = NULL;
+		qe->qe_next = temp;
+		qlist.rear = temp;
+	}
+	else {
+		qentry * temp = (qentry *)malloc(sizeof(qentry));
+		if (temp == NULL)
+			return E_NO_MEM;
+		temp->qe_qry = q;
+		temp->qe_prev = qe;
+		
+		qentry * p = qe->qe_next;
+		temp->qe_next = p;
+		qe->qe_next = temp;
+		p->qe_prev = temp;
+	}
+}
+
+void qlist_remove(qentry * q) {
 	if (q == qlist.head) {
+		if (qlist.head == qlist.rear) {
+			qlist_reset();
+			return;
+		}
 		qentry * next = q->qe_next;
 		free(q->qe_qry->q_value);
 		free(q->qe_qry);
@@ -41,6 +110,10 @@ void qlist_delete(qentry * q) {
 		qlist.head = next;
 	}
 	else if (q == qlist.rear) {
+		if (qlist.head == qlist.rear) {
+			qlist_reset();
+			return;
+		}
 		qentry * prev = q->qe_prev;
 		free(q->qe_qry->q_value);
 		free(q->qe_qry);
