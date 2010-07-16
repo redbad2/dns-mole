@@ -1,4 +1,4 @@
-/* knowndomain.h
+/* dnsmole.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,33 +19,19 @@
  * $Id$
  */
 
-#ifndef DNM_KNOWNDOMAIN_H
-#define DNM_KNOWNDOMAIN_H
+#ifndef DNM_DNSMOLE_H
+#define DNM_DNSMOLE_H
 
-#include <stdio.h>
-#include <string.h>
-#include <pcre.h>
 
-struct KnownDomain {
-    char *name;
-    char *cname;
-    struct KnownDomain *kd_child;
-    struct KnownDomain *next;
-    struct KnownDomain *prev;
-    int suspicious;
+struct moleWorld{
+    kdomain *root_list;
+    char *log;
+    char *interface;
+
+    int log_mutex;
+
 };
 
-typedef struct KnownDomain kdomain;
-
-kdomain *add_domain(kdomain *, kdomain *,int );
-void delete_domain(kdomain *);
-void domain_child_free(kdomain *);
-void domain_add_cname(char *,char *,kdomain *);
-kdomain *search_domain(char *,kdomain *);
-kdomain *new_domain_structure(char *);
-void load_domain(char *,pcre *,kdomain *,int);
-void split_domain(char *, pcre *,char **);
-pcre *initialize_regex();
-void read_list(kdomain *,const char *,int);
+typedef struct moleWorld moleWorld;
 
 #endif

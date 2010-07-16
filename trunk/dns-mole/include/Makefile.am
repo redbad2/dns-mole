@@ -1,0 +1,5 @@
+# $id$
+
+includedir = $(prefix)/include/
+
+
