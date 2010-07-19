@@ -73,7 +73,7 @@ int main(int argc,char **argv){
                     break;
 		
                 case 't':
-		    type = atoi(optarg);
+		    mWorld.type = atoi(optarg);
 		    break;
 
 		case 'd':
@@ -120,18 +120,10 @@ int main(int argc,char **argv){
     if(whitelist_file)
 	read_list(mWorld.root_list,whitelist_file,0);
     
-    if(!logfile){
-        if(!(mWorld.log = (char *) malloc(sizeof(char) * 5))){
-            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-        }
-        memcpy(mWorld.log,"mole",5);
-    }
-    else {
-        if(!(mWorld.log = (char *) malloc(sizeof(char) * strlen(logfile)))){
-            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-        }
-        memcpy(mWorld.log,logfile,strlen(logfile));
-    }
+    if(!logfile)
+        open_log(mWorld.log_fp,"mole_log"); 
+    else 
+        open_log(mWorld.log_fp,logfile);     
 
     //mWorld.pcap = pcap_openlive(interface,1500,1,500,ebuff);
     
@@ -153,7 +145,6 @@ int main(int argc,char **argv){
     evtimer_add(&mWorld.learn_ev,&mWorld.learn_tv);
     
     evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
-    evtimer_add(&mWorld.analyze_ev, &mWorld.analyze_tv);
 
     event_dispatch();
 
