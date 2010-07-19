@@ -1,4 +1,3 @@
-<<<<<<< .mine
 /* query.c
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,13 +19,9 @@
  * $Id$
  */
 
-#include "query.h"
-#include "error.h"
-=======
 #include "../include/query.h"
 #include "../include/error.h"
 #include <stdlib.h>
->>>>>>> .r18
 
 void qlist_init() {
 	qlist.head = malloc(sizeof(qentry));

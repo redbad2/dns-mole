@@ -7,8 +7,8 @@
 #include "../include/error.h"
 #include "../include/dns_parser.h"
 
-/*
-test job here
+
+
 int main(int argc, char ** argv) {
 	int r;
 	qlist_init();
@@ -41,7 +41,7 @@ int main(int argc, char ** argv) {
 	}
 	return 0;
 }
-*/
+
 
 /*
  * main packet capture loop

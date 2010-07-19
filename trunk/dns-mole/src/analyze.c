@@ -1,4 +1,4 @@
-/* dnsmole.h
+/* analyze.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,26 +19,8 @@
  * $Id$
  */
 
-#ifndef DNM_DNSMOLE_H
-#define DNM_DNSMOLE_H
+void _learn(int fd,short event,void *arg){
+}
 
-
-struct moleWorld{
-    kdomain *root_list;
-    qlist *query_list;
-    
-    struct event recv_ev;
-    struct event learn_ev;
-    struct event analyze_ev;
-
-    struct timeval tv;
-    struct timeval learn_tv;
-    struct timeval analyze_tv;
-
-    FILE log;
-
-};
-
-typedef struct moleWorld moleWorld;
-
-#endif
+void _analyzer(int fd,short event,void *arg){
+}
