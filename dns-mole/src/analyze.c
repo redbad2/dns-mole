@@ -20,7 +20,24 @@
  */
 
 void _learn(int fd,short event,void *arg){
+    
+    struct moleWorld *myMole= (struct moleWorld *) arg;
+
+    switch(myMole->type){
+        case 0:
+            fprintf(stdout,"calculate parameters for entropy detection\n");
+            break;
+        case 1:
+            fprintf(stdout,"calculate parameters for wavelet detection\n");
+            break;
+    }
+
+    evtimer_add(&myMole->analyze_ev,&myMole->analyze_tv);
 }
 
 void _analyzer(int fd,short event,void *arg){
+
+    struct moleWorld *analyzeMole = (struct moleWorld *) arg;
+
+    event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
 }

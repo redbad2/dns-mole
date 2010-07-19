@@ -22,11 +22,13 @@
 #ifndef DNM_DNSMOLE_H
 #define DNM_DNSMOLE_H
 
-
 struct moleWorld{
     kdomain *root_list;
     qlist *query_list;
-    
+
+    int first = last = 0;
+    int num = 0;
+
     struct event recv_ev;
     struct event learn_ev;
     struct event analyze_ev;
@@ -35,7 +37,7 @@ struct moleWorld{
     struct timeval learn_tv;
     struct timeval analyze_tv;
 
-    FILE log;
+    FILE *log_fp;
 
 };
 
