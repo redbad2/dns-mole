@@ -125,6 +125,9 @@ int main(int argc,char **argv){
     else 
         open_log(mWorld.log_fp,logfile);     
 
+	if(sniffer)
+		if(sniffer_setup(&mWorld, 0) < 0)
+			exit(EXIT_FAILURE);
     //mWorld.pcap = pcap_openlive(interface,1500,1,500,ebuff);
     
     event_init();

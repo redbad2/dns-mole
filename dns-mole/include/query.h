@@ -60,20 +60,21 @@ struct Qlist_entry {
 
 typedef struct Qlist_entry qentry;
 
+
 struct Qlist {
 	qentry * head;
 	qentry * rear;
 };
 
-struct Qlist qlist;
+typedef struct Qlist qlist;
+//struct Qlist qlist;
 
-void qlist_init();
-void qlist_reset();
-int qlist_append(query * q);
-int qlist_insert_before(qentry * qe, query * q);
-int qlist_insert_after(qentry * qe, query * q);
-void qlist_remove(qentry * q);
+void qlist_init(qlist * ql);
+void qlist_reset(qlist * ql);
+int qlist_append(qlist * ql, query * q);
+int qlist_insert_before(qlist * ql, qentry * qe, query * q);
+int qlist_insert_after(qlist * ql, qentry * qe, query * q);
+void qlist_remove(qlist * ql, qentry * q);
 
-void check_free(void * p);
 
 #endif /* DNSM_QUERY_H */
