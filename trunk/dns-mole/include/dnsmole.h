@@ -29,6 +29,10 @@ struct moleWorld{
     int first = last = 0;
     int num = 0;
 
+	pcap_t * p;
+	int pcap_fd;
+	char * interface;
+	
     struct event recv_ev;
     struct event learn_ev;
     struct event analyze_ev;

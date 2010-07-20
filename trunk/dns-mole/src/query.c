@@ -23,16 +23,16 @@
 #include "../include/error.h"
 #include <stdlib.h>
 
-void qlist_init() {
-	qlist.head = malloc(sizeof(qentry));
-	qlist.head->qe_qry = NULL;
-	qlist.rear = qlist.head;
+void qlist_init(qlist * ql) {
+	ql->head = malloc(sizeof(qentry));
+	ql->head->qe_qry = NULL;
+	ql->rear = ql->head;
 }
 
-void qlist_reset() {
-	if (qlist.head == NULL)
+void qlist_reset(qlist * ql) {
+	if (ql->head == NULL)
 		return;
-	qentry * q = qlist.head;
+	qentry * q = ql->head;
 	qentry * p = q;
 	while (q != NULL) {
 		p = q->qe_next;
@@ -41,16 +41,16 @@ void qlist_reset() {
 		free(q);
 		q = p;
 	}
-	qlist.head = NULL;
-	qlist.rear = NULL;
+	ql->head = NULL;
+	ql->rear = NULL;
 }
 
-int qlist_append(query * q) {
-	if (qlist.head->qe_qry == NULL) {
-		qlist.head->qe_qry = q;
-		qlist.head->qe_next = NULL;
-		qlist.head->qe_prev = NULL;
-		qlist.rear = qlist.head;
+int qlist_append(qlist * ql, query * q) {
+	if (ql->head->qe_qry == NULL) {
+		ql->head->qe_qry = q;
+		ql->head->qe_next = NULL;
+		ql->head->qe_prev = NULL;
+		ql->rear = ql->head;
 	}
 	else {
 		qentry * temp = (qentry *)malloc(sizeof(qentry));
@@ -58,16 +58,16 @@ int qlist_append(query * q) {
 			return E_NO_MEM;
 		temp->qe_qry = q;
 		temp->qe_next = NULL;
-		temp->qe_prev = qlist.rear;
-		qlist.rear->qe_next = temp;
-		qlist.rear = temp;
+		temp->qe_prev = ql->rear;
+		ql->rear->qe_next = temp;
+		ql->rear = temp;
 	}
 	return 0;
 }
 
 
-int qlist_insert_before(qentry * qe, query * q) {
-	if (qe == qlist.head) {
+int qlist_insert_before(qlist * ql, qentry * qe, query * q) {
+	if (qe == ql->head) {
 		qentry * temp = (qentry *)malloc(sizeof(qentry));
 		if (temp == NULL)
 			return E_NO_MEM;
@@ -75,7 +75,7 @@ int qlist_insert_before(qentry * qe, query * q) {
 		temp->qe_next = qe;
 		temp->qe_prev = NULL;
 		qe->qe_prev = temp;
-		qlist.head = temp;
+		ql->head = temp;
 	}
 	else {
 		qentry * temp = (qentry *)malloc(sizeof(qentry));
@@ -92,8 +92,8 @@ int qlist_insert_before(qentry * qe, query * q) {
 }
 
 
-int qlist_insert_after(qentry * qe, query * q) {
-	if (qe == qlist.rear) {
+int qlist_insert_after(qlist * ql, qentry * qe, query * q) {
+	if (qe == ql->rear) {
 		qentry * temp = (qentry *)malloc(sizeof(qentry));
 		if (temp == NULL)
 			return E_NO_MEM;
@@ -101,7 +101,7 @@ int qlist_insert_after(qentry * qe, query * q) {
 		temp->qe_prev = qe;
 		temp->qe_next = NULL;
 		qe->qe_next = temp;
-		qlist.rear = temp;
+		ql->rear = temp;
 	}
 	else {
 		qentry * temp = (qentry *)malloc(sizeof(qentry));
@@ -117,9 +117,9 @@ int qlist_insert_after(qentry * qe, query * q) {
 	}
 }
 
-void qlist_remove(qentry * q) {
-	if (q == qlist.head) {
-		if (qlist.head == qlist.rear) {
+void qlist_remove(qlist * ql, qentry * q) {
+	if (q == ql->head) {
+		if (ql->head == ql->rear) {
 			qlist_reset();
 			return;
 		}
@@ -128,10 +128,10 @@ void qlist_remove(qentry * q) {
 		free(q->qe_qry);
 		free(q);
 		next->qe_prev = NULL;
-		qlist.head = next;
+		ql->head = next;
 	}
-	else if (q == qlist.rear) {
-		if (qlist.head == qlist.rear) {
+	else if (q == ql->rear) {
+		if (ql->head == ql->rear) {
 			qlist_reset();
 			return;
 		}
@@ -140,7 +140,7 @@ void qlist_remove(qentry * q) {
 		free(q->qe_qry);
 		free(q);
 		prev->qe_next = NULL;
-		qlist.rear = prev;
+		ql->rear = prev;
 	}
 	else {
 		qentry * next = q->qe_next;

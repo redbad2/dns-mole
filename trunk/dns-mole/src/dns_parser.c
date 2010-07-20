@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/query.h"
-#include "../include/pkt_cap.h"
+#include "../include/dns_sniffer.h"
 #include "../include/dns_parser.h"
 
 /* parse an DNS packet to a query */
