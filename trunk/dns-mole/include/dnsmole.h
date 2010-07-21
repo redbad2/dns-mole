@@ -22,16 +22,30 @@
 #ifndef DNM_DNSMOLE_H
 #define DNM_DNSMOLE_H
 
+#include <event.h>
+#include <time.h>
+#include <pcap.h>
+
+#include "query.h"
+#include "knowndomain.h"
+#include "dns_sniffer.h"
+#include "analyze.h"
+
 struct moleWorld{
+
     kdomain *root_list;
     qlist *query_list;
+    int type;
 
-    int first = last = 0;
-    int num = 0;
+    //int first = last = 0;
+    //int num = 0;
+    //int first_round = 0;
 
-	pcap_t * p;
-	int pcap_fd;
-	char * interface;
+    pcap_t *p;
+    int pcap_fd;
+    int dl_len;
+    
+    char *interface;
 	
     struct event recv_ev;
     struct event learn_ev;
@@ -43,8 +57,6 @@ struct moleWorld{
 
     FILE *log_fp;
 
-};
-
-typedef struct moleWorld moleWorld;
+}moleWorld;
 
 #endif

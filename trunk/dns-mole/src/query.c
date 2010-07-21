@@ -120,7 +120,7 @@ int qlist_insert_after(qlist * ql, qentry * qe, query * q) {
 void qlist_remove(qlist * ql, qentry * q) {
 	if (q == ql->head) {
 		if (ql->head == ql->rear) {
-			qlist_reset();
+			qlist_reset(ql);
 			return;
 		}
 		qentry * next = q->qe_next;
@@ -132,7 +132,7 @@ void qlist_remove(qlist * ql, qentry * q) {
 	}
 	else if (q == ql->rear) {
 		if (ql->head == ql->rear) {
-			qlist_reset();
+			qlist_reset(ql);
 			return;
 		}
 		qentry * prev = q->qe_prev;

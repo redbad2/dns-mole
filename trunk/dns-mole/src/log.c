@@ -21,20 +21,25 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <stdlib.h>
 
 void open_log(FILE *fp,char *name){
 
-    if((fp = fopen(name,"r+")) == NULL){
+    time_t now = time(NULL);
+
+    if((fp = fopen(name,"w+")) == NULL){
             fprintf(stderr,"[fopen] Can't open log file"); exit(EXIT_FAILURE);
     }
 
-    fprintf(fp,"[dns-mole] Log Started : %s\n", asctime(localtime(time(NULL))));
+    fprintf(fp,"[dns-mole] Log Started : %s\n", asctime(localtime(&now)));
 }
 
 
 void close_log(FILE *fp){
 
-    fprintf(fp,"[dns-mole] Log Closed: %s\n", asctime(localtime(time(NULL))));
+    time_t now = time(NULL);
+
+    fprintf(fp,"[dns-mole] Log Closed: %s\n", asctime(localtime(&now)));
 
     if(fclose(fp)){
         fprintf(stderr,"[fclose] Can't close log file"); exit(EXIT_FAILURE);

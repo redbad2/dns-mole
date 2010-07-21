@@ -19,6 +19,9 @@
  * $Id$
  */
 
+#include "../include/analyze.h"
+#include "../include/dnsmole.h"
+
 void _learn(int fd,short event,void *arg){
     
     struct moleWorld *myMole= (struct moleWorld *) arg;
@@ -31,13 +34,12 @@ void _learn(int fd,short event,void *arg){
             fprintf(stdout,"calculate parameters for wavelet detection\n");
             break;
     }
-
-    evtimer_add(&myMole->analyze_ev,&myMole->analyze_tv);
 }
 
 void _analyzer(int fd,short event,void *arg){
 
     struct moleWorld *analyzeMole = (struct moleWorld *) arg;
-
+    
+    //analyzeMole.analyze_tv.tv_sec ='
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
 }
