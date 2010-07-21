@@ -57,56 +57,59 @@ int main(int argc,char **argv){
     while((option = getopt(argc,argv,"i:b:w:t:l:r:dsh?")) > 0){
 	switch(option){
 	    case 'b':
-		blacklist_file = optarg;
-		break;
+			blacklist_file = optarg;
+			break;
 
 	    case 'w':
-		whitelist_file = optarg;
-		break;
+			whitelist_file = optarg;
+			break;
 
 	    case 'l':
-		logfile = optarg;
-		break;
-
-            case 'r':
-                timeout = atoi(optarg);
-                break;
+			logfile = optarg;
+			break;
+	
+		case 'r':
+			timeout = atoi(optarg);
+            break;
 		
-            case 't':
-		mWorld.type = atoi(optarg);
-		break;
+        case 't':
+			mWorld.type = atoi(optarg);
+			break;
 
 	    case 'd':
-		daemonize = 1;
-		break;
+			daemonize = 1;
+			break;
 
 	    case 's':
-		sniffer = 1;
-		break;
+			sniffer = 1;
+			break;
                 
-            case 'i':
-                interface = optarg;
-                break;
+        case 'i':
+            interface = optarg;
+            break;
 
 	    case '?':
 	    case 'h':
-		usage(argv[0],EXIT_SUCCESS);
+			usage(argv[0],EXIT_SUCCESS);
 
 	    default:
-		break;
+			break;
 	    }
 	}
     
     argc -= optind;
     argv += optind;
 
+	mWorld.re = initialize_regex();
     mWorld.root_list = new_domain_structure("ROOT");
 
-    if(!mWorld.type)
-	fprintf(stderr,"\n[*] Please choose detection mode [ -t ]\n");
+    if(mWorld.type == 0)
+		fprintf(stderr,"\n[*] Using BlackList Comprasion (Please choose detection mode [ -t ])\n");
 
-    if(!interface)
+    if(!interface){
         fprintf(stderr,"\n[*] Please set interface [ -i <interface> ]\n");
+        exit(EXIT_FAILURE);
+	}
     
     if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
             fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
@@ -115,10 +118,10 @@ int main(int argc,char **argv){
     memcpy(mWorld.interface,interface,strlen(interface)+1);
 
     if(blacklist_file)
-	read_list(mWorld.root_list,blacklist_file,1);
+		read_list(mWorld.root_list,blacklist_file,1,mWorld.re);
         
     if(whitelist_file)
-	read_list(mWorld.root_list,whitelist_file,0);
+		read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
     
     if(!logfile){
         open_log(mWorld.log_fp,"mole_log");
@@ -128,11 +131,12 @@ int main(int argc,char **argv){
     }
 
     if(sniffer){
-
         event_init();
-
-        if(sniffer_setup((void *)&mWorld) < 0)
-	    exit(EXIT_FAILURE);
+        
+        if(sniffer_setup((void *)&mWorld) < 0){
+			fprintf(stderr,"[sniffer_setup] error\n");
+			exit(EXIT_FAILURE);
+		}
     
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
@@ -140,7 +144,7 @@ int main(int argc,char **argv){
         mWorld.analyze_tv.tv_sec = timeout;
         mWorld.analyze_tv.tv_usec = 0;
 
-        mWorld.learn_tv.tv_sec = timeout*10;
+        mWorld.learn_tv.tv_sec = timeout*5;
         mWorld.learn_tv.tv_usec = 0;
         
         mWorld.pcap_fd = pcap_fileno(mWorld.p);
@@ -154,6 +158,13 @@ int main(int argc,char **argv){
 
         event_dispatch();
     }
-
+    
+	if(sniffer)
+		pcap_close(mWorld.p); 
+		
+	pcre_free(mWorld.re);
+	close_log(mWorld.log_fp);
+	
+	fprintf(stdout,"... remember when you were young ... \n");
     exit(EXIT_SUCCESS);
 }

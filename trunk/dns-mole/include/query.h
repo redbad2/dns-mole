@@ -67,7 +67,6 @@ struct Qlist {
 };
 
 typedef struct Qlist qlist;
-//struct Qlist qlist;
 
 void qlist_init(qlist * ql);
 void qlist_reset(qlist * ql);

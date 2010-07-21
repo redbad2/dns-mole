@@ -27,8 +27,9 @@ void open_log(FILE *fp,char *name){
 
     time_t now = time(NULL);
 
-    if((fp = fopen(name,"r+")) == NULL){
-            fprintf(stderr,"[fopen] Can't open log file"); exit(EXIT_FAILURE);
+    if((fp = fopen(name,"w+")) == NULL){
+            fprintf(stderr,"[fopen] Can't open log file\n"); 
+            exit(EXIT_FAILURE);
     }
 
     fprintf(fp,"[dns-mole] Log Started : %s\n", asctime(localtime(&now)));
@@ -42,7 +43,7 @@ void close_log(FILE *fp){
     fprintf(fp,"[dns-mole] Log Closed: %s\n", asctime(localtime(&now)));
 
     if(fclose(fp)){
-        fprintf(stderr,"[fclose] Can't close log file"); exit(EXIT_FAILURE);
+        fprintf(stderr,"[fclose] Can't close log file\n"); exit(EXIT_FAILURE);
     }
 }
 
