@@ -1,4 +1,4 @@
-/* dnsmole.h
+/* analyze.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,46 +19,5 @@
  * $Id$
  */
 
-#ifndef DNM_DNSMOLE_H
-#define DNM_DNSMOLE_H
-
-#include <event.h>
-#include <time.h>
-#include <pcap.h>
-
-#include "query.h"
-#include "knowndomain.h"
-#include "dns_sniffer.h"
-#include "analyze.h"
-
-struct moleWorld{
-
-    kdomain *root_list;
-    qlist *query_list;
-    int type;
-
-    //int first = last = 0;
-    //int num = 0;
-    //int first_round = 0;
-
-    pcap_t *p;
-    int pcap_fd;
-    int dl_len;
-    
-    char *interface;
-	
-    struct event recv_ev;
-    struct event learn_ev;
-    struct event analyze_ev;
-
-    struct timeval tv;
-    struct timeval learn_tv;
-    struct timeval analyze_tv;
-
-    FILE *log_fp;
-
-};
-
-typedef struct moleWorld moleWorld;
-
-#endif
+void _learn(int ,short ,void *);
+void _analyzer(int ,short ,void *);

@@ -24,7 +24,7 @@
 
 void _learn(int fd,short event,void *arg){
     
-    struct moleWorld *myMole= (struct moleWorld *) arg;
+    moleWorld *myMole= (moleWorld *) arg;
 
     switch(myMole->type){
         case 0:
@@ -38,7 +38,7 @@ void _learn(int fd,short event,void *arg){
 
 void _analyzer(int fd,short event,void *arg){
 
-    struct moleWorld *analyzeMole = (struct moleWorld *) arg;
+    moleWorld *analyzeMole = (moleWorld *) arg;
     
     //analyzeMole.analyze_tv.tv_sec ='
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
