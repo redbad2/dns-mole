@@ -102,7 +102,7 @@ int main(int argc,char **argv){
 
     mWorld.root_list = new_domain_structure("ROOT");
 
-    if(mWorld.type)
+    if(!mWorld.type)
 	fprintf(stderr,"\n[*] Please choose detection mode [ -t ]\n");
 
     if(!interface)
@@ -120,10 +120,12 @@ int main(int argc,char **argv){
     if(whitelist_file)
 	read_list(mWorld.root_list,whitelist_file,0);
     
-    if(!logfile)
-        open_log(mWorld.log_fp,"mole_log"); 
-    else 
+    if(!logfile){
+        open_log(mWorld.log_fp,"mole_log");
+    }
+    else{ 
         open_log(mWorld.log_fp,logfile);     
+    }
 
     if(sniffer){
 
@@ -148,7 +150,7 @@ int main(int argc,char **argv){
         evtimer_set(&mWorld.learn_ev, _learn,(void *)&mWorld);
         evtimer_add(&mWorld.learn_ev,&mWorld.learn_tv);
     
-        //evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
+        evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
 
         event_dispatch();
     }

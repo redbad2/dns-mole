@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 void qlist_init(qlist * ql) {
-	ql->head = malloc(sizeof(qentry));
+	ql->head = (qentry *) malloc(sizeof(qentry));
 	ql->head->qe_qry = NULL;
 	ql->rear = ql->head;
 }
@@ -45,8 +45,9 @@ void qlist_reset(qlist * ql) {
 	ql->rear = NULL;
 }
 
-int qlist_append(qlist * ql, query * q) {
-	if (ql->head->qe_qry == NULL) {
+int qlist_append(qlist * ql, query * q){
+
+	if (ql->head->qe_qry == NULL){
 		ql->head->qe_qry = q;
 		ql->head->qe_next = NULL;
 		ql->head->qe_prev = NULL;

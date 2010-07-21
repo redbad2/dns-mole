@@ -70,7 +70,9 @@ int sniffer_setup(void *mW) {
 	if (pcap_setfilter(mWorld->p, &filter) == -1) {
 		return PCAP_SETFILTER_ERROR;
 	}
-	
+
+        mWorld->query_list = (qlist *) malloc(sizeof(qlist));
+        qlist_init(mWorld->query_list);
 	return 0;
 }
 
@@ -80,7 +82,6 @@ void _dns_sniffer(int fd, short event, void *arg) {
 
     evtimer_add(&myMole->recv_ev, &myMole->tv);
    
-    printf("hehe\n");
     if(pcap_dispatch(myMole->p, 0,(void *) pcap_callback,(void *) myMole) < 0){
         fprintf(stderr,"[pcap] pcap_dispatch\n"); exit(EXIT_FAILURE);
     }
@@ -127,5 +128,6 @@ void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr, const u_char 
 	dns2query((u_char *)packet, pkthdr->len, q);
 	q->q_time = pkthdr->ts.tv_sec;
 	qlist_append(mWorld->query_list, q);
+        printf("%s\n",q->q_dname);
 }
 
