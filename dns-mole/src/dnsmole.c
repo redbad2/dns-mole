@@ -24,8 +24,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <event.h>
+#include <pcap.h>
 
-#include "../include/knowndomain.h"
+//#include "../include/analyze.h"
+//#include "../include/knowndomain.h"
 #include "../include/dnsmole.h"
 
 void usage(char *pname,const int exit_val){
@@ -51,106 +53,118 @@ int main(int argc,char **argv){
     char *whitelist_file = NULL;
     char *logfile = NULL;
     char *interface = NULL;
+    char ebuff[PCAP_ERRBUF_SIZE];
     int type = 0 , daemonize = 0, sniffer = 0, timeout = 10;
-    moleWorld mWorld;
+    struct moleWorld mWorld;
 
-	while((option = getopt(argc,argv,"b:w:t:l:o:dsh?")) > 0){
+	while((option = getopt(argc,argv,"b:w:t:l:o:i:r:dsh?")) > 0){
 	    switch(option){
-	        case 'b':
-		    blacklist_file = optarg;
-		    break;
+			case 'b':
+				blacklist_file = optarg;
+				break;
 
-		case 'w':
-		    whitelist_file = optarg;
-		    break;
+			case 'w':
+				whitelist_file = optarg;
+				break;
 
-		case 'l':
-		    logfile = optarg;
-		    break;
+			case 'l':
+				logfile = optarg;
+				break;
 
-                case 'r':
-                    timeout = atoi(optarg);
-                    break;
+			case 'r':
+				timeout = atoi(optarg);
+				break;
 		
-                case 't':
-		    mWorld.type = atoi(optarg);
-		    break;
+			case 't':
+				mWorld.type = atoi(optarg);
+				break;
 
-		case 'd':
-		    daemonize = 1;
-		    break;
+			case 'd':
+				daemonize = 1;
+				break;
 
-		case 's':
-		    sniffer = 1;
-		    break;
-                case 'i':
-                    interface = optarg;
-                    break;
+			case 's':
+				sniffer = 1;
+				break;
+		    
+			case 'i':
+				interface = optarg;
+				break;
 
-		case '?':
-		case 'h':
-		    usage(argv[0],EXIT_SUCCESS);
+			case '?':
+			case 'h':
+				usage(argv[0],EXIT_SUCCESS);
 
-		default:
-		    break;
+			default:
+				break;
 		}
 	}
     
     argc -= optind;
     argv += optind;
 
-    //set_signal_handler();
     mWorld.root_list = new_domain_structure("ROOT");
 
-    if(!type)
+    if(!mWorld.type){
 	fprintf(stderr,"\n[*] Please choose detection mode [ -t ]\n");
+	exit(EXIT_FAILURE);
+    }
 
-    if(!interface)
+    if(!interface){
         fprintf(stderr,"\n[*] Please set interface [ -i <interface> ]\n");
+        exit(EXIT_FAILURE);
+    }
     
     if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
             fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
     }
 
-    memcpy(mWorld.interface,interface,strlen(interface));
+    memcpy(mWorld.interface,interface,strlen(interface)+1);
 
     if(blacklist_file)
-	read_list(mWorld.root_list,blacklist_file,1);
+		read_list(mWorld.root_list,blacklist_file,1);
         
     if(whitelist_file)
-	read_list(mWorld.root_list,whitelist_file,0);
+		read_list(mWorld.root_list,whitelist_file,0);
     
-    if(!logfile)
+    if(!logfile){
         open_log(mWorld.log_fp,"mole_log"); 
-    else 
+    }
+    else{ 
         open_log(mWorld.log_fp,logfile);     
-
-	if(sniffer)
-		if(sniffer_setup(&mWorld, 0) < 0)
-			exit(EXIT_FAILURE);
-    //mWorld.pcap = pcap_openlive(interface,1500,1,500,ebuff);
+    }
     
+    mWorld.p = pcap_open_live(mWorld.interface, 1500, 0x02, 500, ebuff);
+    if (mWorld.p == NULL){
+	fprintf(stderr,"[pcap] pcap_open_live error\n"); exit(EXIT_FAILURE);
+    }
+
+    mWorld.dl_len = pcap_dloff(mWorld.p);
+	
     event_init();
     
-    mWorld.tv.tv_set = 0;
+    mWorld.tv.tv_sec = 0;
     mWorld.tv.tv_usec = 500;
 
-    mWorld.analyze_tv.tv_set = timeout;
-    mWorld.analyze_tv.tv_usec = 0;
-
-    mWorld.learn_tv.tv_set = timeout*10;
+    mWorld.learn_tv.tv_sec = timeout*2;
     mWorld.learn_tv.tv_usec = 0;
 
-    event_set(&mWorld.recv_ev, p_fd, _dns_sniffer, (void *)&mWorld);
+    mWorld.analyze_tv.tv_sec = mWorld.learn_tv.tv_sec;
+    mWorld.analyze_tv.tv_usec = 0;
+    
+    
+    mWorld.pcap_fd = pcap_fileno(mWorld.p);
+    event_set(&mWorld.recv_ev, mWorld.pcap_fd, EV_READ, _dns_sniffer, (void *)&mWorld);
     event_add(&mWorld.recv_ev, NULL);
 
     evtimer_set(&mWorld.learn_ev, _learn,(void *)&mWorld);
     evtimer_add(&mWorld.learn_ev,&mWorld.learn_tv);
     
-    evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
+    //evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
 
     event_dispatch();
+    
+    pcap_close(mWorld.p);
 
-    //cleanup();
     exit(EXIT_SUCCESS);
 }
