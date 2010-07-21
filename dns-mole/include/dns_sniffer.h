@@ -1,4 +1,4 @@
-/* dns_sniffer.c
+/* dns_sniffer.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -24,8 +24,6 @@
 
 #include <pcap.h>
 #include <net/ethernet.h>
-
-#include "dnsmole.h"
 #include "query.h"
 
 #define DNS_QUERY_FILTER "tcp src port 53 or udp src port 53"
@@ -83,12 +81,20 @@ struct dns_query_header {
  * count = -1 for infinite loop
  * count = 0 for stop until error
  */
- 
-int pcap_dloff(pcap_t *);
-
-void _dns_sniffer(int fd, short event, void *arg);
+int sniffer_setup(moleWorld * mWorld);
+int _dns_sniffer(int fd, short event, void *arg);
 
 void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet);
+
+/* handle ethernet packet */
+unsigned short get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkthdr,
+		const u_char * packet);
+
+void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr,
+		const u_char * packet);
+
+/* parse an ethernet packet to a query */
+void parse_to_query(unsigned char * packet, int len, query * q_store);
 
 #endif
