@@ -26,7 +26,7 @@
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
 
     kdomain *tdomain = search_domain;
-
+    fprintf(stdout,"%s\n",new_domain->name);
     if(!strcmp(search_domain->name,"ROOT") && !search_domain->kd_child){
         search_domain->kd_child = new_domain;
         search_domain->next = NULL;
@@ -201,26 +201,24 @@ void split_domain(char *line,pcre *re,char **split_structure){
 pcre *initialize_regex(){
     pcre *tre; 
     const char *error; int error_offset;
+    
     if((tre = pcre_compile("([a-z0-9\\.]*?)([a-z0-9]*?)\\.?([a-z0-9]+)\\.([a-z0-9]+)$",0,&error,&error_offset,NULL)) == NULL){
        fprintf(stderr,"[pcre] Error\n"); exit(EXIT_FAILURE); 
     }
     return tre;
 }
     
-void read_list(kdomain *root,const char *bl_filename,int type){
+void read_list(kdomain *root,const char *bl_filename,int type,pcre *re){
 	
     FILE *fp; char line[80];
-    pcre *re; 
-       
-    re = initialize_regex();
 
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
 			if(isalpha(line[0]) || isdigit(line[0])){ 		
-                            load_domain(line,re,root,type);
+				load_domain(line,re,root,type);
 			}
 		}
 	}
-    pcre_free(re);
+	
     fclose(fp);
 }

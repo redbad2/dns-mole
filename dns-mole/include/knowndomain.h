@@ -46,6 +46,6 @@ kdomain *new_domain_structure(char *);
 void load_domain(char *,pcre *,kdomain *,int);
 void split_domain(char *, pcre *,char **);
 pcre *initialize_regex();
-void read_list(kdomain *,const char *,int);
+void read_list(kdomain *,const char *,int,pcre *);
 
 #endif

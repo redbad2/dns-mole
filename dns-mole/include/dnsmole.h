@@ -25,6 +25,7 @@
 #include <event.h>
 #include <time.h>
 #include <pcap.h>
+#include <pcre.h>
 
 #include "query.h"
 #include "knowndomain.h"
@@ -36,14 +37,10 @@ struct moleWorld{
     kdomain *root_list;
     qlist *query_list;
     int type;
-
-    //int first = last = 0;
-    //int num = 0;
-    //int first_round = 0;
+    pcre *re;
 
     pcap_t *p;
     int pcap_fd;
-    int dl_len;
     
     char *interface;
 	

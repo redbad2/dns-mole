@@ -27,19 +27,21 @@ void _learn(int fd,short event,void *arg){
     moleWorld *myMole= (moleWorld *) arg;
 
     switch(myMole->type){
-        case 0:
+        case 1:
             fprintf(stdout,"calculate parameters for entropy detection\n");
             break;
-        case 1:
+        case 2:
             fprintf(stdout,"calculate parameters for wavelet detection\n");
             break;
     }
+    
     event_add(&myMole->analyze_ev,&myMole->analyze_tv);
 }
 
 void _analyzer(int fd,short event,void *arg){
 
     moleWorld *analyzeMole = (moleWorld *) arg;
-    
+    //kdomain *temp = search_domain("www.google.com",analyzeMole->root_list);
+    //fprintf(stdout,"%s\n",temp->name);
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
 }

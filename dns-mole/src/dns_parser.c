@@ -138,7 +138,7 @@ void get_domain_name(u_char ** dname, char * dst_name) {
 		t = (**dname);
 		if ((t >= 'a' && t <= 'z') || (t >= 'A' && t <= 'Z')
 				|| (t >= '0' && t <= '9') || (t == '-')) {
-			dst_name[i++] = t;
+			dst_name[i++] = t; 
 		}
 		else dst_name[i++] = '.';
 	}

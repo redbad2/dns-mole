@@ -34,7 +34,8 @@
 int sniffer_setup(void *mW) {
 	char *dev;
 	char errbuf[PCAP_ERRBUF_SIZE];
-        moleWorld *mWorld = (moleWorld *) mW;
+	
+    moleWorld *mWorld = (moleWorld *) mW;
 
 	if(getuid()) {
 		return PCAP_ROOT_ERROR;
@@ -71,14 +72,18 @@ int sniffer_setup(void *mW) {
 		return PCAP_SETFILTER_ERROR;
 	}
 
-        mWorld->query_list = (qlist *) malloc(sizeof(qlist));
-        qlist_init(mWorld->query_list);
+	/* initial structure */
+	
+    mWorld->query_list = (qlist *) malloc(sizeof(qlist));
+    qlist_init(mWorld->query_list);
+	
 	return 0;
 }
 
+/* callback function for pcap */
 
 void _dns_sniffer(int fd, short event, void *arg) {
-    struct moleWorld *myMole= (struct moleWorld *) arg;
+    struct moleWorld *myMole = (struct moleWorld *) arg;
 
     evtimer_add(&myMole->recv_ev, &myMole->tv);
    
@@ -88,46 +93,29 @@ void _dns_sniffer(int fd, short event, void *arg) {
 }
 
 
-/*
- * handle every packet captured
- */
-void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
-		const u_char * packet) {
+/* handle every packet captured */
 
-	unsigned short type = get_ethernet_type(args, pkthdr, packet);
-	switch (type){
-	    case ETHERTYPE_IP:
-		ip_handler(args, pkthdr, packet);
-		break;
-	}
-}
+void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
+		const u_char *packet) {
 
-/*
- * get type of ethernet packet, e.g. IP, ARP
- */
-unsigned short get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkthdr,
-		const u_char * packet) {
-
+	moleWorld *mWorld = (moleWorld *)args;
 	unsigned int length = pkthdr->len;
 	struct ether_header * ehdr;
 	unsigned short ether_type;
+	
 	ehdr = (struct ether_header *) packet;
 	ether_type = ntohs(ehdr->ether_type);
-	return ether_type;
+	
+	if(ether_type == ETHERTYPE_IP){
+		query *q = (query *)malloc(sizeof(query));
+		memset(q, 0, sizeof(query));
+		
+		dns2query((u_char *)packet, pkthdr->len, q);
+		q->q_time = pkthdr->ts.tv_sec;
+		qlist_append(mWorld->query_list, q);
+                printf("%s\n",q->q_dname);
+                q->q_dname[strlen(q->q_dname)+1]='\0';
+		load_domain(q->q_dname,mWorld->re,mWorld->root_list,1);
+		
+	}
 }
-
-/*
- * parse ip packet to query
- */
-void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr, const u_char * packet){
-
-	struct moleWorld * mWorld = (struct moleWorld *) args;
-
-	query * q = (query *)malloc(sizeof(query));
-	memset(q, 0, sizeof(query));
-	dns2query((u_char *)packet, pkthdr->len, q);
-	q->q_time = pkthdr->ts.tv_sec;
-	qlist_append(mWorld->query_list, q);
-        printf("%s\n",q->q_dname);
-}
-

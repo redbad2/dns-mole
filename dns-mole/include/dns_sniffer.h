@@ -86,19 +86,10 @@ struct dns_query_header {
  */
 
 int sniffer_setup(void *);
+
 void _dns_sniffer(int , short , void *);
 
 void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet);
-
-/* handle ethernet packet */
-unsigned short get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkthdr,
-		const u_char * packet);
-
-void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr,
-		const u_char * packet);
-
-/* parse an ethernet packet to a query */
-void parse_to_query(unsigned char * packet, int len, query * q_store);
 
 #endif
