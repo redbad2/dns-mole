@@ -34,12 +34,12 @@ void _learn(int fd,short event,void *arg){
             fprintf(stdout,"calculate parameters for wavelet detection\n");
             break;
     }
+    event_add(&myMole->analyze_ev,&myMole->analyze_tv);
 }
 
 void _analyzer(int fd,short event,void *arg){
 
     moleWorld *analyzeMole = (moleWorld *) arg;
     
-    //analyzeMole.analyze_tv.tv_sec ='
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
 }

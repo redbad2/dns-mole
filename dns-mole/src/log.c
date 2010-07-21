@@ -27,7 +27,7 @@ void open_log(FILE *fp,char *name){
 
     time_t now = time(NULL);
 
-    if((fp = fopen(name,"w+")) == NULL){
+    if((fp = fopen(name,"r+")) == NULL){
             fprintf(stderr,"[fopen] Can't open log file"); exit(EXIT_FAILURE);
     }
 
