@@ -24,14 +24,17 @@
 #include <net/ethernet.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "../include/dnsmole.h"
 #include "../include/dns_sniffer.h"
 #include "../include/error.h"
 #include "../include/dns_parser.h"
 
 
-int sniffer_setup(moleWorld * mWorld) {
-	char * dev;
+int sniffer_setup(void *mW) {
+	char *dev;
 	char errbuf[PCAP_ERRBUF_SIZE];
+        moleWorld *mWorld = (moleWorld *) mW;
 
 	if(getuid()) {
 		return PCAP_ROOT_ERROR;
@@ -72,14 +75,15 @@ int sniffer_setup(moleWorld * mWorld) {
 }
 
 
-int _dns_sniffer(int fd, short event, void *arg) {
-    int r;
+void _dns_sniffer(int fd, short event, void *arg) {
     struct moleWorld *myMole= (struct moleWorld *) arg;
 
-    evtimer_add(&myMole->recv_ev, &myMole->recv_tv);
-    
-    r = pcap_dispatch(myMole->p, 0, pcap_callback, myMole);
-    return r;
+    evtimer_add(&myMole->recv_ev, &myMole->tv);
+   
+    printf("hehe\n");
+    if(pcap_dispatch(myMole->p, 0,(void *) pcap_callback,(void *) myMole) < 0){
+        fprintf(stderr,"[pcap] pcap_dispatch\n"); exit(EXIT_FAILURE);
+    }
 }
 
 
@@ -88,13 +92,13 @@ int _dns_sniffer(int fd, short event, void *arg) {
  */
 void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet) {
+
 	unsigned short type = get_ethernet_type(args, pkthdr, packet);
-	switch (type) {
-	case ETHERTYPE_IP:
+	switch (type){
+	    case ETHERTYPE_IP:
 		ip_handler(args, pkthdr, packet);
 		break;
-	default:break;
-	};
+	}
 }
 
 /*
@@ -102,6 +106,7 @@ void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
  */
 unsigned short get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet) {
+
 	unsigned int length = pkthdr->len;
 	struct ether_header * ehdr;
 	unsigned short ether_type;
@@ -113,8 +118,10 @@ unsigned short get_ethernet_type (u_char * args, const struct pcap_pkthdr * pkth
 /*
  * parse ip packet to query
  */
-void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr, const u_char * packet) {
+void ip_handler (u_char * args, const struct pcap_pkthdr * pkthdr, const u_char * packet){
+
 	struct moleWorld * mWorld = (struct moleWorld *) args;
+
 	query * q = (query *)malloc(sizeof(query));
 	memset(q, 0, sizeof(query));
 	dns2query((u_char *)packet, pkthdr->len, q);

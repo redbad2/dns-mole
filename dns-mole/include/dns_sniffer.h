@@ -24,7 +24,10 @@
 
 #include <pcap.h>
 #include <net/ethernet.h>
+
 #include "query.h"
+#include "dnsmole.h"
+#include "knowndomain.h"
 
 #define DNS_QUERY_FILTER "tcp src port 53 or udp src port 53"
 #define IP_PROTOCOL_TCP 6
@@ -81,8 +84,9 @@ struct dns_query_header {
  * count = -1 for infinite loop
  * count = 0 for stop until error
  */
-int sniffer_setup(moleWorld * mWorld);
-int _dns_sniffer(int fd, short event, void *arg);
+
+int sniffer_setup(void *);
+void _dns_sniffer(int , short , void *);
 
 void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet);
