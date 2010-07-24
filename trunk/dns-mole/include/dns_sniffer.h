@@ -29,7 +29,7 @@
 #include "dnsmole.h"
 #include "knowndomain.h"
 
-#define DNS_QUERY_FILTER "tcp src port 53 or udp src port 53"
+#define DNS_QUERY_FILTER "port 53"
 #define IP_PROTOCOL_TCP 6
 #define IP_PROTOCOL_UDP 17
 
@@ -79,6 +79,12 @@ struct dns_query_header {
 	unsigned short dq_arc;
 };
 
+struct static_RR {
+	unsigned short r_type;
+	unsigned short r_class;
+	unsigned int r_ttl;
+	unsigned short r_rdlength;
+};
 
 /*
  * count = -1 for infinite loop
