@@ -41,7 +41,7 @@ void qlist_reset(qlist * ql) {
 	
 	while (q != NULL) {
 		p = q->qe_next;
-		free(q->qe_qry->q_value);
+		free(q->qe_qry->q_answers);
 		free(q->qe_qry);
 		free(q);
 		q = p;
@@ -147,7 +147,7 @@ void qlist_remove(qlist * ql, qentry * q){
 		}
 		
 		qentry *next = q->qe_next;
-		free(q->qe_qry->q_value);
+		free(q->qe_qry->q_answers);
 		free(q->qe_qry);
 		free(q);
 		next->qe_prev = NULL;
@@ -161,7 +161,7 @@ void qlist_remove(qlist * ql, qentry * q){
 		}
 		
 		qentry *prev = q->qe_prev;
-		free(q->qe_qry->q_value);
+		free(q->qe_qry->q_answers);
 		free(q->qe_qry);
 		free(q);
 		prev->qe_next = NULL;
@@ -170,10 +170,11 @@ void qlist_remove(qlist * ql, qentry * q){
 	else{
 		qentry *next = q->qe_next;
 		qentry *prev = q->qe_prev;
-		free(q->qe_qry->q_value);
+		free(q->qe_qry->q_answers);
 		free(q->qe_qry);
 		free(q);
 		next->qe_next = prev;
 		prev->qe_prev = next;
 	}
 }
+

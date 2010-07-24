@@ -26,9 +26,9 @@
 #include "../include/dns_parser.h"
 
 /* parse an DNS packet to a query */
-
 void dns2query(u_char * packet, int len, query * q_store) {
 	struct ip_header * iphdr = (struct ip_header *) (packet + sizeof(struct ether_header));
+	
 	struct dns_query_header * dqhdr;
 	if (iphdr->ip_proto == IP_PROTOCOL_TCP) {
 		dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header));
@@ -36,83 +36,84 @@ void dns2query(u_char * packet, int len, query * q_store) {
 	else if (iphdr->ip_proto == IP_PROTOCOL_UDP) {
 		dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
 	}
+	
+	// set src ip
 	q_store->q_srcip = iphdr->ip_src;
-	//q_store->q_time = time(NULL);
 
+	u_char * data = (u_char *)(dqhdr + sizeof(struct dns_query_header));
+	
+	int qnum = ntohs(dqhdr->dq_qc);
+	int anum = ntohs(dqhdr->dq_ac);
+	// set answer number
+	q_store->q_ansnum = anum;
+	
+	int size = get_url_size(data);
+	data += extract_question(data, q_store);
+	q_store->q_answers = malloc(anum * sizeof(answer));
+	data += extract_answers(data, (u_char *)dqhdr, anum, q_store);
+	
+	if (qnum > 1) {
+		// to do
+		// if questions number > 1 then
+	}
+}
 
-/*
- * Resource Record format(Answer section)
- * 0                16                32
- * +--------+--------+--------+--------+
- * |                                   |
- * ~               NAME                ~
- * |                                   |
- * +--------+--------+--------+--------+
- * |      TYPE       |      CLASS      |
- * +--------+--------+--------+--------+
- * |                TTL                |
- * +--------+--------+--------+--------+
- * | DATA LENGTH     |                 |
- * +-----------------+                 +
- * |                                   |
- * ~             DATA                  ~
- * |                                   |
- * +-----------------------------------+
- */
-	u_char * dname;
-	if (iphdr->ip_proto == IP_PROTOCOL_TCP) {
-		dname = (char *)(packet	+ iphdr->ip_ihl * 4 + sizeof(struct tcp_header) + sizeof(struct ether_header) + sizeof(struct dns_query_header));
-	}
-	else if (iphdr->ip_proto == IP_PROTOCOL_UDP) {
-		dname = (char *)(packet	+ iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct ether_header) + sizeof(struct dns_query_header));
-	}
-	
-	u_char name[MAX_LENGTH];
-	dname++;
-	get_domain_name(&dname, name);
-	dname += 4;
-	strcpy(q_store->q_dname, name);
+int get_url_size(u_char * data) {
+	int i = 0;
+	int toskip = data[0];
 
-	if (ntohs(dqhdr->dq_qc) > 1) {
-		skip_question_section(dqhdr->dq_qc, dname);
+	while(toskip != 0){
+		i += toskip + 1;
+		toskip = data[i];
 	}
-	
-	skip_name(&dname);
-	if (DQH_QR(dqhdr) == 0)
-		return;
-		
-	q_store->q_type = ntohs(*((unsigned short *)dname));
-	dname += 4;
-	q_store->q_ttl = ntohl(*((unsigned int *)dname));
-	dname += 4;
-	
-	
-	unsigned short rs_data_len = ntohs(*((unsigned short *)dname));
-	dname += 2;
-	switch (q_store->q_type) {
+
+	return i + 1;
+}
+
+int extract_question(u_char * data, query * q) {
+	return get_url(data, q->q_dname);
+}
+
+int extract_answers(u_char * data, u_char * start, int num, query * q) {
+	int i;
+	int size = 0;
+	for	(i = 0; i < num; i++) {
+		struct static_RR * rr = (struct static_RR *)data;
+		q->q_answers[i].ttl = ntohl(rr->r_ttl);
+		q->q_answers[i].type = ntohs(rr->r_type);
+		data += sizeof(struct static_RR);
+		extract_value(data, start, q->q_answers[i].type, &q->q_answers[i].value, ntohs(rr->r_rdlength));
+		data += ntohs(rr->r_rdlength);
+		size += sizeof(struct static_RR) + ntohs(rr->r_rdlength);
+	}
+	return size;
+}
+
+void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int length) {
+	u_char * value = (*dst);
+	switch (type) {
 	case RR_TYPE_A:
-		q_store->q_value = (char *)malloc(5);
-		strncpy(q_store->q_value, dname, 4);
+		value = (u_char *)malloc(5);
+		strncpy(value, data, 4);
 		return;
 	case RR_TYPE_NS:
 	case RR_TYPE_CNAME:
 	case RR_TYPE_PTR:{
-		u_char * value = (u_char *)malloc(MAX_LENGTH);
-		int value_size = get_dns_value(dname, (u_char *)dqhdr, &value, rs_data_len);
-		q_store->q_value = (char *)malloc(value_size);
-		strcpy(q_store->q_value, value);
-		free(value);
+		u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
+		int value_size = get_dns_value(data, start, &temp_val, length);
+		value = (u_char *)malloc(value_size);
+		strcpy(value, temp_val);
+		free(temp_val);
 		return;
 		}
 	case RR_TYPE_MX: {
-		u_char * value = (u_char *)malloc(MAX_LENGTH);
-		int value_size = get_dns_value(dname + 2, (u_char *)dqhdr, &value, rs_data_len);
-		q_store->q_value = (char *)malloc(value_size + 2);
-		q_store->q_value[0] = (*dname);
-		dname++;
-		q_store->q_value[1] = (*dname);
-		strcpy(&q_store->q_value[2], value);
-		free(value);
+		u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
+		int value_size = get_dns_value(data + 2, start, &temp_val, length);
+		value = (u_char *)malloc(value_size + 2);
+		value[0] = data[0];
+		value[1] = data[1];
+		strcpy(&value[2], temp_val);
+		free(temp_val);
 		return;
 		}
 	default:
@@ -121,45 +122,23 @@ void dns2query(u_char * packet, int len, query * q_store) {
 	}
 }
 
-void skip_question_section(int qc, u_char * packet) {
-	while (qc > 0) {
-		qc--;
-		while ((*packet) != 0)
-			packet++;
-		packet++;
-		packet += 4;
+int get_url(u_char * data, u_char * dst) {
+	int i = 1;
+	int toread = data[0];
+	int start = 1;
+	int j = 0;
+	
+	while (toread != 0) {
+		for (; i < toread + start; i++)
+			dst[j++] = data[i];
+		dst[j++] = '.';
+		toread = data[i++];
+		start = i;
 	}
+	dst[j - 1] = '\0';
+	return i;
 }
 
-void get_domain_name(u_char ** dname, char * dst_name) {
-	int i = 0;
-	char t;
-	for (; (**dname) != 0; (*dname)++) {
-		t = (**dname);
-		if ((t >= 'a' && t <= 'z') || (t >= 'A' && t <= 'Z')
-				|| (t >= '0' && t <= '9') || (t == '-')) {
-			dst_name[i++] = t; 
-		}
-		else dst_name[i++] = '.';
-	}
-	dst_name[i] = '\0';
-	(*dname)++;
-}
-
-void skip_name(u_char ** dname) {
-	if ((**dname) == 0xC0) {
-		(*dname) += 2;
-		return;
-	}
-	else if ((**dname) != 0) {
-		(*dname)++;
-		skip_name(&(*dname));
-	}
-	else {
-		(*dname)++;
-		return;
-	}
-}
 
 int get_dns_value(u_char * value_place, u_char * dns_place, u_char ** dst, int len) {
 	u_char * val = (*dst);
