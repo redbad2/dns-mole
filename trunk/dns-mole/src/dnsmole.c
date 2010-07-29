@@ -34,7 +34,7 @@ void usage(char *pname,const int exit_val){
 		   "\t\t -w <filename>\t :whitelist filename\n"
 		   "\t\t -l <filename>\t :log file\n"
                    "\t\t -i <interface>\t : set interface\n"
-                   "\t\t -r <timeout>\t: set timeout\n"
+                   "\t\t -r <timeout>\t : set timeout\n"
 		   "\t\t -t <0|1>\n"
 		   "\t\t\t\t 1 - Anomaly detection using entropy\n"
 		   "\t\t\t\t 2 - Wavelet analysis\n\n"
@@ -117,8 +117,6 @@ int main(int argc,char **argv){
 
     memcpy(mWorld.interface,interface,strlen(interface)+1);
     
-    mWorld.query_list = malloc(sizeof(qlist));
-    qlist_init(mWorld.query_list);
 
     if(blacklist_file)
 		read_list(mWorld.root_list,blacklist_file,1,mWorld.re);
@@ -162,14 +160,13 @@ int main(int argc,char **argv){
         event_dispatch();
     }
     
-    print2file(mWorld.query_list);
     
 	if(sniffer)
 		pcap_close(mWorld.p); 
 		
 	pcre_free(mWorld.re);
 	// bug here!!
-	//close_log(mWorld.log_fp);
+	close_log(mWorld.log_fp);
 	
 	fprintf(stdout,"... remember when you were young ... \n");
     exit(EXIT_SUCCESS);

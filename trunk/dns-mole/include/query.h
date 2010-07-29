@@ -48,31 +48,18 @@ typedef struct answer {
 } answer;
 
 typedef struct Query {
-	char q_dname[MAX_LENGTH];
-	time_t q_time;
-	unsigned int q_srcip;
-	int q_ansnum;
-	answer * q_answers;
+	char dname[MAX_LENGTH];
+	time_t time;
+	unsigned int srcip;
+	int ansnum;
+	answer * answers;
+	struct Query * prev;
+	struct Query * next;
 } query;
 
-typedef struct Qlist_entry {
-	struct Query * qe_qry;
-	struct Qlist_entry * qe_next;
-	struct Qlist_entry * qe_prev;
-} qentry;
-
-typedef struct Qlist {
-	qentry * head;
-	qentry * rear;
-} qlist;
-
-
-void qlist_init(qlist * ql);
-void qlist_reset(qlist * ql);
-int qlist_append(qlist * ql, query * q);
-int qlist_insert_before(qlist * ql, qentry * qe, query * q);
-int qlist_insert_after(qlist * ql, qentry * qe, query * q);
-void qlist_remove(qlist * ql, qentry * q);
-void print_qlist_to_file(qlist * ql);
+void query_empty(query * q);
+void query_insert_before(query * q1, query * q2);
+void query_insert_after(query * q1, query * q2);
+void query_remove(query * q);
 
 #endif /* DNSM_QUERY_H */

@@ -30,26 +30,30 @@ void dns2query(u_char * packet, int len, query * q_store) {
 	struct ip_header * iphdr = (struct ip_header *) (packet + sizeof(struct ether_header));
 	
 	struct dns_query_header * dqhdr;
+	u_char * data;
 	if (iphdr->ip_proto == IP_PROTOCOL_TCP) {
 		dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header));
+		data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header) + sizeof(struct dns_query_header));
 	}
 	else if (iphdr->ip_proto == IP_PROTOCOL_UDP) {
 		dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
+		data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct dns_query_header));
 	}
 	
 	// set src ip
-	q_store->q_srcip = iphdr->ip_src;
-
-	u_char * data = (u_char *)(dqhdr + sizeof(struct dns_query_header));
+	q_store->srcip = iphdr->ip_src;
 	
 	int qnum = ntohs(dqhdr->dq_qc);
 	int anum = ntohs(dqhdr->dq_ac);
 	// set answer number
-	q_store->q_ansnum = anum;
+	q_store->ansnum = anum;
 	
-	int size = get_url_size(data);
-	data += extract_question(data, q_store);
-	q_store->q_answers = malloc(anum * sizeof(answer));
+	//int size = get_url_size(data);
+	data += extract_question(data, q_store) + 4;
+	
+	if (anum == 0)
+		return;
+	q_store->answers = malloc(anum * sizeof(answer));
 	data += extract_answers(data, (u_char *)dqhdr, anum, q_store);
 	
 	if (qnum > 1) {
@@ -71,18 +75,29 @@ int get_url_size(u_char * data) {
 }
 
 int extract_question(u_char * data, query * q) {
-	return get_url(data, q->q_dname);
+	return get_url(data, q->dname);
 }
 
 int extract_answers(u_char * data, u_char * start, int num, query * q) {
 	int i;
 	int size = 0;
 	for	(i = 0; i < num; i++) {
+		while ((*data) != 0) {
+			if (((*data) & 0xC0) == 0XC0) {
+				data += 2;
+				size += 2;
+				break;
+			}
+			else {
+				size++;
+				data++;
+			}
+		}
 		struct static_RR * rr = (struct static_RR *)data;
-		q->q_answers[i].ttl = ntohl(rr->r_ttl);
-		q->q_answers[i].type = ntohs(rr->r_type);
-		data += sizeof(struct static_RR);
-		extract_value(data, start, q->q_answers[i].type, &q->q_answers[i].value, ntohs(rr->r_rdlength));
+		q->answers[i].ttl = ntohl(rr->r_ttl);
+		q->answers[i].type = ntohs(rr->r_type);
+		data += sizeof(struct static_RR) - 2;
+		extract_value(data, start, q->answers[i].type, &q->answers[i].value, ntohs(rr->r_rdlength));
 		data += ntohs(rr->r_rdlength);
 		size += sizeof(struct static_RR) + ntohs(rr->r_rdlength);
 	}
@@ -90,29 +105,28 @@ int extract_answers(u_char * data, u_char * start, int num, query * q) {
 }
 
 void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int length) {
-	u_char * value = (*dst);
 	switch (type) {
 	case RR_TYPE_A:
-		value = (u_char *)malloc(5);
-		strncpy(value, data, 4);
+		(*dst) = (u_char *)malloc(5);
+		strncpy((*dst), data, 4);
 		return;
 	case RR_TYPE_NS:
 	case RR_TYPE_CNAME:
 	case RR_TYPE_PTR:{
 		u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
 		int value_size = get_dns_value(data, start, &temp_val, length);
-		value = (u_char *)malloc(value_size);
-		strcpy(value, temp_val);
+		(*dst) = (u_char *)malloc(value_size);
+		strcpy((*dst), temp_val);
 		free(temp_val);
 		return;
 		}
 	case RR_TYPE_MX: {
 		u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
 		int value_size = get_dns_value(data + 2, start, &temp_val, length);
-		value = (u_char *)malloc(value_size + 2);
-		value[0] = data[0];
-		value[1] = data[1];
-		strcpy(&value[2], temp_val);
+		(*dst) = (u_char *)malloc(value_size + 2);
+		(*dst)[0] = data[0];
+		(*dst)[1] = data[1];
+		strcpy(&(*dst)[2], temp_val);
 		free(temp_val);
 		return;
 		}

@@ -74,8 +74,9 @@ int sniffer_setup(void *mW) {
 
 	/* initial structure */
 	
-    mWorld->query_list = (qlist *) malloc(sizeof(qlist));
-    qlist_init(mWorld->query_list);
+	mWorld->qlist_head = (query *)malloc(sizeof(query));
+	memset(mWorld->qlist_head, 0, sizeof(query));
+	mWorld->qlist_rear = mWorld->qlist_head;
 	
 	return 0;
 }
@@ -93,11 +94,11 @@ void _dns_sniffer(int fd, short event, void *arg) {
 }
 
 
-/* handle every packet captured */
+/* handle every packet capturedmWorld.qlist_head = (query *)malloc(sizeof(query));
+    mWorld.qlist_rear; */
 
 void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
 		const u_char *packet) {
-
 	moleWorld *mWorld = (moleWorld *)args;
 	unsigned int length = pkthdr->len;
 	struct ether_header * ehdr;
@@ -111,11 +112,11 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
 		memset(q, 0, sizeof(query));
 		
 		dns2query((u_char *)packet, pkthdr->len, q);
-		q->q_time = pkthdr->ts.tv_sec;
-		qlist_append(mWorld->query_list, q);
-                printf("%s\n",q->q_dname);
-                q->q_dname[strlen(q->q_dname)+1]='\0';
-		load_domain(q->q_dname,mWorld->re,mWorld->root_list,1);
+		q->time = pkthdr->ts.tv_sec;
+		query_insert_after(mWorld->qlist_rear, q);
+		print(q);
+                //q->dname[strlen(q->dname)+1]='\0';
+		load_domain(q->dname,mWorld->re,mWorld->root_list,1);
 		
 	}
 }

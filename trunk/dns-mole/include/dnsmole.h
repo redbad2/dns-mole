@@ -35,7 +35,8 @@
 struct moleWorld{
 
     kdomain *root_list;
-    qlist *query_list;
+    query * qlist_head;
+    query * qlist_rear;
     int type;
     pcre *re;
 
