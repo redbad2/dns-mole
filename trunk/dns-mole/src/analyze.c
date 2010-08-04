@@ -41,7 +41,29 @@ void _learn(int fd,short event,void *arg){
 void _analyzer(int fd,short event,void *arg){
 
     moleWorld *analyzeMole = (moleWorld *) arg;
-    //kdomain *temp = search_domain("www.google.com",analyzeMole->root_list);
-    //fprintf(stdout,"%s\n",temp->name);
+    int num_packets = analyzeMole->count;
+
+    kdomain *temp_domain;
+    analyzeMole->count = 0;
+
+    int count = 0;
+
+    /* for(count = 0; count < num_packets; count++){
+        if((temp_domain = search_domain(q_temp->qe_qry->q_dname,analyzeMole->root_list)) != NULL){
+            if(temp_domain->type == 1){
+               
+                temp_domain->last_seen = time(NULL);
+            }
+            else if(temp_domain->type == ){
+            }
+
+            q_temp = q_temp->next;
+            q_temp->prev = qtemp->prev->prev;
+            free(q_temp->prev);
+        }
+    */
+    //write_log(analyzeMole->log_fp,1,"heha");
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
 }
+
+
