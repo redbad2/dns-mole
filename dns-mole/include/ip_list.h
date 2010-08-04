@@ -1,4 +1,4 @@
-/* dnsmole.h
+/* query.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,48 +19,40 @@
  * $Id$
  */
 
-#ifndef DNM_DNSMOLE_H
-#define DNM_DNSMOLE_H
+#ifndef DNSM_IP_LIST_H
+#define DNSM_IP_LIST_H
 
-#include <event.h>
 #include <time.h>
-#include <pcap.h>
-#include <pcre.h>
+#include <sys/types.h>
 
-#include "query.h"
-#include "knowndomain.h"
-#include "dns_sniffer.h"
-#include "analyze.h"
-#include "ip_list.h"
+struct ip_domains{
 
-struct moleWorld{
-
-    kdomain *root_list;
-    query * qlist_head;
-    query * qlist_rear;
-    ip_list *bad_ip;
-
-    int type;
+    char *d_name; 
     int count;
-    pcre *re;
-
-    pcap_t *p;
-    int pcap_fd;
-    
-    char *interface;
-	
-    struct event recv_ev;
-    struct event learn_ev;
-    struct event analyze_ev;
-
-    struct timeval tv;
-    struct timeval learn_tv;
-    struct timeval analyze_tv;
-
-    FILE *log_fp;
+    struct ip_domains *next;
+    struct ip_domains *prev;
 
 };
 
-typedef struct moleWorld moleWorld;
+struct bad_ip_structure{
+
+    unsigned int ip;
+    struct ip_domains *q_domains;
+    struct bad_ip_structure *prev;
+    struct bad_ip_structure *next;
+    int type;
+
+};
+
+typedef struct ip_domains domains;
+typedef struct bad_ip_structure ip_list;
+
+ip_list *ip_new(unsigned int, char *);
+domains *new_domain(char *);
+void ip_insert(ip_list *, ip_list *);
+void ip_remove(ip_list *);
+ip_list *search_ip(ip_list *, unsigned int);
+void ip_add_domain(ip_list *,char *);
+void ip_remove_domain(ip_list *,char *);
 
 #endif

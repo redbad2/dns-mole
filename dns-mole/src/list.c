@@ -26,7 +26,7 @@
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
 
     kdomain *tdomain = search_domain;
-    fprintf(stdout,"%s\n",new_domain->name);
+    printf("%s\n",new_domain->name);
     if(!strcmp(search_domain->name,"ROOT") && !search_domain->kd_child){
         search_domain->kd_child = new_domain;
         search_domain->next = NULL;
@@ -88,10 +88,11 @@ void domain_child_free(kdomain *domain_free){
 void domain_add_cname(char *domain_name,char *name,kdomain *root_domain){
 
     kdomain *temp_domain = search_domain(domain_name,root_domain);
+    
     if((temp_domain->cname = malloc(strlen(name)*sizeof(char) + 1)) == NULL){
         fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
     }
-    memcpy(temp_domain->cname,name,strlen(name));
+    memcpy(temp_domain->cname,name,strlen(name)+1);
 }
 
 kdomain *search_domain(char *name,kdomain *root_domain){
@@ -130,7 +131,7 @@ kdomain *new_domain_structure(char *name){
         if((tmp_domain->name = malloc(strlen(name) * sizeof(char) +1)) == NULL){
            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE); 
         }
-        memcpy(tmp_domain->name,name,strlen(name));
+        memcpy(tmp_domain->name,name,strlen(name)+1);
         tmp_domain->kd_child = tmp_domain->next = tmp_domain->prev = NULL;
         tmp_domain->cname = NULL;
         tmp_domain->suspicious = FALSE;
@@ -190,7 +191,7 @@ void split_domain(char *line,pcre *re,char **split_structure){
             if((split_structure[rc-1 - i] = malloc(strlen(nice_substring)+1)) == NULL){
                 fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
             }
-            memcpy(split_structure[rc-1 - i],nice_substring,strlen(nice_substring));
+            memcpy(split_structure[rc-1 - i],nice_substring,strlen(nice_substring)+1);
         }
         else {
             split_structure[rc-1 - i] = NULL;
