@@ -23,11 +23,11 @@
 #include <time.h>
 #include <stdlib.h>
 
-void open_log(FILE *fp,char *name){
+void open_log(FILE **fp,char *name){
 
     time_t now = time(NULL);
 
-    if((fp = fopen(name,"w+")) == NULL){
+    if((fp = fopen(name,"a+")) == NULL){
             fprintf(stderr,"[fopen] Can't open log file\n"); 
             exit(EXIT_FAILURE);
     }
@@ -36,7 +36,7 @@ void open_log(FILE *fp,char *name){
 }
 
 
-void close_log(FILE *fp){
+void close_log(FILE **fp){
 
     time_t now = time(NULL);
 
@@ -47,24 +47,9 @@ void close_log(FILE *fp){
     }
 }
 
-/* void write_log(FILE *fp,int type,...){
+void write_log(FILE *fp,int type,char *msg){
     
-    char *logline = (char *)malloc(sizeof(char) * 80);
-
-    switch(type){
-        case 0:
-            memcpy(logline,"[blacklist]",10);
-            break;
-        case 1:
-            memcpy(logline,"[entropy method]",16);
-            break;
-        case 2:
-            memcpy(logline,"[xyz]",5);
-            break;
-    }
-
-    fprintf(fp,"%s %s : %s",logline,
-
+    fprintf(fp,"%d - %s\n",type,msg);
+    fflush(fp);
 }
 
-need to be done */

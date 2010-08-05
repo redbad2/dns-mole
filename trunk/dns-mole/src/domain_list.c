@@ -37,12 +37,21 @@ query_domain *new_query_domain(char *name){
     fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
 }
 
-void add_ip_2_domain(query_domain *main,ip_list *ip){
+void add_ip_2_domain(query_domain *main,void *t){
     d_2_ip *t_s;
+    ip_list *ip = (ip_list *) t;
     
-    if(main == NULL)
-
-        main->ip = ip;
+    if(main == NULL){
+        
+        if((t_s = (d_2_ip *) malloc(sizeof(d_2_ip))) == NULL){
+            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
+        }
+        
+        t_s->ip = ip;
+        t_s->count = 1;
+        t_s->prev = t_s->next = NULL;
+    
+    }
 
     else{
 
@@ -98,13 +107,9 @@ void free_ip_in_domain(d_2_ip *temp){
 
 void remove_domain(query_domain *dom){
 
-    remove_ip_in_domain(dom->ip);
-    free(name);
+    free_ip_in_domain(dom->ip);
+    free(dom->name);
     dom->prev->next = dom->next;
     dom->next->prev = dom->prev;
     free(dom);
 }
-
-
-
-

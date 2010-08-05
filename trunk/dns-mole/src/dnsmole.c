@@ -130,10 +130,10 @@ int main(int argc,char **argv){
 	read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
     
     if(!logfile){
-        open_log(mWorld.log_fp,"mole_log");
+        open_log(&mWorld.log_fp,"mole_log");
     }
     else{ 
-        open_log(mWorld.log_fp,logfile);     
+        open_log(&mWorld.log_fp,logfile);     
     }
 
     if(sniffer){
