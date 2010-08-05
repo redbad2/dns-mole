@@ -65,8 +65,14 @@ void query_insert_after(query * q1, query * q2) {
 void query_remove(query * q) {
 	query * prev = q->prev;
 	query * next = q->next;
-	prev->next = next;
-	next->prev = prev;
+	if (prev != NULL && next != NULL) {
+		prev->next = next;
+		next->prev = prev;
+	}
+	else if (prev != NULL)
+		prev->next = NULL;
+	else if (next != NULL)
+		next->prev = NULL;
 	free(q->answers);
 	free(q);
 }

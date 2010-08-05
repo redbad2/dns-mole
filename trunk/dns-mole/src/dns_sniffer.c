@@ -74,8 +74,8 @@ int sniffer_setup(void *mW) {
 
 	/* initial structure */
 	
-	mWorld->qlist_head = (query *)malloc(sizeof(query));
-	memset(mWorld->qlist_head, 0, sizeof(query));
+	//mWorld->qlist_head = (query *)malloc(sizeof(query));
+	//memset(mWorld->qlist_head, 0, sizeof(query));
         mWorld->qlist_rear = mWorld->qlist_head;
         mWorld->count = 0;
 	
@@ -114,7 +114,12 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
 		
 		dns2query((u_char *)packet, pkthdr->len, q);
 		q->time = pkthdr->ts.tv_sec;
-		query_insert_after(mWorld->qlist_rear, q);
+		if (mWorld->qlist_head == NULL) {
+			mWorld->qlist_head = q;
+			mWorld->qlist_rear = q;
+		}
+		else 
+			query_insert_after(mWorld->qlist_rear, q);
                 mWorld->count++;
 		kdomain * tdomain = search_domain(q->dname, mWorld->root_list);
 		if (tdomain != NULL && tdomain->suspicious == 1) {
