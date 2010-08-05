@@ -35,19 +35,12 @@ void _learn(int fd,short event,void *arg){
     event_add(&myMole->analyze_ev,&myMole->analyze_tv);
 }
 
-void print_l(kdomain *root){
-    if(root){
-        print_l(root->next);
-        printf("%s\n",root->name);
-    }
-}
 void _analyzer(int fd,short event,void *arg){
 
     moleWorld *analyzeMole = (moleWorld *) arg;
     int num_packets = analyzeMole->count;
 
     analyzeMole->count = 0;
-    printf("XXXXXXXXXXX\n");
     switch(analyzeMole->type){
         case 1:
             blacklist_method(num_packets,(void *) analyzeMole);
@@ -64,10 +57,11 @@ void blacklist_method(int num,void *black){
     
     int cnt;
     query *t_query;
-    kdomain *t_dom;
+    kdomain *list_domain;
     ip_list *t_ip,*ip_head,*ip_rear;
-    query_domain *dom,*dom_head,*dom_rear;
-    domains *t_domains;
+    query_domain *dom,*dom_head,*dom_rear, *dom_helper;
+    domains *t_domains, *t_domains_helper;
+    d_2_ip *domain_ip_list, *domain_ip_list_helper;
     int domain_count;
     int t_level = -1;
 
@@ -76,10 +70,10 @@ void blacklist_method(int num,void *black){
    
     for(cnt = 0; cnt < num; cnt++){
         t_query = blackMole->qlist_head;
-        t_dom = search_domain(t_query->dname,blackMole->root_list);
+        list_domain= search_domain(t_query->dname,blackMole->root_list);
 
-        if(t_dom)
-            t_level = t_dom->suspicious;
+        if(list_domain)
+            t_level = list_domain->suspicious;
 
         if(ip_head == NULL){
             ip_head = ip_rear = ip_new(t_query->srcip,t_query->dname,t_level);
@@ -122,20 +116,47 @@ void blacklist_method(int num,void *black){
         }
                 
         blackMole->qlist_head = blackMole->qlist_head->next;
-        //query_remove(t_query);
+        query_remove(t_query);
     }
 
-    //t_ip = ip_head;
-    //while(t_ip){
-      //  if(t_ip->num != 0){
-        //    if(((float) t_ip->sum/t_ip->num) > 0.6){
-          //      
-            //}
-        //}
-    //} 
+    float index = 0;
+
+    for(cnt = 0; cnt < 2; cnt++){
+        dom = dom_head;
+        while(dom){
+            if(dom->type <= 0.1){
+                domain_ip_list = dom->ip;
+                while(domain_ip_list){
+                    domain_count = domain_ip_list->count;
+                    domain_ip_list->ip->num -= domain_count;
+                    ip_remove_domain(domain_ip_list->ip,dom->name);
+                    domain_ip_list = domain_ip_list->next;
+                }
+                remove_domain(dom);
+            }
+            else(dom->type == -1 && cnt == 1){
+                index = 0.0;
+                dom_helper = dom_head;
+                while(dom_helper){
+                    if(dom_helper >= 0.9){
+                        domain_ip_list_helper = dom_helper->ip;
+                        index += calculate_blacklist_heuristics(dom_ip_list_helper,dom_ip_list);
+                    }
+                    dom_helper = dom_helper->next;
+                }
+
+                // do something with index;
+            }
+
+            dom = dom->next;
+        }
+    }
 
    clean_domain_structure(dom_head);
    clean_ip_structure(ip_head);
 }
 
+float calculate_blacklist_heuristics(void *bad,struct void *good){
+
+}
 

@@ -23,3 +23,4 @@ void _learn(int ,short ,void *);
 void _analyzer(int ,short ,void *);
 
 void blacklist_method(int ,void *);
+float calculate_blacklist_heuristics(void *bad,void *good);
