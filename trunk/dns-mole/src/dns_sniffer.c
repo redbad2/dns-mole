@@ -76,7 +76,7 @@ int sniffer_setup(void *mW) {
 	
 	//mWorld->qlist_head = (query *)malloc(sizeof(query));
 	//memset(mWorld->qlist_head, 0, sizeof(query));
-        mWorld->qlist_rear = mWorld->qlist_head;
+        mWorld->qlist_rear = mWorld->qlist_head = NULL;
         mWorld->count = 0;
 	
 	return 0;
@@ -111,7 +111,6 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
 	if(ether_type == ETHERTYPE_IP){
             query *q = (query *)malloc(sizeof(query));
 		memset(q, 0, sizeof(query));
-		
 		dns2query((u_char *)packet, pkthdr->len, q);
 		q->time = pkthdr->ts.tv_sec;
 		if (mWorld->qlist_head == NULL) {
@@ -119,12 +118,7 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
 			mWorld->qlist_rear = q;
 		}
 		else 
-			query_insert_after(mWorld->qlist_rear, q);
+		    query_insert_after(mWorld->qlist_rear, q);
                 mWorld->count++;
-		kdomain * tdomain = search_domain(q->dname, mWorld->root_list);
-		if (tdomain != NULL && tdomain->suspicious == 1) {
-			printf("[alert] %s queries %s\n", (char *)inet_ntoa(q->srcip), q->dname);
-		}
-		else printf("[normal] %s queries %s\n", (char *)inet_ntoa(q->srcip), q->dname);
 	}
 }
