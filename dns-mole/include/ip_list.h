@@ -57,4 +57,7 @@ void ip_remove_domain(ip_list *,char *);
 int return_count(ip_list *,char *);
 void add_count(ip_list *,char *);
 
+void clean_ip_2_domains(domains *);
+void clean_ip_structure(ip_list *);
+
 #endif

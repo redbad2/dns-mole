@@ -47,14 +47,14 @@ void _analyzer(int fd,short event,void *arg){
     int num_packets = analyzeMole->count;
 
     analyzeMole->count = 0;
-
+    printf("XXXXXXXXXXX\n");
     switch(analyzeMole->type){
         case 1:
             blacklist_method(num_packets,(void *) analyzeMole);
             break;
     }
                    
-    //event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+    event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
                     
 }                    
                     
@@ -72,25 +72,26 @@ void blacklist_method(int num,void *black){
     int t_level = -1;
 
     ip_head = ip_rear = NULL;
+    dom_head = dom_rear =  NULL;
    
-    printf("%i\n",num);
-    for(cnt = 0; cnt <= num; cnt++){
+    for(cnt = 0; cnt < num; cnt++){
         t_query = blackMole->qlist_head;
-        printf("%s\n",t_query->dname);
         t_dom = search_domain(t_query->dname,blackMole->root_list);
 
         if(t_dom)
             t_level = t_dom->suspicious;
 
-        if(ip_head == NULL)
+        if(ip_head == NULL){
             ip_head = ip_rear = ip_new(t_query->srcip,t_query->dname,t_level);
-        
+        }
         else{
             if(!(t_ip = search_ip(ip_head,t_query->srcip))){
-                if((domain_count = return_count(t_ip,t_query->dname)) > 0)
+                if((domain_count = return_count(t_ip,t_query->dname)) > 0){
                     add_count(t_ip,t_query->dname);
-                else
+                }
+                else{
                     ip_add_domain(t_ip,t_query->dname,t_level);
+                }
             }   
             else{
                 t_ip = ip_new(t_query->srcip,t_query->dname,t_level);
@@ -99,18 +100,19 @@ void blacklist_method(int num,void *black){
                 ip_rear = t_ip;
             }
         }  
-        
+         
         if(t_level >= 0){
             t_ip->num++;
             t_ip->sum += t_level;
         }
 
-        if(dom_head == NULL)
+        if(dom_head == NULL){
             dom_head = dom_rear = new_query_domain(t_query->dname);
-        
+        }
         else{
-            if((dom = find_by_name(dom_head,t_query->dname)) != 0)
+            if((dom = find_by_name(dom_head,t_query->dname)) != 0){
                 add_ip_2_domain(dom,(void *)t_ip);
+            }
             else{
                 dom = new_query_domain(t_query->dname);
                 dom->prev = dom_rear;
@@ -120,19 +122,20 @@ void blacklist_method(int num,void *black){
         }
                 
         blackMole->qlist_head = blackMole->qlist_head->next;
-        query_remove(t_query);
+        //query_remove(t_query);
     }
 
-    t_ip = ip_head;
-    while(t_ip){
-        if(t_ip->num != 0){
-            if(((float) t_ip->sum/t_ip->num) > 0.6){
-                
-            }
-        }
-    } 
+    //t_ip = ip_head;
+    //while(t_ip){
+      //  if(t_ip->num != 0){
+        //    if(((float) t_ip->sum/t_ip->num) > 0.6){
+          //      
+            //}
+        //}
+    //} 
 
-    
+   clean_domain_structure(dom_head);
+   clean_ip_structure(ip_head);
 }
 
 

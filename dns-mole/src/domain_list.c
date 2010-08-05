@@ -29,7 +29,7 @@ query_domain *new_query_domain(char *name){
             t_q_domain->prev =  t_q_domain->next = NULL;
             t_q_domain->ip = NULL;
             t_q_domain->type = 0.0;
-            memcpy(t_q_domain->name,name,strlen(name) +  1);
+            memcpy(t_q_domain->name,name,strlen(name)+1);
             return t_q_domain;
         }
     }
@@ -85,8 +85,8 @@ void add_ip_2_domain(query_domain *main,void *t){
 
 query_domain *find_by_name(query_domain *start,char *name){
     query_domain *temp_domain = start;
-
-    while(start){
+    
+    while(temp_domain){
         if(!strcmp(temp_domain->name,name))
             return temp_domain;
 
@@ -112,4 +112,14 @@ void remove_domain(query_domain *dom){
     dom->prev->next = dom->next;
     dom->next->prev = dom->prev;
     free(dom);
+}
+
+void clean_domain_structure(query_domain *dom){
+    
+    if(dom){
+        clean_domain_structure(dom->next);
+        free_ip_in_domain(dom->ip);
+        free(dom->name);
+        free(dom);
+    }
 }

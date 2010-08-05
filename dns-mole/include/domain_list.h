@@ -50,5 +50,6 @@ void add_ip_2_domain(query_domain *,void *);
 query_domain *find_by_name(query_domain *,char *);
 void free_ip_in_domain(d_2_ip *);
 void remove_domain(query_domain *);
+void clean_domain_structure(query_domain *);
 
 #endif
