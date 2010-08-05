@@ -102,7 +102,7 @@ void blacklist_method(int num,void *black){
         
         else{
             if((dom = find_by_name(dom_head,t_query->dname)) != 0)
-                add_ip_2_domain(dom,t_ip);
+                add_ip_2_domain(dom,(void *)t_ip);
             else{
                 dom = new_query_domain(t_query->dname);
                 dom->prev = dom_rear;
@@ -110,10 +110,21 @@ void blacklist_method(int num,void *black){
                 dom_rear = dom;
             }
         }
-                    
+                
         blackMole->qlist_head = blackMole->qlist_head->next;
         query_remove(t_query);
     }
+
+    t_ip = ip_head;
+    while(t_ip){
+        if(t_ip->num != 0){
+            if(((float) t_ip->sum/t_ip->num) > 0.6){
+                
+            }
+        }
+        
+
+    
 }
 
 

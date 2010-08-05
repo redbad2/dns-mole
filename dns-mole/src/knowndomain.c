@@ -113,6 +113,9 @@ kdomain *search_domain(char *name,kdomain *root_domain){
                 count++; 
                 temp_domain = temp_domain->kd_child;
             }
+            else if(count != 3 && split_structure[count+1] == NULL){
+                return temp_domain;
+            }
             else if(count == 3){
                 return temp_domain;
             }

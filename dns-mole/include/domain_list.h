@@ -26,9 +26,9 @@
 
 struct domains_to_ip{
 
-    struct ip_list *ip;
-    struct domain_ip *next;
-    struct domain_ip *prev;
+    ip_list *ip;
+    struct domains_to_ip *next;
+    struct domains_to_ip *prev;
     int count;
 };
 
@@ -46,7 +46,7 @@ typedef struct q_domain_structure query_domain;
 typedef struct domains_to_ip d_2_ip;
 
 query_domain *new_query_domain(char *);
-void add_ip_2_domain(query_domain *,ip *);
+void add_ip_2_domain(query_domain *,void *);
 query_domain *find_by_name(query_domain *,char *);
 void free_ip_in_domain(d_2_ip *);
 void remove_domain(query_domain *);

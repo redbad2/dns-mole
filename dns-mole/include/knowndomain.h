@@ -33,6 +33,8 @@ struct KnownDomain {
     struct KnownDomain *next;
     struct KnownDomain *prev;
     float suspicious;
+    int last_ip;
+    time_t last_seen;
 };
 
 typedef struct KnownDomain kdomain;
