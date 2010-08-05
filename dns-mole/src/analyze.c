@@ -35,6 +35,12 @@ void _learn(int fd,short event,void *arg){
     event_add(&myMole->analyze_ev,&myMole->analyze_tv);
 }
 
+void print_l(kdomain *root){
+    if(root){
+        print_l(root->next);
+        printf("%s\n",root->name);
+    }
+}
 void _analyzer(int fd,short event,void *arg){
 
     moleWorld *analyzeMole = (moleWorld *) arg;
@@ -47,8 +53,8 @@ void _analyzer(int fd,short event,void *arg){
             blacklist_method(num_packets,(void *) analyzeMole);
             break;
     }
-                                   
-    event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+                   
+    //event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
                     
 }                    
                     
@@ -66,9 +72,11 @@ void blacklist_method(int num,void *black){
     int t_level = -1;
 
     ip_head = ip_rear = NULL;
-    
+   
+    printf("%i\n",num);
     for(cnt = 0; cnt <= num; cnt++){
         t_query = blackMole->qlist_head;
+        printf("%s\n",t_query->dname);
         t_dom = search_domain(t_query->dname,blackMole->root_list);
 
         if(t_dom)
