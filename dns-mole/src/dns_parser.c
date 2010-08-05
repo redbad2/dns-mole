@@ -109,7 +109,7 @@ void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int l
 	case RR_TYPE_A:
 		(*dst) = (u_char *)malloc(5);
 		strncpy((*dst), data, 4);
-		return;
+	        break;	
 	case RR_TYPE_NS:
 	case RR_TYPE_CNAME:
 	case RR_TYPE_PTR:{
@@ -118,7 +118,7 @@ void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int l
 		(*dst) = (u_char *)malloc(value_size);
 		strcpy((*dst), temp_val);
 		free(temp_val);
-		return;
+		break;
 		}
 	case RR_TYPE_MX: {
 		u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
@@ -128,11 +128,11 @@ void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int l
 		(*dst)[1] = data[1];
 		strcpy(&(*dst)[2], temp_val);
 		free(temp_val);
-		return;
+		break;
 		}
 	default:
 		// error
-		return;
+		break;
 	}
 }
 

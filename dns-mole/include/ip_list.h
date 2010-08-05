@@ -31,7 +31,7 @@ struct ip_domains{
     int count;
     struct ip_domains *next;
     struct ip_domains *prev;
-
+    float level;
 };
 
 struct bad_ip_structure{
@@ -40,19 +40,21 @@ struct bad_ip_structure{
     struct ip_domains *q_domains;
     struct bad_ip_structure *prev;
     struct bad_ip_structure *next;
-    int type;
+    int sum, num; 
 
 };
 
 typedef struct ip_domains domains;
 typedef struct bad_ip_structure ip_list;
 
-ip_list *ip_new(unsigned int, char *);
-domains *new_domain(char *);
-void ip_insert(ip_list *, ip_list *);
+ip_list *ip_new(unsigned int, char *,int);
+domains *new_domain(char *,int);
 void ip_remove(ip_list *);
 ip_list *search_ip(ip_list *, unsigned int);
-void ip_add_domain(ip_list *,char *);
+void ip_add_domain(ip_list *,char *,int);
 void ip_remove_domain(ip_list *,char *);
+
+int return_count(ip_list *,char *);
+void add_count(ip_list *,char *);
 
 #endif

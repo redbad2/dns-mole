@@ -23,23 +23,21 @@
 #include "../include/dnsmole.h"
 #include "../include/ip_list.h"
 
-ip_list *new_ip(unsigned int ip, char *name){
-
+ip_list *ip_new(unsigned int ip, char *name,int level){
     ip_list *new;
 
     if((new = (ip_list *) malloc(sizeof(ip_list))) != NULL){
         new->ip = ip;
         new->prev = new->next = NULL;
-        new->q_domains = new_domain(name);
-            
+        new->q_domains = new_domain(name,level);
+        new->sum = new->num = 0;         
         return new;
     }
 
     fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
 }
 
-domains *new_domain(char *name){
-    
+domains *new_domain(char *name,int level){
     domains *temp_domain;
     
     if((temp_domain = (domains *) malloc(sizeof(domains))) != NULL){
@@ -49,20 +47,11 @@ domains *new_domain(char *name){
            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE); 
         }
         memcpy(temp_domain->d_name,name,strlen(name)+1);
+        temp_domain->level = level;
         return temp_domain;
     }
 
     fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-}
-void ip_insert(ip_list *main,ip_list *new){
-    
-    if(main == NULL)
-        main = new;
-    
-    else{
-        main->next = new;
-        new->prev = main;
-    }
 }
 
 void ip_remove(ip_list *ip){
@@ -92,13 +81,13 @@ ip_list *search_ip(ip_list *ip_structure,unsigned int ip){
     return (ip_list *) 0;
 }
 
-void ip_add_domain(ip_list *ip,char *name){
+void ip_add_domain(ip_list *ip,char *name,int level){
     domains *temp_domain = ip->q_domains;
     
     while(temp_domain->next)
         temp_domain = temp_domain->next;
 
-    temp_domain->next = new_domain(name);
+    temp_domain->next = new_domain(name,level);
     temp_domain->next->prev = temp_domain;
 }
 
@@ -116,6 +105,33 @@ void ip_remove_domain(ip_list *ip,char *name){
         temp_domain = temp_domain->next;
     }
 }
+
+int return_count(ip_list *ip,char *name){
+    domains *temp_domain = ip->q_domains;
+
+    while(temp_domain){
+        if(!strcmp(temp_domain->d_name,name))
+            return temp_domain->count;
+
+        temp_domain = temp_domain->next;
+    }
+
+    return 0;
+}
+
+void add_count(ip_list *ip,char *name){
+    domains *temp_domain = ip->q_domains;
+
+    while(temp_domain){
+        if(!strcmp(temp_domain->d_name,name))
+           temp_domain->count++;
+        
+        temp_domain = temp_domain->next;
+    }
+}
+
+    
+
 
 
 

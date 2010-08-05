@@ -34,9 +34,10 @@ void usage(char *pname,const int exit_val){
 		   "\t\t -w <filename>\t :whitelist filename\n"
 		   "\t\t -l <filename>\t :log file\n"
                    "\t\t -i <interface>\t : set interface\n"
-                   "\t\t -r <timeout>\t : set timeout\n"
+                   "\t\t -r <sec>\t : collect time\n"
+                   "\t\t -k <sec>\t : learn time (0 if none)\n"
 		   "\t\t -t <0|1>\n"
-		   "\t\t\t\t 1 - Anomaly detection using entropy\n"
+		   "\t\t\t\t 1 - Blacklist method with correlation\n"
 		   "\t\t\t\t 2 - Wavelet analysis\n\n"
 		   "\t\t -d\t\t :daemonize\n"
 		   "\t\t -s\t\t :sniffer mode\n"
@@ -51,10 +52,10 @@ int main(int argc,char **argv){
     char *whitelist_file = NULL;
     char *logfile = NULL;
     char *interface = NULL;
-    int daemonize = 0, sniffer = 0, timeout = 10;
+    int daemonize = 0, sniffer = 0, timeout = 10, learn = 0;
     moleWorld mWorld;
 
-    while((option = getopt(argc,argv,"i:b:w:t:l:r:dsh?")) > 0){
+    while((option = getopt(argc,argv,"i:b:w:t:l:r:k:dsh?")) > 0){
 	switch(option){
 	    case 'b':
 		blacklist_file = optarg;
@@ -71,7 +72,11 @@ int main(int argc,char **argv){
 	    case 'r':
 		timeout = atoi(optarg);
                 break;
-		
+            
+            case 'k':
+                learn = atoi(optarg);
+                break;
+
             case 't':
 		mWorld.type = atoi(optarg);
 		break;
@@ -102,7 +107,6 @@ int main(int argc,char **argv){
 
     mWorld.re = initialize_regex();
     mWorld.root_list = new_domain_structure("ROOT");
-    mWorld.bad_ip = NULL;
 
     if(mWorld.type == 0)
 	fprintf(stderr,"\n[*] Using BlackList Comprasion (Please choose detection mode [ -t ])\n");
@@ -146,17 +150,22 @@ int main(int argc,char **argv){
         mWorld.analyze_tv.tv_sec = timeout;
         mWorld.analyze_tv.tv_usec = 0;
 
-        mWorld.learn_tv.tv_sec = timeout*5;
+        mWorld.learn_tv.tv_sec = learn;
         mWorld.learn_tv.tv_usec = 0;
         
         mWorld.pcap_fd = pcap_fileno(mWorld.p);
+
         event_set(&mWorld.recv_ev,mWorld.pcap_fd,EV_READ, _dns_sniffer, (void *)&mWorld);
         event_add(&mWorld.recv_ev, NULL);
 
-        evtimer_set(&mWorld.learn_ev, _learn,(void *)&mWorld);
-        evtimer_add(&mWorld.learn_ev,&mWorld.learn_tv);
+        if(learn){
+            evtimer_set(&mWorld.learn_ev, _learn,(void *)&mWorld);
+            evtimer_add(&mWorld.learn_ev,&mWorld.learn_tv);
+        }
     
         evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
+        if(!learn)
+            evtimer_add(&mWorld.analyze_ev,&mWorld.analyze_tv);\
 
         event_dispatch();
     }

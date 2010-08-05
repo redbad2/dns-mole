@@ -1,4 +1,4 @@
-/* dnsmole.h
+/* domain_list.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,49 +19,36 @@
  * $Id$
  */
 
-#ifndef DNM_DNSMOLE_H
-#define DNM_DNSMOLE_H
+#ifndef DNSM_DOMAIN_LIST_H
+#define DNSM_DOMAIN_LIST_H
 
-#include <event.h>
-#include <time.h>
-#include <pcap.h>
-#include <pcre.h>
-
-#include "query.h"
-#include "knowndomain.h"
-#include "dns_sniffer.h"
-#include "analyze.h"
 #include "ip_list.h"
-#include "domain_list.h"
 
-struct moleWorld{
+struct domains_to_ip{
 
-    kdomain *root_list;
-
-    query *qlist_head;
-    query *qlist_rear;
-
-    int type;
+    struct ip_list *ip;
+    struct domain_ip *next;
+    struct domain_ip *prev;
     int count;
+};
 
-    pcre *re;
-    pcap_t *p;
-    int pcap_fd;
-    
-    char *interface;
-	
-    struct event recv_ev;
-    struct event learn_ev;
-    struct event analyze_ev;
+struct q_domain_structure{
 
-    struct timeval tv;
-    struct timeval learn_tv;
-    struct timeval analyze_tv;
-
-    FILE *log_fp;
+    char *name;
+    struct domains_to_ip *ip;
+    struct q_domain_structure *prev;
+    struct q_domain_structure *next;
+    float type;
 
 };
 
-typedef struct moleWorld moleWorld;
+typedef struct q_domain_structure query_domain;
+typedef struct domains_to_ip d_2_ip;
+
+query_domain *new_query_domain(char *);
+void add_ip_2_domain(query_domain *,ip *);
+query_domain *find_by_name(query_domain *,char *);
+void free_ip_in_domain(d_2_ip *);
+void remove_domain(query_domain *);
 
 #endif
