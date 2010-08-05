@@ -109,16 +109,12 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
 	ether_type = ntohs(ehdr->ether_type);
 	
 	if(ether_type == ETHERTYPE_IP){
-		query *q = (query *)malloc(sizeof(query));
+            query *q = (query *)malloc(sizeof(query));
 		memset(q, 0, sizeof(query));
 		
 		dns2query((u_char *)packet, pkthdr->len, q);
 		q->time = pkthdr->ts.tv_sec;
 		query_insert_after(mWorld->qlist_rear, q);
                 mWorld->count++;
-		print(q);
-                //q->dname[strlen(q->dname)+1]='\0';
-		load_domain(q->dname,mWorld->re,mWorld->root_list,1);
-		
 	}
 }

@@ -19,7 +19,6 @@
  * $Id$
  */
 
-#include "../include/analyze.h"
 #include "../include/dnsmole.h"
 
 void _learn(int fd,short event,void *arg){
@@ -28,10 +27,8 @@ void _learn(int fd,short event,void *arg){
 
     switch(myMole->type){
         case 1:
-            fprintf(stdout,"calculate parameters for entropy detection\n");
             break;
         case 2:
-            fprintf(stdout,"calculate parameters for wavelet detection\n");
             break;
     }
     
@@ -43,27 +40,80 @@ void _analyzer(int fd,short event,void *arg){
     moleWorld *analyzeMole = (moleWorld *) arg;
     int num_packets = analyzeMole->count;
 
-    kdomain *temp_domain;
     analyzeMole->count = 0;
 
-    int count = 0;
-
-    /* for(count = 0; count < num_packets; count++){
-        if((temp_domain = search_domain(q_temp->qe_qry->q_dname,analyzeMole->root_list)) != NULL){
-            if(temp_domain->type == 1){
-               
-                temp_domain->last_seen = time(NULL);
-            }
-            else if(temp_domain->type == ){
-            }
-
-            q_temp = q_temp->next;
-            q_temp->prev = qtemp->prev->prev;
-            free(q_temp->prev);
-        }
-    */
-    //write_log(analyzeMole->log_fp,1,"heha");
+    switch(analyzeMole->type){
+        case 1:
+            blacklist_method(num_packets,(void *) analyzeMole);
+            break;
+    }
+                                   
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+                    
+}                    
+                    
+void blacklist_method(int num,void *black){
+
+    moleWorld *blackMole = (moleWorld *) black;
+    
+    int cnt;
+    query *t_query;
+    kdomain *t_dom;
+    ip_list *t_ip,*ip_head,*ip_rear;
+    query_domain *dom,*dom_head,*dom_rear;
+    domains *t_domains;
+    int domain_count;
+    int t_level = -1;
+
+    ip_head = ip_rear = NULL;
+    
+    for(cnt = 0; cnt <= num; cnt++){
+        t_query = blackMole->qlist_head;
+        t_dom = search_domain(t_query->dname,blackMole->root_list);
+
+        if(t_dom)
+            t_level = t_dom->suspicious;
+
+        if(ip_head == NULL)
+            ip_head = ip_rear = ip_new(t_query->srcip,t_query->dname,t_level);
+        
+        else{
+            if(!(t_ip = search_ip(ip_head,t_query->srcip))){
+                if((domain_count = return_count(t_ip,t_query->dname)) > 0)
+                    add_count(t_ip,t_query->dname);
+                else
+                    ip_add_domain(t_ip,t_query->dname,t_level);
+            }   
+            else{
+                t_ip = ip_new(t_query->srcip,t_query->dname,t_level);
+                ip_rear->next = t_ip;
+                t_ip->prev = ip_rear;
+                ip_rear = t_ip;
+            }
+        }  
+        
+        if(t_level >= 0){
+            t_ip->num++;
+            t_ip->sum += t_level;
+        }
+
+        if(dom_head == NULL)
+            dom_head = dom_rear = new_query_domain(t_query->dname);
+        
+        else{
+            if((dom = find_by_name(dom_head,t_query->dname)) != 0)
+                add_ip_2_domain(dom,t_ip);
+            else{
+                dom = new_query_domain(t_query->dname);
+                dom->prev = dom_rear;
+                dom_rear->next = dom;
+                dom_rear = dom;
+            }
+        }
+                    
+        blackMole->qlist_head = blackMole->qlist_head->next;
+        query_remove(t_query);
+    }
 }
 
 

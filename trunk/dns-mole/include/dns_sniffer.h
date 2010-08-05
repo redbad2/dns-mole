@@ -29,7 +29,7 @@
 #include "dnsmole.h"
 #include "knowndomain.h"
 
-#define DNS_QUERY_FILTER "port 53"
+#define DNS_QUERY_FILTER "src port 53"
 #define IP_PROTOCOL_TCP 6
 #define IP_PROTOCOL_UDP 17
 

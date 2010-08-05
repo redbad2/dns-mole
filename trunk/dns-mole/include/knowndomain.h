@@ -32,7 +32,7 @@ struct KnownDomain {
     struct KnownDomain *kd_child;
     struct KnownDomain *next;
     struct KnownDomain *prev;
-    int suspicious;
+    float suspicious;
 };
 
 typedef struct KnownDomain kdomain;

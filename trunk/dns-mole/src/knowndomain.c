@@ -70,6 +70,7 @@ kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
 
 void delete_domain(kdomain *domain){
     domain->prev = domain->next;
+
     domain_child_free(domain->kd_child);
     if(domain->name) free(domain->name);
     if(domain->cname) free(domain->cname);
@@ -77,11 +78,13 @@ void delete_domain(kdomain *domain){
 }
 
 void domain_child_free(kdomain *domain_free){
+    
     if(domain_free){
         domain_child_free(domain_free->kd_child);
         if(domain_free->name) free(domain_free->name);
         if(domain_free->cname) free(domain_free->cname);
         domain_child_free(domain_free->next);
+        free(domain_free);
     }
 }
 
