@@ -26,7 +26,7 @@
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
 
     kdomain *tdomain = search_domain;
-    printf("%s\n",new_domain->name);
+    //printf("%s\n",new_domain->name);
     if(!strcmp(search_domain->name,"ROOT") && !search_domain->kd_child){
         search_domain->kd_child = new_domain;
         search_domain->next = NULL;
@@ -124,7 +124,7 @@ kdomain *search_domain(char *name,kdomain *root_domain){
             temp_domain = temp_domain->next;
         }
     }
-    free(split_domain);
+    free(split_structure);
     pcre_free(re);
     return (kdomain *)0;
 }
