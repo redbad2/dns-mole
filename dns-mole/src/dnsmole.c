@@ -175,7 +175,7 @@ int main(int argc,char **argv){
 	pcap_close(mWorld.p); 
 		
     pcre_free(mWorld.re);
-    close_log(mWorld.log_fp);
+    close_log(&mWorld.log_fp);
 	
     fprintf(stdout,"... remember when you were young ... \n");
     exit(EXIT_SUCCESS);

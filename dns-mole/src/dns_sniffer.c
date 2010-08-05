@@ -116,5 +116,10 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
 		q->time = pkthdr->ts.tv_sec;
 		query_insert_after(mWorld->qlist_rear, q);
                 mWorld->count++;
+		kdomain * tdomain = search_domain(q->dname, mWorld->root_list);
+		if (tdomain != NULL && tdomain->suspicious == 1) {
+			printf("[alert] %s queries %s\n", (char *)inet_ntoa(q->srcip), q->dname);
+		}
+		else printf("[normal] %s queries %s\n", (char *)inet_ntoa(q->srcip), q->dname);
 	}
 }

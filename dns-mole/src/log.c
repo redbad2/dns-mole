@@ -27,12 +27,12 @@ void open_log(FILE **fp,char *name){
 
     time_t now = time(NULL);
 
-    if((fp = fopen(name,"a+")) == NULL){
+    if((*fp = fopen(name,"a+")) == NULL){
             fprintf(stderr,"[fopen] Can't open log file\n"); 
             exit(EXIT_FAILURE);
     }
 
-    fprintf(fp,"[dns-mole] Log Started : %s\n", asctime(localtime(&now)));
+    fprintf(*fp,"[dns-mole] Log Started : %s", asctime(localtime(&now)));
 }
 
 
@@ -40,16 +40,16 @@ void close_log(FILE **fp){
 
     time_t now = time(NULL);
 
-    fprintf(fp,"[dns-mole] Log Closed: %s\n", asctime(localtime(&now)));
+    fprintf(*fp,"[dns-mole] Log Closed: %s", asctime(localtime(&now)));
 
-    if(fclose(fp)){
+    if(fclose(*fp)){
         fprintf(stderr,"[fclose] Can't close log file\n"); exit(EXIT_FAILURE);
     }
 }
 
-void write_log(FILE *fp,int type,char *msg){
+void write_log(FILE **fp,int type,char *msg){
     
-    fprintf(fp,"%d - %s\n",type,msg);
-    fflush(fp);
+    fprintf(*fp,"%d - %s\n",type,msg);
+    fflush(*fp);
 }
 
