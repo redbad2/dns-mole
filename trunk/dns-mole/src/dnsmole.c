@@ -165,7 +165,7 @@ int main(int argc,char **argv){
     
         evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
         if(!learn)
-            evtimer_add(&mWorld.analyze_ev,&mWorld.analyze_tv);\
+            evtimer_add(&mWorld.analyze_ev,&mWorld.analyze_tv);
 
         event_dispatch();
     }

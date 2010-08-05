@@ -20,13 +20,12 @@
  */
 
 #include "../include/knowndomain.h"
-
+    
 #define FALSE 0
 
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
 
     kdomain *tdomain = search_domain;
-    //printf("%s\n",new_domain->name);
     if(!strcmp(search_domain->name,"ROOT") && !search_domain->kd_child){
         search_domain->kd_child = new_domain;
         search_domain->next = NULL;
@@ -48,7 +47,7 @@ kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
             return tdomain->kd_child;
         }
         else if(!strcmp(tdomain->name,new_domain->name) && !tdomain->kd_child){
-            if(level != 1){
+            if(level == 1){
                 tdomain->kd_child = new_domain_structure("TEMP");
                 tdomain->kd_child->prev = tdomain;
                 return tdomain->kd_child;
@@ -109,7 +108,7 @@ kdomain *search_domain(char *name,kdomain *root_domain){
     while(temp_domain){
         if(!strcmp(temp_domain->name,split_structure[count])){
             free(split_structure[count]);
-            if(count != 3 && split_structure[count+1] != NULL){
+            if((count != 3) && (split_structure[count+1] != NULL)){
                 count++; 
                 temp_domain = temp_domain->kd_child;
             }
@@ -153,16 +152,16 @@ kdomain *new_domain_structure(char *name){
 void load_domain(char *line,pcre *re,kdomain *domain,int type){
 
     int vector[15]; 
-    char *substring, *nice_substring;
-    int rc,i,substring_length; 
     kdomain *temp_domain = domain, *new_domain;
-
+    int i = 1;
     int splitcount;
     char **split_structure = malloc(sizeof(char *) * 4);;
     split_domain(line,re,split_structure);
     for(splitcount = 0; splitcount < 4;splitcount++){
         if(split_structure[splitcount] != NULL){
             new_domain = new_domain_structure(split_structure[splitcount]);
+            if(split_structure[splitcount+1] == NULL)
+                i = 0;
             temp_domain = add_domain(new_domain,temp_domain,i);
             free(split_structure[splitcount]);
         }
