@@ -31,8 +31,7 @@
 #include "knowndomain.h"
 #include "dns_sniffer.h"
 #include "analyze.h"
-#include "ip_list.h"
-#include "domain_list.h"
+#include "bl_detection_structure.h"
 
 struct moleWorld{
 
