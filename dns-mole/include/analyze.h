@@ -19,6 +19,8 @@
  * $Id$
  */
 
+#include "statistics.h"
+
 void _learn(int ,short ,void *);
 void _analyzer(int ,short ,void *);
 

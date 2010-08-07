@@ -24,13 +24,23 @@
 #include "../include/error.h"
 
 void query_empty(query * q) {
-	query * p = q->next;
-	
-	while (q != NULL) {
-		p = q->next;
-		free(q->answers);
-		free(q);
-		q = p;
+	query * prev = q->prev;
+	query * next = q->next;
+	query * temp;
+	free(q->answers);
+	free(q);
+
+	while (prev != NULL) {
+		temp = prev->prev;
+		free(prev->answers);
+		free(prev);
+		prev = temp;
+	}
+	while (next != NULL) {
+		temp = next->next;
+		free(next->answers);
+		free(next);
+		next = temp;
 	}
 }
 

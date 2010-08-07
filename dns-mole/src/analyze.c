@@ -50,6 +50,29 @@ void _analyzer(int fd,short event,void *arg){
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
                     
 }                    
+
+void statistics_method(int num, void * mole) {
+	int i;
+	st_host * list;
+	query * q;
+	moleWorld * st_mole = (moleWorld *)mole;
+
+	q = st_mole->qlist_head;
+	list = st_new_host(q->srcip);
+	q = q->next;
+	while (q != NULL) {
+		st_add_query_to_list(list, q);
+		q = q->next;
+	}
+	
+	st_host * h = list;
+	while (h != NULL) {
+		st_cal(h);
+		h = h->next;
+	}
+
+	/* report sth. */
+}
                     
 void blacklist_method(int num_packets,void *black){
 
