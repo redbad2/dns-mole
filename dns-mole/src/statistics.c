@@ -81,7 +81,14 @@ void st_insert_num(st_host * host, st_num * num) {
 	}
 }
 
-st_host * st_new_host(int ip) {
+void st_insert_num_before(st_host * host, st_num * num) {
+	num->next = host->num_head;
+	host->num_head->prev = num;
+	host->num_head = num;
+	host->interval_num++;
+}
+
+st_host * st_new_host(unsigned int ip) {
 	st_host * host;
 	if ((host = (st_host *)malloc(sizeof(st_host))) == NULL) {
 		fprintf(stderr,"[malloc] OOM\n");
@@ -95,7 +102,7 @@ st_host * st_new_host(int ip) {
 void st_add_query_to_list(st_host * list, query * q) {
 	st_host * host = list;
 	while (host != NULL) {
-		if (host->ip == q->srcip) {
+		if (host->ip == q->srcip || host->ip == q->dstip) {
 			st_add_query_to_host(host, q);
 			return;
 		}
@@ -109,27 +116,52 @@ void st_add_query_to_list(st_host * list, query * q) {
 void st_add_query_to_host(st_host * host, query * q) {
 	/* find/allocate num for host */
 	st_num * num;
+	int new_num_flag = 0;
 	int i;
 	if (host->start_time == 0) {
 		host->start_time = q->time;
-		num = (st_num *)malloc(sizeof(st_num));
+		if ((num = (st_num *)malloc(sizeof(st_num))) == NULL) {
+			fprintf(stderr,"[malloc] OOM\n");
+			exit(EXIT_FAILURE);
+		}
 		memset(num, 0, sizeof(st_num));
+		new_num_flag = 1;
 	}
 	else {
 		int index = (q->time - host->start_time) / INTERVAL;
-		num = host->num_head;
-		while (index != 0 && num != NULL) {
-			index--;
-			num = num->next;
-		}
-		if (index != 0 && num == NULL) {
+		if (index < 0) {
+			host->start_time = q->time;
 			while (index != 0) {
-				index--;
-				st_num * temp = (st_num *)malloc(sizeof(st_num));
+				index++;
+				st_num * temp;
+				if ((temp = (st_num *)malloc(sizeof(st_num))) == NULL) {
+					fprintf(stderr,"[malloc] OOM\n");
+					exit(EXIT_FAILURE);
+				}
 				memset(temp, 0, sizeof(st_num));
-				st_insert_num(host, num);
+				st_insert_num_before(host, temp);
 			}
-			num = host->num_rear;
+			num = host->num_head;
+		}
+		else {
+			num = host->num_head;
+			while (index != 0 && num != NULL) {
+				index--;
+				num = num->next;
+			}
+			if (index != 0 && num == NULL) {
+				while (index != 0) {
+					index--;
+					st_num * temp;
+					if ((temp = (st_num *)malloc(sizeof(st_num))) == NULL) {
+						fprintf(stderr,"[malloc] OOM\n");
+						exit(EXIT_FAILURE);
+					}
+					memset(temp, 0, sizeof(st_num));
+					st_insert_num(host, temp);
+				}
+				num = host->num_rear;
+			}
 		}
 	}
 
@@ -156,7 +188,8 @@ void st_add_query_to_host(st_host * host, query * q) {
 			break;
 		}
 	}
-	st_insert_num(host, num);
+	if (new_num_flag)
+		st_insert_num(host, num);
 }
 
 void st_host_insert(st_host * list, st_host * host) {
@@ -172,6 +205,7 @@ void st_host_insert(st_host * list, st_host * host) {
 		host->prev = list;
 	}
 }
+
 
 void st_host_empty(st_host * list) {
 	st_host * prev = list->prev;

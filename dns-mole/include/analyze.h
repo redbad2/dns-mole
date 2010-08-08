@@ -24,5 +24,6 @@
 void _learn(int ,short ,void *);
 void _analyzer(int ,short ,void *);
 
+void statistics_method(int, void *);
 void blacklist_method(int ,void *);
 float calculate_jaccard_index(void *unknown,void *bad);

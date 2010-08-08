@@ -44,6 +44,9 @@ void _analyzer(int fd,short event,void *arg){
     switch(analyzeMole->type){
         case 1:
             blacklist_method(num_packets,(void *) analyzeMole);
+	    break;
+	case 2:
+		statistics_method(num_packets, (void *)analyzeMole);
             break;
     }
                    

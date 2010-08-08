@@ -48,7 +48,7 @@ typedef struct st_num {
 } st_num;
 
 typedef struct st_host {
-	int ip;
+	unsigned int ip;
 	int total;
 	int query_total;
 	int response_total;
@@ -84,8 +84,9 @@ void st_cal(st_host * host);
 void st_cal_dev(st_host * host);
 
 void st_insert_num(st_host * host, st_num * num);
+void st_insert_num_before(st_host * host, st_num * num);
 
-st_host * st_new_host(int ip);
+st_host * st_new_host(unsigned int ip);
 void st_add_query_to_list(st_host * list, query * q);
 void st_add_query_to_host(st_host * host, query * q);
 void st_host_insert(st_host * list, st_host * host);
