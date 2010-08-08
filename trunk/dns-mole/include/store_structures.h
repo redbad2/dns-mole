@@ -1,4 +1,4 @@
-/* bl_detection_structure.h
+/* store_structure.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,58 +19,59 @@
  * $Id$
  */
 
-#ifndef DNSM_BL_DETECTION_STRUCTURE_H
-#define DNSM_BL_DETECTION_STRUCTURE_H
+#ifndef DNSM_STORE_STRUCTURE_H
+#define DNSM_STORE_STRUCTURE_H
 
-struct bl_ip {
+struct ip_store {
 
     unsigned int ip;
     int black_hosts; 
     int all_hosts;
     int white_hosts;
-	struct bl_ip *prev;
-	struct bl_ip *next;
+    struct ip_store *prev;
+    struct ip_store *next;
 };
 
-struct bl_domain_ip {
+struct domain_ip_store {
 
-    struct bl_ip *ip;
-    struct bl_domain_ip *prev;
-    struct bl_domain_ip *next;
+    struct ip_store *ip;
+    struct domain_ip_store *prev;
+    struct domain_ip_store *next;
     int count;
     
 };
 
-struct bl_domain {
+struct domain_store {
 
     char *d_name;
-    struct bl_domain_ip *domain_ip;
-    struct bl_domain *prev;
-    struct bl_domain *next;
+    struct domain_ip_store *domain_ip;
+    struct domain_store *prev;
+    struct domain_store *next;
     int queried_overall;
+    int queried_with_different_ip;
     float type;
 
 };
 
-typedef struct bl_ip bl_ip;
-typedef struct bl_domain_ip bl_domain_ip;
-typedef struct bl_domain bl_domain;
+typedef struct ip_store ip_store;
+typedef struct domain_ip_store domain_ip_store;
+typedef struct domain_store domain_store;
 
 /* functions for blacklist domain structure */
 
-bl_domain *new_bl_domain(const char *,float);
-void add_ip_to_domain(bl_domain *,bl_ip *);
-bl_domain *find_domain(bl_domain *,const char *);
+domain_store *new_domain(const char *,float);
+void add_ip_to_domain(domain_store *,ip_store *);
+domain_store *find_domain(domain_store *,const char *);
 
-void remove_ip_in_domain(bl_domain_ip *);
-void remove_domain(bl_domain *,int);
-bl_domain_ip *find_ip_in_domain(bl_domain_ip *,unsigned int);
+void remove_ip_in_domain(domain_ip_store *);
+void remove_domain(domain_store *,int);
+domain_ip_store *find_ip_in_domain(domain_ip_store *,unsigned int);
 			
 
 /* functions for blacklist ip structure */
 
-bl_ip *new_bl_ip(unsigned int);
-bl_ip *find_ip(bl_ip *,unsigned int);
-void remove_ip(bl_ip *);
+ip_store *new_ip(unsigned int);
+ip_store *find_ip(ip_store *,unsigned int);
+void remove_ip(ip_store *);
 
 #endif

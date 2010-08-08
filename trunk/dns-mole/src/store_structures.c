@@ -1,4 +1,4 @@
-/* bl_detection_structure.c
+/* store_structures.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -21,35 +21,36 @@
  
  #include "../include/dnsmole.h"
 
-bl_domain *new_bl_domain(const char *name,float type){
-    bl_domain *t_bl_domain;
+domain_store *new_domain(const char *name,float type){
+    domain_store *t_domain_store;
 
-    if((t_bl_domain = (bl_domain *) malloc(sizeof(bl_domain))) != NULL){
-        if((t_bl_domain->d_name = malloc(strlen(name) * sizeof(char) + 1)) != NULL){
-            t_bl_domain->next = t_bl_domain->prev = NULL;
-            t_bl_domain->domain_ip = NULL;
-            t_bl_domain->type = type;
-            t_bl_domain->queried_overall = 0;
-            memcpy(t_bl_domain->d_name,name,strlen(name)+1);
-            return t_bl_domain;
+    if((t_domain_store = (domain_store *) malloc(sizeof(domain_store))) != NULL){
+        if((t_domain_store->d_name = malloc(strlen(name) * sizeof(char) + 1)) != NULL){
+            t_domain_store->next = t_domain_store->prev = NULL;
+            t_domain_store->domain_ip = NULL;
+            t_domain_store->type = type;
+            t_domain_store->queried_overall = 0;
+            t_domain_store->queried_with_different_ip = 0;
+            memcpy(t_domain_store->d_name,name,strlen(name)+1);
+            return t_domain_store;
         }
     }
 
     fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
 }
 
-void add_ip_to_domain(bl_domain *q,bl_ip *t_bl_ip){
-    bl_domain_ip *t_s;
+void add_ip_to_domain(domain_store *q,ip_store *t_ip_store){
+    domain_ip_store *t_s;
     
     q->queried_overall++;
     
     if(q->domain_ip == NULL){
         
-        if((t_s = (bl_domain_ip *) malloc(sizeof(bl_domain_ip))) == NULL){
+        if((t_s = (domain_ip_store *) malloc(sizeof(domain_ip_store))) == NULL){
             fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
         }
-        
-        t_s->ip = t_bl_ip;
+        q->queried_with_different_ip++;
+        t_s->ip = t_ip_store;
         t_s->count = 1;
         t_s->next = t_s->prev = NULL;
         q->domain_ip = t_s;
@@ -61,7 +62,7 @@ void add_ip_to_domain(bl_domain *q,bl_ip *t_bl_ip){
 
         while(t_s){
             
-            if(t_s->ip->ip == t_bl_ip->ip){
+            if(t_s->ip->ip == t_ip_store->ip){
                 t_s->count++;
                 return;
             }
@@ -71,11 +72,12 @@ void add_ip_to_domain(bl_domain *q,bl_ip *t_bl_ip){
 
         if(t_s == NULL){
 
-            if((t_s = (bl_domain_ip *) malloc(sizeof(bl_domain_ip))) == NULL){
+            if((t_s = (domain_ip_store *) malloc(sizeof(domain_ip_store))) == NULL){
                 fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
             }
            
-            t_s->ip = t_bl_ip;
+            q->queried_with_different_ip++;
+            t_s->ip = t_ip_store;
             t_s->next = q->domain_ip;
             q->domain_ip->prev = t_s;
             t_s->prev = NULL;
@@ -85,8 +87,8 @@ void add_ip_to_domain(bl_domain *q,bl_ip *t_bl_ip){
     }
 }
 
-bl_domain *find_domain(bl_domain *q,const char *name){
-    bl_domain *start_domain = q;
+domain_store *find_domain(domain_store *q,const char *name){
+    domain_store *start_domain = q;
     
     while(start_domain){
         if(!strcmp(start_domain->d_name,name))
@@ -95,18 +97,18 @@ bl_domain *find_domain(bl_domain *q,const char *name){
         start_domain = start_domain->next;
     }
 
-    return (bl_domain *) 0;
+    return (domain_store *) 0;
 }
 
-void remove_ip_in_domain(bl_domain_ip *q){
+void remove_ip_in_domain(domain_ip_store *q){
     if(q){
         remove_ip_in_domain(q->next);
-	free(q);
+	    free(q);
     }
 }
 	
 
-void remove_domain(bl_domain *q, int clean_type){
+void remove_domain(domain_store *q, int clean_type){
 
     if(q){
         remove_ip_in_domain(q->domain_ip);
@@ -122,23 +124,23 @@ void remove_domain(bl_domain *q, int clean_type){
     }
 }
 
-bl_ip *new_bl_ip(unsigned int ip){
-    bl_ip *t_bl_ip;
+ip_store *new_ip(unsigned int ip){
+    ip_store *t_ip_store;
 
-    if((t_bl_ip = (bl_ip *) malloc(sizeof(bl_ip))) != NULL){
-        t_bl_ip->ip = ip;
-        t_bl_ip->black_hosts = 0;
-        t_bl_ip->all_hosts = 0;
-        t_bl_ip->white_hosts = 0;
-        return t_bl_ip;
+    if((t_ip_store = (ip_store *) malloc(sizeof(ip_store))) != NULL){
+        t_ip_store->ip = ip;
+        t_ip_store->black_hosts = 0;
+        t_ip_store->all_hosts = 0;
+        t_ip_store->white_hosts = 0;
+        return t_ip_store;
     }
 
     fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
 }
 
-bl_domain_ip *find_ip_in_domain(bl_domain_ip *q,unsigned int ip){
+domain_ip_store *find_ip_in_domain(domain_ip_store *q,unsigned int ip){
     
-    bl_domain_ip *loop_ip = q;
+    domain_ip_store *loop_ip = q;
     
     while(loop_ip){
         if(loop_ip->ip->ip == ip)
@@ -146,12 +148,12 @@ bl_domain_ip *find_ip_in_domain(bl_domain_ip *q,unsigned int ip){
 
         loop_ip = loop_ip->next;
     }
-    return (bl_domain_ip *) 0;
+    return (domain_ip_store *) 0;
 }
 
-bl_ip *find_ip(bl_ip *q,unsigned int ip){
+ip_store *find_ip(ip_store *q,unsigned int ip){
     
-    bl_ip *loop_ip = q;
+    ip_store *loop_ip = q;
     
     while(loop_ip){
         if(loop_ip->ip == ip)
@@ -159,10 +161,10 @@ bl_ip *find_ip(bl_ip *q,unsigned int ip){
 
         loop_ip = loop_ip->next;
     }
-    return (bl_ip *) 0;
+    return (ip_store *) 0;
 }
 
-void remove_ip(bl_ip *q){
+void remove_ip(ip_store *q){
     if(q){
         remove_ip(q->next);
         free(q);
