@@ -19,37 +19,37 @@
  * $Id$
  */
 
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
+#include "../include/dnsmole.h"
 
-void open_log(FILE **fp,char *name){
+void open_log(void *t,const char *name){
 
+    moleWorld *mW = (moleWorld *) t;
     time_t now = time(NULL);
 
-    if((*fp = fopen(name,"a+")) == NULL){
+    if((mW->log_fp = fopen(name,"a+")) == NULL){
             fprintf(stderr,"[fopen] Can't open log file\n"); 
             exit(EXIT_FAILURE);
     }
 
-    fprintf(*fp,"[dns-mole] Log Started : %s", asctime(localtime(&now)));
+    fprintf(mW->log_fp,"[dns-mole] Log Started : %s", asctime(localtime(&now)));
 }
 
 
-void close_log(FILE **fp){
-
+void close_log(void *t){
+    
+    moleWorld *mW = (moleWorld *) t;
     time_t now = time(NULL);
 
-    fprintf(*fp,"[dns-mole] Log Closed: %s", asctime(localtime(&now)));
+    fprintf(mW->log_fp,"[dns-mole] Log Closed: %s", asctime(localtime(&now)));
 
-    if(fclose(*fp)){
+    if(fclose(mW->log_fp)){
         fprintf(stderr,"[fclose] Can't close log file\n"); exit(EXIT_FAILURE);
     }
 }
 
-void write_log(FILE **fp,int type,char *msg){
+void write_log(FILE *fp,int type,const char *msg){
     
-    fprintf(*fp,"%d - %s\n",type,msg);
-    fflush(*fp);
+    fprintf(fp,"%d - %s\n",type,msg);
+    fflush(fp);
 }
 

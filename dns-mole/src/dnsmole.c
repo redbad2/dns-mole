@@ -58,47 +58,47 @@ int main(int argc,char **argv){
     while((option = getopt(argc,argv,"i:b:w:t:l:r:k:dsh?")) > 0){
 	switch(option){
 	    case 'b':
-		blacklist_file = optarg;
-		break;
+		    blacklist_file = optarg;
+		    break;
 
 	    case 'w':
-		whitelist_file = optarg;
-		break;
+		    whitelist_file = optarg;
+		    break;
 
 	    case 'l':
-		logfile = optarg;
-		break;
+		    logfile = optarg;
+		    break;
 	
 	    case 'r':
-		timeout = atoi(optarg);
-                break;
+		    timeout = atoi(optarg);
+            break;
             
-            case 'k':
-                learn = atoi(optarg);
-                break;
+        case 'k':
+            learn = atoi(optarg);
+            break;
 
-            case 't':
-		mWorld.type = atoi(optarg);
-		break;
+        case 't':
+		    mWorld.type = atoi(optarg);
+		    break;
 
 	    case 'd':
-		daemonize = 1;
-		break;
+		    daemonize = 1;
+		    break;
 
 	    case 's':
-		sniffer = 1;
-		break;
+		    sniffer = 1;
+		    break;
                 
-            case 'i':
-                interface = optarg;
-                break;
+        case 'i':
+            interface = optarg;
+            break;
 
 	    case '?':
 	    case 'h':
-		usage(argv[0],EXIT_SUCCESS);
+	    	usage(argv[0],EXIT_SUCCESS);
 
 	    default:
-		break;
+		    break;
 	    }
 	}
     
@@ -130,19 +130,19 @@ int main(int argc,char **argv){
 	read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
     
     if(!logfile){
-        open_log(&mWorld.log_fp,"mole_log");
+        open_log(&mWorld,"mole_log");
     }
     else{ 
-        open_log(&mWorld.log_fp,logfile);     
+        open_log(&mWorld,logfile);     
     }
 
     if(sniffer){
         event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
-	    fprintf(stderr,"[sniffer_setup] error\n");
-	    exit(EXIT_FAILURE);
-	}
+	        fprintf(stderr,"[sniffer_setup] error\n");
+	        exit(EXIT_FAILURE);
+	    }
     
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
@@ -172,10 +172,10 @@ int main(int argc,char **argv){
     
     
     if(sniffer)
-	pcap_close(mWorld.p); 
+	    pcap_close(mWorld.p); 
 		
     pcre_free(mWorld.re);
-    close_log(&mWorld.log_fp);
+    close_log(&mWorld);
 	
     fprintf(stdout,"... remember when you were young ... \n");
     exit(EXIT_SUCCESS);

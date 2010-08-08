@@ -31,7 +31,8 @@
 #include "knowndomain.h"
 #include "dns_sniffer.h"
 #include "analyze.h"
-#include "bl_detection_structure.h"
+#include "store_structures.h"
+#include "statistics.h"
 
 struct moleWorld{
 
@@ -62,5 +63,9 @@ struct moleWorld{
 };
 
 typedef struct moleWorld moleWorld;
+
+void open_log(void *, const char *);
+void close_log(void *);
+void write_log(FILE *,int , const char *);
 
 #endif
