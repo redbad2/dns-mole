@@ -42,6 +42,7 @@ void dns2query(u_char * packet, int len, query * q_store) {
 	
 	// set src ip
 	q_store->srcip = iphdr->ip_src;
+	q_store->dstip = iphdr->ip_dst;
 	
 	int qnum = ntohs(dqhdr->dq_qc);
 	int anum = ntohs(dqhdr->dq_ac);
