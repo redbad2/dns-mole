@@ -1,4 +1,4 @@
-/* analyze.c
+/* analyze.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -24,6 +24,8 @@
 void _learn(int ,short ,void *);
 void _analyzer(int ,short ,void *);
 
-void statistics_method(int, void *);
-void blacklist_method(int ,void *);
-float calculate_jaccard_index(void *unknown,void *bad);
+void populate_store_structure(int ,void *,int);
+void statistics_method(int ,void *); 
+void second_method(void *,void *,void *,void *);
+void first_method(void *,void *,void *);
+float calculate_jaccard_index(void *,void *);
