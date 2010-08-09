@@ -24,26 +24,168 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <event.h>
+#include <signal.h>
 
-#include "../include/knowndomain.h"
+//#include "../include/knowndomain.h"
 #include "../include/dnsmole.h"
+
+moleWorld mWorld;
 
 void usage(char *pname,const int exit_val){
 	fprintf(stdout,"\n\nUsage: %s "
-		   "\t -b <filename>\t :blacklist filename\n"
-		   "\t\t -w <filename>\t :whitelist filename\n"
-		   "\t\t -l <filename>\t :log file\n"
-                   "\t\t -i <interface>\t : set interface\n"
-                   "\t\t -r <sec>\t : collect time\n"
-                   "\t\t -k <sec>\t : learn time (0 if none)\n"
-		   "\t\t -t <0|1>\n"
-		   "\t\t\t\t 1 - Blacklist method with correlation\n"
-		   "\t\t\t\t 2 - Wavelet analysis\n\n"
-		   "\t\t -d\t\t :daemonize\n"
-		   "\t\t -s\t\t :sniffer mode\n"
-		   "\t\t -h\t\t :display this usage screen\n\n", pname);
+	"\t -b <filename>\t :blacklist file\n"
+	"\t\t -w <filename>\t :whitelist file\n"
+	"\t\t -c <filename>\t :config file\n"
+	"\t\t -l <filename>\t :log file\n"
+	"\t\t -i <interface>\t :set interface\n"
+	"\t\t -d\t\t :daemonize\n"
+	"\t\t -s\t\t :sniffer mode\n"
+	"\t\t -h\t\t :display this usage screen\n"
+	"\t\t -t <1|2|3>\t :detection method\n\n"
+	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
+	"\t\t\t\t - 2 - Detection by monitoring group activities\n"
+	"\t\t\t\t - 3 - Detection based on frequent host selection\n\n", pname);
 
 	exit(exit_val);
+}
+
+void cleanup(){
+
+    if(mWorld.p)
+        pcap_close(mWorld.p);
+    pcre_free(mWorld.re);
+    close_log(mWorld.log_fp);
+}
+
+void handler(int sig){
+    if(sig == SIGILL || sig == SIGTERM){
+        fflush(mWorld.log_fp);
+        fflush(stderr); fflush(stdout);
+        if(mWorld.p)
+            pcap_close(mWorld.p);
+        
+        pcap_free(mWorld.re);
+        close_log(mWorld.log_fp);
+        exit(EXIT_SUCCESS);
+    }
+
+    exit(EXIT_FAILURE);
+    
+}
+
+
+void set_signal(int signal) {
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handler;
+    sa.sa_flags = SA_RESTART;
+    
+    if(sigaction(signal, &sa, NULL) < 0){
+        fprintf(stderr,"[signal] Error\n"); exit(EXIT_FAILURE);
+    }
+}
+
+configuration *create_t_configuration(const char *name, void *where,int type){
+    configuration *t_config;
+    
+    if((t_config = (configuration *) malloc(sizeof(configuration))) != NULL){
+        if((t_config->variable = malloc(strlen(name) * sizeof(char) + 1)) != NULL){
+            memcpy(t_config->variable,name,strlen(name)+1);
+            t_config->where = where;
+            t_config->type = type;
+            t_config->next = NULL;
+            return t_config;
+        }
+    }
+}
+
+void register_config(configuration *begin,const char *name,void *where,int type){
+    configuration *t_config,*loop_config;
+
+    loop_config = begin;
+    while(loop_config->next)
+        loop_config = loop_config->next;
+
+    loop_config->next = create_t_configuration(name,where,type);;
+}
+            
+void read_config(const char *conf){ 
+    FILE *config_file;
+    configuration *config = NULL;
+    configuration *t_config;
+    char line[80],config_variable[80],number_variable[10];
+    int first,second,count,variable_count,number_count,line_count;
+    int done, *t_int;
+    float *t_float;
+
+    config = create_t_configuration("LearnInterval",&mWorld.parameters.learn_interval,0);
+    register_config(config,"AnalyzeInterval",(void *) &mWorld.parameters.analyze_interval,0);
+    register_config(config,"aDrop",(void *) &mWorld.parameters.activity_drop,0);
+    register_config(config,"aSimilarity",(void *) &mWorld.parameters.activity_similarity,1);
+    register_config(config,"oBlackIpTreshold",(void *) &mWorld.parameters.black_ip_treshold,1);
+    register_config(config,"oWhite",(void *) &mWorld.parameters.o_white,1);
+    register_config(config,"oBlack",(void *) &mWorld.parameters.o_black,1);
+
+    if((config_file = fopen(conf,"r")) != NULL){
+        while(fgets(line,sizeof(line),config_file) != NULL){
+            line_count++;
+            variable_count = number_count = second = done = 0;
+            first = 1;
+            if((isalpha(line[0]) || isdigit(line[0]))){
+                for(count = 0; count < strlen(line); count++){
+                    if(first && line[count] != ' '){
+                        config_variable[variable_count] = line[count];
+                        variable_count++;
+                        if(line[count + 1] == ' '){
+                            first = 0; second = 1;
+                        }
+                    }
+                    else if(second && line[count] != ' '){
+                        number_variable[number_count] = line[count];
+                        number_count++;
+                        if(line[count + 1] == ' ' || line[count + 1] == '\n'){
+                            second = 0;
+                        }
+                    }
+                }
+
+                config_variable[variable_count] = '\0';
+                number_variable[number_count] = '\0';
+
+                if(!first && !second){
+
+                    t_config = config;
+                    while(t_config && !done){
+                        if(!strcmp(t_config->variable,config_variable)){
+                            if(t_config->type){
+                                t_float = (float *)t_config->where;
+                                *t_float = atof(number_variable);
+                            }
+                            else{
+                                t_int = (int *)t_config->where;
+                                *t_int = atoi(number_variable);
+                            }
+                            done = 1;
+                            
+                        }
+                        t_config = t_config->next;
+    
+                    }
+
+                    if(!done){
+                        fprintf(stderr,"Error in reading configuration (line: %i), what is %s ?\n",line_count,config_variable);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else{
+                    fprintf(stderr,"Error in configuration file, line %i\n",line_count);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
+        }
+    }
 }
 
 int main(int argc,char **argv){
@@ -52,46 +194,50 @@ int main(int argc,char **argv){
     char *whitelist_file = NULL;
     char *logfile = NULL;
     char *interface = NULL;
-    int daemonize = 0, sniffer = 0, timeout = 10, learn = 0;
-    moleWorld mWorld;
+    char *config = NULL;
+    int daemonize = 0, sniffer = 0;
+    pid_t pid,sid;
 
-    while((option = getopt(argc,argv,"i:b:w:t:l:r:k:dsh?")) > 0){
+    set_signal(SIGHUP);
+    set_signal(SIGINT);
+    set_signal(SIGILL);
+    set_signal(SIGQUIT);
+    //set_signal(SIGSEGV);
+    set_signal(SIGTERM);
+    
+    while((option = getopt(argc,argv,"i:b:w:t:l:c:dsh?")) > 0){
 	switch(option){
 	    case 'b':
-		    blacklist_file = optarg;
-		    break;
+		blacklist_file = optarg;
+		break;
 
 	    case 'w':
-		    whitelist_file = optarg;
-		    break;
+		whitelist_file = optarg;
+		break;
 
 	    case 'l':
-		    logfile = optarg;
-		    break;
+		logfile = optarg;
+		break;
 	
-	    case 'r':
-		    timeout = atoi(optarg);
-            break;
+	    case 'c':
+		config = optarg;
+    		break;
             
-        case 'k':
-            learn = atoi(optarg);
-            break;
-
-        case 't':
-		    mWorld.type = atoi(optarg);
-		    break;
+	    case 't':
+		mWorld.type = atoi(optarg);
+		break;
 
 	    case 'd':
-		    daemonize = 1;
-		    break;
+		daemonize = 1;
+		break;
 
 	    case 's':
-		    sniffer = 1;
-		    break;
+		sniffer = 1;
+		break;
                 
-        case 'i':
-            interface = optarg;
-            break;
+	    case 'i':
+        	interface = optarg;
+        	break;
 
 	    case '?':
 	    case 'h':
@@ -108,35 +254,53 @@ int main(int argc,char **argv){
     mWorld.re = initialize_regex();
     mWorld.root_list = new_domain_structure("ROOT");
 
-    if(mWorld.type == 0)
-	fprintf(stderr,"\n[*] Using BlackList Comprasion (Please choose detection mode [ -t ])\n");
+    if(mWorld.type == 0){
+	    fprintf(stderr,"\n[*] Please choose detection method [ -t ])\n");
+        exit(EXIT_FAILURE);
+    }
 
     if(!interface){
-        fprintf(stderr,"\n[*] Please set interface [ -i <interface> ]\n");
+        fprintf(stderr,"\n[*] Please set interface [ -i ]\n");
         exit(EXIT_FAILURE);
     }
     
     if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
             fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
     }
-
-    memcpy(mWorld.interface,interface,strlen(interface)+1);
     
+    memcpy(mWorld.interface,interface,strlen(interface)+1);
 
+    if(!config){
+        fprintf(stderr,"\n[*] Please set config file [ -c ]\n");
+        exit(EXIT_FAILURE);
+    }
+
+    read_config(config);
+    
     if(blacklist_file)
-	read_list(mWorld.root_list,blacklist_file,1,mWorld.re);
+	    read_list(mWorld.root_list,blacklist_file,1,mWorld.re);
         
     if(whitelist_file)
-	read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
+	    read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
     
     if(!logfile){
-        open_log(&mWorld,"mole_log");
-    }
-    else{ 
+        open_log(&mWorld,"dnsmole-log"); }
+    else 
         open_log(&mWorld,logfile);     
-    }
+    
 
     if(sniffer){
+        
+        if(daemonize){
+            if((pid = fork()) > 0){
+                umask(0);
+                if((sid = setsid()) < 0){
+                    fprintf(stderr,"[setsid] Error\n"); exit(EXIT_FAILURE);
+                }
+            }
+            exit(EXIT_FAILURE);
+        }
+
         event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
@@ -147,10 +311,13 @@ int main(int argc,char **argv){
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
 
-        mWorld.analyze_tv.tv_sec = timeout;
+        if(!mWorld.parameters.analyze_interval)
+            mWorld.parameters.analyze_interval = 2;
+
+        mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
         mWorld.analyze_tv.tv_usec = 0;
 
-        mWorld.learn_tv.tv_sec = learn;
+        mWorld.learn_tv.tv_sec = mWorld.parameters.learn_interval;
         mWorld.learn_tv.tv_usec = 0;
         
         mWorld.pcap_fd = pcap_fileno(mWorld.p);
@@ -158,24 +325,21 @@ int main(int argc,char **argv){
         event_set(&mWorld.recv_ev,mWorld.pcap_fd,EV_READ, _dns_sniffer, (void *)&mWorld);
         event_add(&mWorld.recv_ev, NULL);
 
-        if(learn){
+        if(mWorld.parameters.learn_interval){
             evtimer_set(&mWorld.learn_ev, _learn,(void *)&mWorld);
             evtimer_add(&mWorld.learn_ev,&mWorld.learn_tv);
         }
     
         evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
-        if(!learn)
+        
+        if(!mWorld.parameters.learn_interval)
             evtimer_add(&mWorld.analyze_ev,&mWorld.analyze_tv);
-
+        
         event_dispatch();
+
+        if(daemonize)
+            exit(EXIT_SUCCESS);
     }
-    
-    
-    if(sniffer)
-	    pcap_close(mWorld.p); 
-		
-    pcre_free(mWorld.re);
-    close_log(&mWorld);
 	
     fprintf(stdout,"... remember when you were young ... \n");
     exit(EXIT_SUCCESS);

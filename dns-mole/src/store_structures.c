@@ -132,6 +132,7 @@ ip_store *new_ip(unsigned int ip){
         t_ip_store->black_hosts = 0;
         t_ip_store->all_hosts = 0;
         t_ip_store->white_hosts = 0;
+        t_ip_store->next = t_ip_store->prev = NULL;
         return t_ip_store;
     }
 
@@ -156,8 +157,9 @@ ip_store *find_ip(ip_store *q,unsigned int ip){
     ip_store *loop_ip = q;
     
     while(loop_ip){
-        if(loop_ip->ip == ip)
-           return loop_ip;
+        if(loop_ip->ip == ip){
+           return loop_ip; 
+        }
 
         loop_ip = loop_ip->next;
     }

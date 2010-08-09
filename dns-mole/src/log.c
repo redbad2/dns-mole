@@ -47,9 +47,29 @@ void close_log(void *t){
     }
 }
 
-void write_log(FILE *fp,int type,const char *msg){
+void report(FILE *fp,int method,int type,const char *report){
     
-    fprintf(fp,"%d - %s\n",type,msg);
+    char method_string[20];
+
+    switch(method){
+        case 1:
+            strcpy(method_string,"Method 1");
+            break;
+        case 2:
+            strcpy(method_string,"Method 2");
+            break;
+        case 3:
+            strcpy(method_string,"Method 3");
+            break;
+    }
+
+    if(type == 1)
+        fprintf(fp,"[%s] [blacklist] %s\n",method_string,report);
+    if(type == 2)
+        fprintf(fp,"[%s] [whitelist] %s\n",method_string,report);
+    if(type == 3)
+        fprintf(fp,"[%s] [newip] %s",method_string,report);
+
     fflush(fp);
 }
 

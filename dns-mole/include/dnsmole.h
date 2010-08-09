@@ -34,7 +34,29 @@
 #include "store_structures.h"
 #include "statistics.h"
 
+struct configuration{
+    char *variable;
+    void *where;
+    int type;
+    struct configuration *next;
+};
+
+struct parameter{
+
+    int learn_interval;
+    int analyze_interval;
+
+    int activity_drop;
+    float activity_similarity;
+
+    float black_ip_treshold;
+    float o_white;
+    float o_black;
+};
+
 struct moleWorld{
+
+    struct parameter parameters;
 
     kdomain *root_list;
 
@@ -62,10 +84,18 @@ struct moleWorld{
 
 };
 
+
+typedef struct configuration configuration; 
 typedef struct moleWorld moleWorld;
+
+void handler(int);
+void set_signal(int);
+
+configuration *create_t_configuration(const char *, void *, int );
+void register_config(configuration *, const char *, void *, int);
 
 void open_log(void *, const char *);
 void close_log(void *);
-void write_log(FILE *,int , const char *);
+void report(FILE *, int, int, const char *);
 
 #endif
