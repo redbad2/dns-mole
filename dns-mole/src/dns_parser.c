@@ -158,18 +158,28 @@ int get_url(u_char * data, u_char * dst) {
 int get_dns_value(u_char * value_place, u_char * dns_place, u_char ** dst, int len) {
 	u_char * val = (*dst);
 	int i = 0, j = 0, k = 0;
-	int size;
+	unsigned short size;
 	for (; i < len;) {
 		if ((value_place[i] & 0xC0) == 0xC0) {
-			size = ntohs(*((unsigned short *)(&value_place[i]))) & 0x3F;
+			size = ntohs(*((unsigned short *)(&value_place[i]))) & 0x3FFF;
 			k = 0;
-			while (dns_place[size + k] != '\0') {
-				val[j] = dns_place[size + k];
-				j++;
-				k++;
+			while (1) {
+				if (dns_place[size + k] == '\0') {
+					val[j++] = '\0';
+					i += 2;
+					break;
+				}
+				else if ((dns_place[size + k] & 0xC0) == 0xC0) {
+					size = ntohs(*((unsigned short *)(&dns_place[size + k]))) & 0x3FFF;
+					k = 0;
+					continue;
+				}
+				else {
+					val[j] = dns_place[size + k];
+					j++;
+					k++;
+				}
 			}
-			val[j++] = '\0';
-			i += 2;
 		}
 		else {
 			val[j++] = value_place[i++];
