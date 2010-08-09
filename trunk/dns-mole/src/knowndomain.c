@@ -19,7 +19,7 @@
  * $Id$
  */
 
-#include "../include/knowndomain.h"
+#include "../include/dnsmole.h"
     
 #define FALSE 0
 

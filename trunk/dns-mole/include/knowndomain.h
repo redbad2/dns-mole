@@ -22,10 +22,6 @@
 #ifndef DNM_KNOWNDOMAIN_H
 #define DNM_KNOWNDOMAIN_H
 
-#include <stdio.h>
-#include <string.h>
-#include <pcre.h>
-
 struct KnownDomain {
     char *name;
     char *cname;
@@ -39,15 +35,15 @@ struct KnownDomain {
 
 typedef struct KnownDomain kdomain;
 
-kdomain *add_domain(kdomain *, kdomain *,int );
+kdomain *add_domain(kdomain *, kdomain *, int );
 void delete_domain(kdomain *);
 void domain_child_free(kdomain *);
-void domain_add_cname(char *,char *,kdomain *);
-kdomain *search_domain(char *,kdomain *);
+void domain_add_cname(char *, char *, kdomain *);
+kdomain *search_domain(char *, kdomain *);
 kdomain *new_domain_structure(char *);
-void load_domain(char *,pcre *,kdomain *,int);
-void split_domain(char *, pcre *,char **);
+void load_domain(char *, pcre *, kdomain *, int);
+void split_domain(char *, pcre *, char **);
 pcre *initialize_regex();
-void read_list(kdomain *,const char *,int,pcre *);
+void read_list(kdomain *, const char *, int, pcre *);
 
 #endif
