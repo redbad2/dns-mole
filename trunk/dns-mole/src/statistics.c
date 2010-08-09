@@ -36,9 +36,18 @@ void st_cal(st_host * host) {
 	host->t_mx_rate = (float)host->mx_total / host->total;
 
 	/* infected type to decide */
-	if (host->t_total >= THRESHOLD_TOTAL) {
-		host->type = 1;
-	}
+	if (host->t_total >= THRESHOLD_TOTAL)
+		host->type |= 0x1;
+	if (host->t_balance >= THRESHOLD_BALANCE)
+		host->type |= 0x10;
+	if (host->t_ptr >= THRESHOLD_PTR)
+		host->type |= 0x100;
+	if (host->t_ptr_rate >= THRESHOLD_PTR_RATE)
+		host->type |= 0x1000;
+	if (host->t_mx >= THRESHOLD_MX)
+		host->type |= 0x10000;
+	if (host->t_mx_rate >= THRESHOLD_MX_RATE)
+		host->type |= 0x100000;
 }
 
 void st_cal_dev(st_host * host) {
@@ -103,6 +112,22 @@ void st_add_query_to_list(st_host * list, query * q) {
 	st_host * host = list;
 	while (host != NULL) {
 		if (host->ip == q->srcip || host->ip == q->dstip) {
+			st_add_query_to_host(host, q);
+			if (host->ip == q->dstip)
+				st_add_query_to_list_src(host, q);
+			return;
+		}
+		host = host->next;
+	}
+	host = st_new_host(q->srcip);
+	st_host_insert(list, host);
+	st_add_query_to_host(host, q);
+}
+
+void st_add_query_to_list_src(st_host * list, query * q) {
+	st_host * host = list;
+	while (host != NULL) {
+		if (host->ip == q->srcip) {
 			st_add_query_to_host(host, q);
 			return;
 		}
