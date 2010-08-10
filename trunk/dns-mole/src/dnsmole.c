@@ -26,21 +26,21 @@
 #include <event.h>
 #include <signal.h>
 
-//#include "../include/knowndomain.h"
 #include "../include/dnsmole.h"
 
 moleWorld mWorld;
 
 void usage(char *pname,const int exit_val){
 	fprintf(stdout,"\n\nUsage: %s "
-	"\t -b <filename>\t :blacklist file\n"
-	"\t\t -w <filename>\t :whitelist file\n"
-	"\t\t -c <filename>\t :config file\n"
-	"\t\t -l <filename>\t :log file\n"
+	"\t -b <file>\t :blacklist file\n"
+	"\t\t -w <file>\t :whitelist file\n"
+	"\t\t -c <file>\t :config file\n"
+	"\t\t -l <file>\t :log file\n"
 	"\t\t -i <interface>\t :set interface\n"
 	"\t\t -d\t\t :daemonize\n"
 	"\t\t -s\t\t :sniffer mode\n"
-	"\t\t -h\t\t :display this usage screen\n"
+	"\t\t -p <file>\t : read pcap file\n" 
+        "\t\t -h\t\t :display this usage screen\n"
 	"\t\t -t <1|2|3>\t :detection method\n\n"
 	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
 	"\t\t\t\t - 2 - Detection by monitoring group activities\n"
@@ -188,6 +188,40 @@ void read_config(const char *conf){
     }
 }
 
+int read_pcap(const char *p_file){
+
+    mWorld.qlist_head = mWorld.qlist_rear = 0;
+    mWorld.count = 0;
+    pcap_t *handler;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    struct bpf_program filter;
+
+    if(access(p_file,F_OK)){
+        fprintf(stderr,"Error opening %s (is the path correct ? )\n",p_file);
+        return -1;
+    }
+    else{   
+        if((handler = pcap_open_offline(p_file,errbuf)) == NULL){
+            fprintf(stderr,"[pcap_open_offline] Error\n");
+            return;
+        }
+
+        if(pcap_compile(handler,&filter,DNS_QUERY_FILTER,0,0) == -1)
+            return PCAP_COMPILE_ERROR;
+
+        if(pcap_setfilter(handler,&filter) == -1)
+            return PCAP_SETFILTER_ERROR;
+    
+        if(pcap_dispatch(handler,0,(void *) pcap_callback, (void *) &mWorld) < 0){
+            fprintf(stderr,"[pcap_dispatch] Error\n"); return -1;
+        }
+
+        pcap_close(handler);
+    }
+    return 1;
+
+}
+
 int main(int argc,char **argv){
     char option;
     char *blacklist_file = NULL;
@@ -195,6 +229,7 @@ int main(int argc,char **argv){
     char *logfile = NULL;
     char *interface = NULL;
     char *config = NULL;
+    char *pcap_file = NULL;
     int daemonize = 0, sniffer = 0;
     pid_t pid,sid;
 
@@ -205,7 +240,7 @@ int main(int argc,char **argv){
     //set_signal(SIGSEGV);
     set_signal(SIGTERM);
     
-    while((option = getopt(argc,argv,"i:b:w:t:l:c:dsh?")) > 0){
+    while((option = getopt(argc,argv,"i:b:w:t:l:c:dsp:h?")) > 0){
 	switch(option){
 	    case 'b':
 		blacklist_file = optarg;
@@ -234,6 +269,10 @@ int main(int argc,char **argv){
 	    case 's':
 		sniffer = 1;
 		break;
+
+            case 'p':
+                pcap_file = optarg;
+                break;
                 
 	    case 'i':
         	interface = optarg;
@@ -288,6 +327,21 @@ int main(int argc,char **argv){
     else 
         open_log(&mWorld,logfile);     
     
+    if(pcap_file){
+        if(read_pcap(pcap_file)){
+            switch(mWorld.type){
+                case 1:
+                    populate_store_structure(mWorld.count,(void *) &mWorld,1);
+                    break;
+                case 2:
+                    populate_store_structure(mWorld.count,(void *) &mWorld,2);
+                    break;
+                case 3:
+                    statistics_method(mWorld.count,(void *) &mWorld);
+                    break;
+            }
+        }
+    }
 
     if(sniffer){
         
