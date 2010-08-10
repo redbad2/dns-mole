@@ -19,7 +19,7 @@
  * $Id$
  */
  
- #include "../include/dnsmole.h"
+#include "../include/dnsmole.h"
 
 domain_store *new_domain(const char *name,float type){
     domain_store *t_domain_store;
@@ -79,7 +79,7 @@ void add_ip_to_domain(domain_store *q,ip_store *t_ip_store){
             q->queried_with_different_ip++;
             t_s->ip = t_ip_store;
             t_s->next = q->domain_ip;
-            q->domain_ip->prev = t_s;
+            //q->domain_ip->prev = t_s;
             t_s->prev = NULL;
             t_s->count = 1;
             q->domain_ip = t_s;
@@ -102,8 +102,10 @@ domain_store *find_domain(domain_store *q,const char *name){
 
 void remove_ip_in_domain(domain_ip_store *q){
     if(q){
+	printf("\t\t\t\t %s\n",inet_ntoa(q->ip->ip));
+        
         remove_ip_in_domain(q->next);
-	    free(q);
+        free(q);
     }
 }
 	
@@ -117,8 +119,18 @@ void remove_domain(domain_store *q, int clean_type){
 	    remove_domain(q->next,1);
 	}
 	else{
-	    q->prev->next = q->next;
-	    q->next->prev = q->prev;
+            if(q->prev && q->next){
+	        q->prev->next = q->next;
+	        q->next->prev = q->prev;
+            }
+
+            if(q->prev && !q->next)
+                q->prev->next = NULL;
+
+            if(!q->prev && q->next)
+                q->next->prev = NULL;
+
+
 	}
         free(q);
     }

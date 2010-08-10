@@ -33,6 +33,7 @@
 #include "analyze.h"
 #include "store_structures.h"
 #include "statistics.h"
+#include "error.h"
 
 struct configuration{
     char *variable;
