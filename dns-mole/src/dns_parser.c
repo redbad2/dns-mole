@@ -27,37 +27,46 @@
 
 /* parse an DNS packet to a query */
 void dns2query(u_char * packet, int len, query * q_store) {
-	struct ip_header * iphdr = (struct ip_header *) (packet + sizeof(struct ether_header));
-	
+	struct ip_header * iphdr = (struct ip_header *) (packet + sizeof(struct ether_header));	
 	struct dns_query_header * dqhdr;
 	u_char * data;
-	if (iphdr->ip_proto == IP_PROTOCOL_TCP) {
-		dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header));
-		data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header) + sizeof(struct dns_query_header));
-	}
-	else if (iphdr->ip_proto == IP_PROTOCOL_UDP) {
-		dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
-		data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct dns_query_header));
-	}
+
+	//if (iphdr->ip_proto == IP_PROTOCOL_TCP) {
+	//	dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header));
+	//	data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header) + sizeof(struct dns_query_header));
+	//}
+	//else if (iphdr->ip_proto == IP_PROTOCOL_UDP) {
+	dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
+	data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct dns_query_header));
+	//}
 	
 	// set src ip
 	q_store->srcip = iphdr->ip_src;
 	q_store->dstip = iphdr->ip_dst;
 	
-	int qnum = ntohs(dqhdr->dq_qc);
+
+    if(DQH_QR(dqhdr)){
+        q_store->is_answer = 1;
+    }
+    else
+        q_store->is_answer = 0;
+    
+    int qnum = ntohs(dqhdr->dq_qc);
 	int anum = ntohs(dqhdr->dq_ac);
+
 	// set answer number
 	q_store->ansnum = anum;
 	
 	//int size = get_url_size(data);
 	data += extract_question(data, q_store) + 4;
 	
-	if (anum == 0)
+	if(anum == 0)
 		return;
+
 	q_store->answers = malloc(anum * sizeof(answer));
 	data += extract_answers(data, (u_char *)dqhdr, anum, q_store);
 	
-	if (qnum > 1) {
+	if(qnum > 1) {
 		// to do
 		// if questions number > 1 then
 	}

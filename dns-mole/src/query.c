@@ -19,9 +19,7 @@
  * $Id$
  */
 
-#include <stdlib.h>
-#include "../include/query.h"
-#include "../include/error.h"
+#include "../include/dnsmole.h" 
 
 void query_empty(query * q) {
 	query * prev = q->prev;

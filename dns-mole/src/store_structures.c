@@ -113,25 +113,28 @@ void remove_ip_in_domain(domain_ip_store *q){
 void remove_domain(domain_store *q, int clean_type){
 
     if(q){
+        printf("(%s) %p - ( %p , %p)\n",q->d_name,q,q->domain_ip,q->next);
         remove_ip_in_domain(q->domain_ip);
-		
-	if(clean_type){
-	    remove_domain(q->next,1);
-	}
-	else{
+        q->domain_ip = NULL;
+	    printf("\t\t\t\t %p\n",q->domain_ip);	
+	    if(clean_type){
+	        remove_domain(q->next,1);
+	    }
+	    else{
             if(q->prev && q->next){
-	        q->prev->next = q->next;
-	        q->next->prev = q->prev;
+	            q->prev->next = q->next;
+	            q->next->prev = q->prev;
             }
-
             if(q->prev && !q->next)
                 q->prev->next = NULL;
-
+        
             if(!q->prev && q->next)
                 q->next->prev = NULL;
+            
+            if(!q->prev && q->next)
+                q = NULL;
 
-
-	}
+        }
         free(q);
     }
 }
