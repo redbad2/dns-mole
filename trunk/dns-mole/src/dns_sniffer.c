@@ -35,7 +35,7 @@ int sniffer_setup(void *mW) {
         char *dev;
         char errbuf[PCAP_ERRBUF_SIZE];
         
-    moleWorld *mWorld = (moleWorld *) mW;
+        moleWorld *mWorld = (moleWorld *) mW;
 
         if(getuid()) {
                 return PCAP_ROOT_ERROR;
@@ -74,8 +74,6 @@ int sniffer_setup(void *mW) {
 
         /* initial structure */
         
-        //mWorld->qlist_head = (query *)malloc(sizeof(query));
-        //memset(mWorld->qlist_head, 0, sizeof(query));
         mWorld->qlist_rear = mWorld->qlist_head = NULL;
         mWorld->count = 0;
         
@@ -104,22 +102,33 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
         unsigned int length = pkthdr->len;
         struct ether_header * ehdr;
         unsigned short ether_type;
+        int i;
         
         ehdr = (struct ether_header *) packet;
         ether_type = ntohs(ehdr->ether_type);
         
         if(ether_type == ETHERTYPE_IP){
             query *q = (query *)malloc(sizeof(query));
-                memset(q, 0, sizeof(query));
-                dns2query((u_char *)packet, pkthdr->len, q);
-                q->time = pkthdr->ts.tv_sec;
-                if (mWorld->qlist_head == NULL) {
-                        mWorld->qlist_head = q;
-                        mWorld->qlist_rear = q;
+            memset(q, 0, sizeof(query));
+            dns2query((u_char *)packet, pkthdr->len, q);
+            q->time = pkthdr->ts.tv_sec;
+            
+            for(i = 0; q->dname[i] != '\0';i++)
+                q->dname[i] = (char) tolower(q->dname[i]);
+            
+            if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->is_answer == 1))){
+                
+                if(mWorld->qlist_head == NULL){
+                    mWorld->qlist_head = q;
+                    mWorld->qlist_rear = q;
                 }
                 else 
                     query_insert_after(mWorld->qlist_rear, q);
+                
                 mWorld->count++;
+            }
+            else
+                remove_query(q);
         }
 }
 

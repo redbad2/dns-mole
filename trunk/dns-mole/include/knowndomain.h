@@ -29,8 +29,7 @@ struct KnownDomain {
     struct KnownDomain *next;
     struct KnownDomain *prev;
     float suspicious;
-    int last_ip;
-    time_t last_seen;
+    unsigned int domain_hash;
 };
 
 typedef struct KnownDomain kdomain;
@@ -44,6 +43,7 @@ kdomain *new_domain_structure(char *);
 void load_domain(char *, pcre *, kdomain *, int);
 void split_domain(char *, pcre *, char **);
 pcre *initialize_regex();
-void read_list(kdomain *, const char *, int, pcre *);
+void read_list(kdomain *, char *, int, pcre *);
+unsigned int MurmurHash2(const void *, int, unsigned int);
 
 #endif

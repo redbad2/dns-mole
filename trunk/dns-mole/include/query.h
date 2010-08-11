@@ -53,6 +53,7 @@ typedef struct Query {
 	unsigned int srcip;
 	unsigned int dstip;
 	int ansnum;
+	int is_answer;
 	answer * answers;
 	struct Query * prev;
 	struct Query * next;

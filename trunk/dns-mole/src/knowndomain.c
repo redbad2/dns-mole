@@ -106,17 +106,19 @@ kdomain *search_domain(char *name,kdomain *root_domain){
     re = initialize_regex();
     split_domain(name,re,split_structure);
     while(temp_domain){
-        if(!strcmp(temp_domain->name,split_structure[count])){
-            free(split_structure[count]);
-            if((count != 3) && (split_structure[count+1] != NULL)){
-                count++; 
-                temp_domain = temp_domain->kd_child;
-            }
-            else if(count != 3 && split_structure[count+1] == NULL){
-                return temp_domain;
-            }
-            else if(count == 3){
-                return temp_domain;
+        if(temp_domain->domain_hash == MurmurHash2((void *) name,strlen(name),strlen(name)%17)){
+            if(!strcmp(temp_domain->name,split_structure[count])){
+                free(split_structure[count]);
+                if((count != 3) && (split_structure[count+1] != NULL)){
+                    count++; 
+                    temp_domain = temp_domain->kd_child;
+                }
+                else if(count != 3 && split_structure[count+1] == NULL){
+                    return temp_domain;
+                }
+                else if(count == 3){
+                    return temp_domain;
+                }
             }
         }
         else {
@@ -140,6 +142,7 @@ kdomain *new_domain_structure(char *name){
         tmp_domain->kd_child = tmp_domain->next = tmp_domain->prev = NULL;
         tmp_domain->cname = NULL;
         tmp_domain->suspicious = FALSE;
+        tmp_domain->domain_hash = MurmurHash2((void *) name,strlen(name),strlen(name)%17);
     }
 
     else{ 
@@ -203,6 +206,8 @@ void split_domain(char *line,pcre *re,char **split_structure){
         }
     }
 }
+
+
         
 pcre *initialize_regex(){
     pcre *tre; 
@@ -214,17 +219,70 @@ pcre *initialize_regex(){
     return tre;
 }
     
-void read_list(kdomain *root,const char *bl_filename,int type,pcre *re){
+void read_list(kdomain *root,char *bl_filename,int type,pcre *re){
 	
     FILE *fp; char line[80];
-
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
 			if(isalpha(line[0]) || isdigit(line[0])){ 		
-				load_domain(line,re,root,type);
+				printf("%s\n",line);
+                if(strchr(line,'.'))
+                    load_domain(line,re,root,type);
 			}
 		}
 	}
 	
     fclose(fp);
 }
+
+unsigned int MurmurHash2 (const void * key, int len, unsigned int seed){
+	
+	// 'm' and 'r' are mixing constants generated offline.
+	// They're not really 'magic', they just happen to work well.
+
+	const unsigned int m = 0x5bd1e995;
+	const int r = 24;
+
+	// Initialize the hash to a 'random' value
+
+	unsigned int h = seed ^ len;
+
+	// Mix 4 bytes at a time into the hash
+
+	const unsigned char * data = (const unsigned char *)key;
+
+	while(len >= 4)
+	{
+		unsigned int k = *(unsigned int *)data;
+
+		k *= m; 
+		k ^= k >> r; 
+		k *= m; 
+		
+		h *= m; 
+		h ^= k;
+
+		data += 4;
+		len -= 4;
+	}
+	
+	// Handle the last few bytes of the input array
+
+	switch(len)
+	{
+	case 3: h ^= data[2] << 16;
+	case 2: h ^= data[1] << 8;
+	case 1: h ^= data[0];
+	        h *= m;
+	};
+
+	// Do a few final mixes of the hash to ensure the last few
+	// bytes are well-incorporated.
+
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
+
+	return h;
+} 
+

@@ -126,7 +126,7 @@ void read_config(const char *conf){
     register_config(config,"oBlackIpTreshold",(void *) &mWorld.parameters.black_ip_treshold,1);
     register_config(config,"oWhite",(void *) &mWorld.parameters.o_white,1);
     register_config(config,"oBlack",(void *) &mWorld.parameters.o_black,1);
-
+    register_config(config,"nSubnet",(void *) &mWorld.parameters.subnet,1);
     if((config_file = fopen(conf,"r")) != NULL){
         while(fgets(line,sizeof(line),config_file) != NULL){
             line_count++;
@@ -243,7 +243,7 @@ int main(int argc,char **argv){
     while((option = getopt(argc,argv,"i:b:w:t:l:c:dsp:h?")) > 0){
 	switch(option){
 	    case 'b':
-		blacklist_file = optarg;
+i		blacklist_file = optarg;
 		break;
 
 	    case 'w':
@@ -256,7 +256,7 @@ int main(int argc,char **argv){
 	
 	    case 'c':
 		config = optarg;
-    		break;
+		break;
             
 	    case 't':
 		mWorld.type = atoi(optarg);
@@ -270,20 +270,20 @@ int main(int argc,char **argv){
 		sniffer = 1;
 		break;
 
-            case 'p':
-                pcap_file = optarg;
-                break;
+	case 'p':
+		pcap_file = optarg;
+		break;
                 
 	    case 'i':
-        	interface = optarg;
-        	break;
+		interface = optarg;
+		break;
 
 	    case '?':
 	    case 'h':
 	    	usage(argv[0],EXIT_SUCCESS);
 
 	    default:
-		    break;
+		break;
 	    }
 	}
     
@@ -298,16 +298,18 @@ int main(int argc,char **argv){
         exit(EXIT_FAILURE);
     }
 
-    if(!interface){
-        fprintf(stderr,"\n[*] Please set interface [ -i ]\n");
+    if(((interface == NULL) && sniffer) && (pcap_file == NULL)){
+        fprintf(stderr,"\n[*] Please set interface for sniffer or provide .pcap file for analysis\n");
         exit(EXIT_FAILURE);
     }
     
-    if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
-            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-    }
     
-    memcpy(mWorld.interface,interface,strlen(interface)+1);
+    if(interface){
+        if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
+            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
+        }
+        memcpy(mWorld.interface,interface,strlen(interface)+1);
+    }
 
     if(!config){
         fprintf(stderr,"\n[*] Please set config file [ -c ]\n");
@@ -327,6 +329,9 @@ int main(int argc,char **argv){
     else 
         open_log(&mWorld,logfile);     
     
+    if(!mWorld.parameters.subnet)
+        mWorld.parameters.subnet = 16;
+    
     if(pcap_file){
         if(read_pcap(pcap_file)){
             switch(mWorld.type){
@@ -343,18 +348,8 @@ int main(int argc,char **argv){
         }
     }
 
-    if(sniffer){
+    if(sniffer && interface){
         
-        if(daemonize){
-            if((pid = fork()) > 0){
-                umask(0);
-                if((sid = setsid()) < 0){
-                    fprintf(stderr,"[setsid] Error\n"); exit(EXIT_FAILURE);
-                }
-            }
-            exit(EXIT_FAILURE);
-        }
-
         event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
@@ -391,8 +386,6 @@ int main(int argc,char **argv){
         
         event_dispatch();
 
-        if(daemonize)
-            exit(EXIT_SUCCESS);
     }
 	
     fprintf(stdout,"... remember when you were young ... \n");

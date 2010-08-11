@@ -27,5 +27,5 @@ void _analyzer(int , short , void *);
 void populate_store_structure(int , void *, int);
 void statistics_method(int , void *); 
 void second_method(void *, void *, void *, void *);
-void first_method(void *, void *, void *);
+void first_method(void *, void **, void *);
 float calculate_jaccard_index(void *, void *);

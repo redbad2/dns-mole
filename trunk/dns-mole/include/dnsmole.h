@@ -53,6 +53,8 @@ struct parameter{
     float black_ip_treshold;
     float o_white;
     float o_black;
+
+    int subnet;
 };
 
 struct moleWorld{
@@ -66,6 +68,7 @@ struct moleWorld{
 
     int type;
     int count;
+    int ipSpace;
 
     pcre *re;
     pcap_t *p;
