@@ -48,7 +48,7 @@ kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
         }
         else if(!strcmp(tdomain->name,new_domain->name) && !tdomain->kd_child){
             if(level == 1){
-                tdomain->kd_child = new_domain_structure("TEMP");
+                tdomain->kd_child = new_domain_structure("TEMP",-1);
                 tdomain->kd_child->prev = tdomain;
                 return tdomain->kd_child;
             }
@@ -89,7 +89,7 @@ void domain_child_free(kdomain *domain_free){
 
 void domain_add_cname(char *domain_name,char *name,kdomain *root_domain){
 
-    kdomain *temp_domain = search_domain(domain_name,root_domain);
+     kdomain *temp_domain = search_domain(domain_name,root_domain,1);
     
     if((temp_domain->cname = malloc(strlen(name)*sizeof(char) + 1)) == NULL){
         fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
@@ -97,22 +97,37 @@ void domain_add_cname(char *domain_name,char *name,kdomain *root_domain){
     memcpy(temp_domain->cname,name,strlen(name)+1);
 }
 
-kdomain *search_domain(char *name,kdomain *root_domain){
+kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
+
     pcre *re;
     char **split_structure = malloc(sizeof(char *) * 4);
-    int count = 0;
+    int count = 0, len_size = 0;
+    unsigned int temp_hash = 0;
     kdomain *temp_domain = root_domain->kd_child;
 
     re = initialize_regex();
     split_domain(name,re,split_structure);
+       
+    if(!split_structure[0]){
+        pcre_free(re); return (kdomain *) 0;  
+    }
+    
     while(temp_domain){
-        if(temp_domain->domain_hash == MurmurHash2((void *) name,strlen(name),strlen(name)%17)){
-            if(!strcmp(temp_domain->name,split_structure[count])){
-                free(split_structure[count]);
-                if((count != 3) && (split_structure[count+1] != NULL)){
+        temp_hash = 0;
+        
+        if((len_size = strlen(split_structure[count])) < 20)
+            temp_hash = hash(split_structure[count],len_size);
+
+        if(((temp_domain->domain_hash == temp_hash) || !temp_hash)){
+            len_size = (temp_domain->name_length <= len_size ? temp_domain->name_length : len_size);
+            if(!memcmp(temp_domain->name,split_structure[count],len_size)){
+                if((temp_domain->suspicious == 0) && (search_type == 0)){
+                    pcre_free(re); return temp_domain;
+                }
+                else if((count != 3) && (split_structure[count+1] != NULL)){
                     count++; 
                     temp_domain = temp_domain->kd_child;
-                }
+                } 
                 else if(count != 3 && split_structure[count+1] == NULL){
                     return temp_domain;
                 }
@@ -120,17 +135,19 @@ kdomain *search_domain(char *name,kdomain *root_domain){
                     return temp_domain;
                 }
             }
+            else
+                temp_domain = temp_domain->next;
         }
-        else {
+        else 
             temp_domain = temp_domain->next;
-        }
+        
     }
     free(split_structure);
     pcre_free(re);
     return (kdomain *)0;
 }
 
-kdomain *new_domain_structure(char *name){
+kdomain *new_domain_structure(char *name,int suspicious){
     
     kdomain *tmp_domain;
 
@@ -141,8 +158,9 @@ kdomain *new_domain_structure(char *name){
         memcpy(tmp_domain->name,name,strlen(name)+1);
         tmp_domain->kd_child = tmp_domain->next = tmp_domain->prev = NULL;
         tmp_domain->cname = NULL;
-        tmp_domain->suspicious = FALSE;
-        tmp_domain->domain_hash = MurmurHash2((void *) name,strlen(name),strlen(name)%17);
+        tmp_domain->suspicious = suspicious;
+        tmp_domain->name_length = strlen(name);
+        tmp_domain->domain_hash = hash(name,tmp_domain->name_length);
     }
 
     else{ 
@@ -162,7 +180,12 @@ void load_domain(char *line,pcre *re,kdomain *domain,int type){
     split_domain(line,re,split_structure);
     for(splitcount = 0; splitcount < 4;splitcount++){
         if(split_structure[splitcount] != NULL){
-            new_domain = new_domain_structure(split_structure[splitcount]);
+            if(split_structure[splitcount+1] == NULL){
+                new_domain = new_domain_structure(split_structure[splitcount],type);
+            }
+            else
+                new_domain = new_domain_structure(split_structure[splitcount],-1);
+
             if(split_structure[splitcount+1] == NULL)
                 i = 0;
             temp_domain = add_domain(new_domain,temp_domain,i);
@@ -170,12 +193,6 @@ void load_domain(char *line,pcre *re,kdomain *domain,int type){
         }
     }
     
-    if(!strcmp(temp_domain->name,"TEMP")){
-        temp_domain->prev->suspicious = type;
-    }
-    else{
-        temp_domain->suspicious = type;
-    }
     free(split_structure);
 }
 
@@ -213,7 +230,7 @@ pcre *initialize_regex(){
     pcre *tre; 
     const char *error; int error_offset;
     
-    if((tre = pcre_compile("([a-z0-9\\.]*?)([a-z0-9]*?)\\.?([a-z0-9]+)\\.([a-z0-9]+)$",0,&error,&error_offset,NULL)) == NULL){
+    if((tre = pcre_compile("([a-z0-9_\\-\\.]*?)([a-z0-9_\\-]*?)\\.?([a-z0-9_\\-]+)\\.([a-z0-9_\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
        fprintf(stderr,"[pcre] Error\n"); exit(EXIT_FAILURE); 
     }
     return tre;
@@ -225,9 +242,8 @@ void read_list(kdomain *root,char *bl_filename,int type,pcre *re){
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
 			if(isalpha(line[0]) || isdigit(line[0])){ 		
-				printf("%s\n",line);
-                if(strchr(line,'.'))
-                    load_domain(line,re,root,type);
+            		    if(strchr(line,'.'))
+                    		load_domain(line,re,root,type);
 			}
 		}
 	}
@@ -235,54 +251,14 @@ void read_list(kdomain *root,char *bl_filename,int type,pcre *re){
     fclose(fp);
 }
 
-unsigned int MurmurHash2 (const void * key, int len, unsigned int seed){
-	
-	// 'm' and 'r' are mixing constants generated offline.
-	// They're not really 'magic', they just happen to work well.
 
-	const unsigned int m = 0x5bd1e995;
-	const int r = 24;
+unsigned int hash(const char *str, int len){
+    
+    unsigned hash = 0;
+    int count = 0;
+    
+    for(count = 0; count < len; count++)
+        hash = (int) str[count] + (hash << 6) + (hash << 16) - hash;
 
-	// Initialize the hash to a 'random' value
-
-	unsigned int h = seed ^ len;
-
-	// Mix 4 bytes at a time into the hash
-
-	const unsigned char * data = (const unsigned char *)key;
-
-	while(len >= 4)
-	{
-		unsigned int k = *(unsigned int *)data;
-
-		k *= m; 
-		k ^= k >> r; 
-		k *= m; 
-		
-		h *= m; 
-		h ^= k;
-
-		data += 4;
-		len -= 4;
-	}
-	
-	// Handle the last few bytes of the input array
-
-	switch(len)
-	{
-	case 3: h ^= data[2] << 16;
-	case 2: h ^= data[1] << 8;
-	case 1: h ^= data[0];
-	        h *= m;
-	};
-
-	// Do a few final mixes of the hash to ensure the last few
-	// bytes are well-incorporated.
-
-	h ^= h >> 13;
-	h *= m;
-	h ^= h >> 15;
-
-	return h;
-} 
-
+    return (hash & 0x7FFFFFFF);
+}

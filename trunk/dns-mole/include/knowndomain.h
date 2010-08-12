@@ -25,10 +25,11 @@
 struct KnownDomain {
     char *name;
     char *cname;
+    int name_length;
     struct KnownDomain *kd_child;
     struct KnownDomain *next;
     struct KnownDomain *prev;
-    float suspicious;
+    int suspicious;
     unsigned int domain_hash;
 };
 
@@ -38,12 +39,12 @@ kdomain *add_domain(kdomain *, kdomain *, int );
 void delete_domain(kdomain *);
 void domain_child_free(kdomain *);
 void domain_add_cname(char *, char *, kdomain *);
-kdomain *search_domain(char *, kdomain *);
-kdomain *new_domain_structure(char *);
+kdomain *search_domain(char *, kdomain *,int);
+kdomain *new_domain_structure(char *, int);
 void load_domain(char *, pcre *, kdomain *, int);
 void split_domain(char *, pcre *, char **);
 pcre *initialize_regex();
 void read_list(kdomain *, char *, int, pcre *);
-unsigned int MurmurHash2(const void *, int, unsigned int);
+unsigned int hash(const char *,int);
 
 #endif

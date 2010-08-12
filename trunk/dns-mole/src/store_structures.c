@@ -91,7 +91,7 @@ domain_store *find_domain(domain_store *q,const char *name){
     domain_store *start_domain = q;
     
     while(start_domain){
-        if(!strcmp(start_domain->d_name,name))
+        if(!memcmp(start_domain->d_name,name,strlen(name)))
             return start_domain;
 
         start_domain = start_domain->next;
@@ -102,8 +102,6 @@ domain_store *find_domain(domain_store *q,const char *name){
 
 void remove_ip_in_domain(domain_ip_store *q){
     if(q){
-	printf("\t\t\t\t %s\n",inet_ntoa(q->ip->ip));
-        
         remove_ip_in_domain(q->next);
         free(q);
     }
@@ -114,13 +112,12 @@ void remove_domain(domain_store *q, int clean_type){
 
     if(q){
         printf("(%s) %p - ( %p , %p)\n",q->d_name,q,q->domain_ip,q->next);
-        remove_ip_in_domain(q->domain_ip);
-        q->domain_ip = NULL;
 	    printf("\t\t\t\t %p\n",q->domain_ip);	
-	    if(clean_type){
-	        remove_domain(q->next,1);
-	    }
-	    else{
+
+        if(clean_type){
+            remove_domain(q->next,1);
+            q->prev = q->next = NULL;
+        }else{
             if(q->prev && q->next){
 	            q->prev->next = q->next;
 	            q->next->prev = q->prev;
@@ -131,10 +128,11 @@ void remove_domain(domain_store *q, int clean_type){
             if(!q->prev && q->next)
                 q->next->prev = NULL;
             
-            if(!q->prev && q->next)
-                q = NULL;
-
         }
+        remove_ip_in_domain(q->domain_ip->next);
+        free(q->domain_ip);
+        q->domain_ip = NULL;
+        free(q->d_name);
         free(q);
     }
 }
@@ -182,6 +180,7 @@ ip_store *find_ip(ip_store *q,unsigned int ip){
 }
 
 void remove_ip(ip_store *q){
+    
     if(q){
         remove_ip(q->next);
         free(q);

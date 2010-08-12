@@ -102,6 +102,6 @@ void register_config(configuration *, const char *, void *, int);
 
 void open_log(void *, const char *);
 void close_log(void *);
-void report(FILE *, int, int, const char *);
+void report(FILE *, int, int, char *);
 
 #endif

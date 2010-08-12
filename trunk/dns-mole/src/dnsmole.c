@@ -126,7 +126,8 @@ void read_config(const char *conf){
     register_config(config,"oBlackIpTreshold",(void *) &mWorld.parameters.black_ip_treshold,1);
     register_config(config,"oWhite",(void *) &mWorld.parameters.o_white,1);
     register_config(config,"oBlack",(void *) &mWorld.parameters.o_black,1);
-    register_config(config,"nSubnet",(void *) &mWorld.parameters.subnet,1);
+    register_config(config,"nSubnet",(void *) &mWorld.parameters.subnet,0);
+    
     if((config_file = fopen(conf,"r")) != NULL){
         while(fgets(line,sizeof(line),config_file) != NULL){
             line_count++;
@@ -272,7 +273,7 @@ int main(int argc,char **argv){
 		sniffer = 1;
 		break;
 
-	case 'p':
+	    case 'p':
 		pcap_file = optarg;
 		break;
                 
@@ -293,7 +294,7 @@ int main(int argc,char **argv){
     argv += optind;
 
     mWorld.re = initialize_regex();
-    mWorld.root_list = new_domain_structure("ROOT");
+    mWorld.root_list = new_domain_structure("ROOT",-1);
 
     if(mWorld.type == 0){
 	    fprintf(stderr,"\n[*] Please choose detection method [ -t ])\n");
@@ -303,14 +304,6 @@ int main(int argc,char **argv){
     if(((interface == NULL) && sniffer) && (pcap_file == NULL)){
         fprintf(stderr,"\n[*] Please set interface for sniffer or provide .pcap file for analysis\n");
         exit(EXIT_FAILURE);
-    }
-    
-    
-    if(interface){
-        if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
-            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-        }
-        memcpy(mWorld.interface,interface,strlen(interface)+1);
     }
 
     if(!config){
@@ -325,11 +318,6 @@ int main(int argc,char **argv){
         
     if(whitelist_file)
 	    read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
-    
-    if(!logfile){
-        open_log(&mWorld,"dnsmole-log"); }
-    else 
-        open_log(&mWorld,logfile);     
     
     if(!mWorld.parameters.subnet)
         mWorld.parameters.subnet = 16;
@@ -350,14 +338,29 @@ int main(int argc,char **argv){
         }
     }
 
+    pcap_file = NULL;
+
+    if(interface){
+        if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
+            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
+        }
+        memcpy(mWorld.interface,interface,strlen(interface)+1);
+    }
+
+    if(!logfile){
+        open_log(&mWorld,"dnsmole-log"); 
+    }
+    else 
+        open_log(&mWorld,logfile); 
+    
     if(sniffer && interface){
         
         event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
-	        fprintf(stderr,"[sniffer_setup] error\n");
-	        exit(EXIT_FAILURE);
-	    }
+	    fprintf(stderr,"[sniffer_setup] error\n");
+	    exit(EXIT_FAILURE);
+	}
     
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
@@ -389,6 +392,8 @@ int main(int argc,char **argv){
         event_dispatch();
 
     }
+
+    cleanup();
 	
     fprintf(stdout,"... remember when you were young ... \n");
     exit(EXIT_SUCCESS);

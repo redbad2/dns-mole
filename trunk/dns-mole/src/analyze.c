@@ -44,12 +44,12 @@ void _analyzer(int fd,short event,void *arg){
     switch(analyzeMole->type){
         case 1:
             populate_store_structure(num_packets,(void *) analyzeMole,1);
-	        break;
+            break;
         case 2:
             populate_store_structure(num_packets,(void *) analyzeMole,2);
             break;
         case 3:
-	        statistics_method(num_packets,(void *) analyzeMole);
+            statistics_method(num_packets,(void *) analyzeMole);
             break;
     }
     
@@ -87,27 +87,26 @@ void statistics_method(int num, void *mole) {
 	/* report sth. */
 }
 
-void p_ip(ip_store **q){
-    if(q){
-        printf("%s (%i)\n",inet_ntoa(q->ip),q->all_hosts);
-        p_ip(q->next);
-    }
-}
-
 void print_ip(domain_ip_store *dip){
-    if(dip){
-        printf("\t\t%s (%i)\n",inet_ntoa(dip->ip->ip),dip->count);
-        print_ip(dip->next);
-    }
+        if(dip){
+                    printf("\t\t%s (%i)\n",inet_ntoa(dip->ip->ip),dip->count);
+                            print_ip(dip->next);
+                                }
 }
 
 void print_domain(domain_store *d){
-    if(d){
-        printf("domain: %s\n",d->d_name);
-        print_ip(d->domain_ip);
-        print_domain(d->next);
-    }
+        if(d){
+                    printf("domain: %s\n",d->d_name);
+                            print_ip(d->domain_ip);
+                                    print_domain(d->next);
+                                        }
 }
+
+
+
+
+
+
 void populate_store_structure(int num_packets,void *black,int type){
 
     
@@ -125,8 +124,6 @@ void populate_store_structure(int num_packets,void *black,int type){
     float half = (storeMole->parameters).analyze_interval/2.;
     unsigned int index;
 
-    time_t start = time(NULL);
-
     d_head = d_rear = NULL;
     d_head_1 = d_rear_1 = NULL;
     d_head_2 = d_rear_1 = NULL;
@@ -134,195 +131,217 @@ void populate_store_structure(int num_packets,void *black,int type){
     for(count = 0; count < storeMole->ipSpace; count++)
         ip_store_head[count] = ip_store_rear[count] = NULL;
     
+    time_t start = time(NULL);
 
     for(count = 0; count < num_packets; count++){
-        
+        //printf("%i - %i\n",count,num_packets);        
         t_type = -1;
         t_query = storeMole->qlist_head;
         
-        if(strchr(t_query->dname,'.')){
+        index = t_query->srcip>>((storeMole->parameters).subnet);
         
-            index = t_query->srcip>>((storeMole->parameters).subnet+1);
-            domain_list = search_domain(t_query->dname,storeMole->root_list);
-        
-            if(domain_list)
-                t_type = domain_list->suspicious;
+        if(strcmp(t_query->dname,"DOBY.BIZ"))
+            domain_list = search_domain(t_query->dname,storeMole->root_list,0);
             
-            if(ip_store_head[index] == NULL){
-                ip_store_head[index] = ip_store_rear[index] = t_ip_store =  new_ip(t_query->srcip);
-        
-            } 
-            else{
-	        
-                if((t_ip_store = find_ip(ip_store_head[index],t_query->srcip)) == 0){
-                    t_ip_store = new_ip(t_query->srcip);
-                    ip_store_rear[index]->next = t_ip_store;
-                    t_ip_store->prev = ip_store_rear[index];
-                    ip_store_rear[index] = t_ip_store;
-                }
-            }  
-            if(t_type == 1)
-                t_ip_store->black_hosts++;
-        
-            if(t_type == 0)
-                t_ip_store->white_hosts++;
-        
-            t_ip_store->all_hosts++;
+        if(domain_list != 0)
+            t_type = domain_list->suspicious;
+       
+        //printf("%s - %i\n",t_query->dname,t_type);
+        if(ip_store_head[index] == NULL){
+            ip_store_head[index] = ip_store_rear[index] = t_ip_store =  new_ip(t_query->srcip);
+        } 
+        else{
+	        if((t_ip_store = find_ip(ip_store_head[index],t_query->srcip)) == 0){
+                t_ip_store = new_ip(t_query->srcip);
+                ip_store_rear[index]->next = t_ip_store;
+                t_ip_store->prev = ip_store_rear[index];
+                ip_store_rear[index] = t_ip_store;
+            }
+        }
 
-            if(t_type == -1 || t_type == 1){
-                time_t now = time(NULL);
-            
+        if(t_type == 1)
+            t_ip_store->black_hosts++;
+        
+        if(t_type == 0)
+            t_ip_store->white_hosts++;
+        
+        t_ip_store->all_hosts++;
+
+        if((t_type == -1) || (t_type == 1)){
+            time_t now = time(NULL);
+                
+            if((type == 1) || (((float)(now - t_query->time) < half))){
+                d_head = d_head_1;
+                d_rear = d_rear_1;
+            }
+            else{
+                d_head = d_head_2;
+                d_rear = d_rear_2;
+            }
+
+            if(d_head == NULL){
+                d_head = d_rear = new_domain(t_query->dname,t_type);
+                add_ip_to_domain(d_rear,(void *)t_ip_store); 
+                
                 if((type == 1) || (((float)(now - t_query->time) < half))){
-                    d_head = d_head_1;
-                    d_rear = d_rear_1;
+                    d_head_1 = d_head;
+                    d_rear_1 = d_rear;
                 }
                 else{
-                    d_head = d_head_2;
-                    d_rear = d_rear_2;
+                    d_head_2 = d_head;
+                    d_rear_2 = d_rear;
                 }
+            }
+        
+            else{
+                if((t_domain_store = find_domain(d_head,t_query->dname))){
+                    add_ip_to_domain(t_domain_store,(void *)t_ip_store);
+                }
+                else{
+                    t_domain_store = new_domain(t_query->dname,t_type);
+                    add_ip_to_domain(t_domain_store,(void *)t_ip_store);
+                    t_domain_store->prev = d_rear;
+                    d_rear->next = t_domain_store;
+                    d_rear = d_rear->next;
 
-                if(d_head == NULL){
-                    d_head = d_rear = new_domain(t_query->dname,t_type);
-                    add_ip_to_domain(d_rear,(void *)t_ip_store); 
-                
                     if((type == 1) || (((float)(now - t_query->time) < half))){
-                        d_head_1 = d_head;
                         d_rear_1 = d_rear;
                     }
-                    else{
-                        d_head_2 = d_head;
+                    else
                         d_rear_2 = d_rear;
-                    }
-                }
-        
-                else{
-                    if((t_domain_store = find_domain(d_head,t_query->dname))){
-                        add_ip_to_domain(t_domain_store,(void *)t_ip_store);
-                    }
-                    else{
-                        t_domain_store = new_domain(t_query->dname,t_type);
-                        add_ip_to_domain(t_domain_store,(void *)t_ip_store);
-                        t_domain_store->prev = d_rear;
-                        d_rear->next = t_domain_store;
-                        d_rear = d_rear->next;
-
-                        if((type == 1) || (((float)(now - t_query->time) < half))){
-                            d_rear_1 = d_rear;
-                        }
-                        else{
-                            d_rear_2 = d_rear;
-                        }
-                    }
                 }
             }
         }
+        
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
-
     printf("%i\n",time(NULL) - start);
     getchar();
     print_domain(d_head_1);
-    printf("----------------------\n");
     print_domain(d_head_2);
-    printf("\t\tDONE \n");
-    //p_ip(ip_store_head);
-    printf("\t\t....\n");
+    
     switch(type){
         case 1:
             first_method((void *) d_head_1,(void **) ip_store_head,(void *)storeMole);
             break;
         case 2:
-            second_method((void *) d_head_1,(void *) d_head_2,(void **) ip_store_head,(void *)storeMole);
+            second_method((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
             break;
     }
-    printf("XXX\n");
+    printf("HELLO");
+    remove_domain(d_head_1->next,1);
+    remove_domain(d_head_1,0); 
+    printf("XXXXXXXXX\n");
     remove_domain(d_head_1,1);
-    remove_domain(d_head_2,1);
+    if(type == 2) 
+        remove_domain(d_head_2,1);
     //remove_ip(ip_store_head);
-    //printf("%p(%s(%s)) %p %p(%p)\n",d_head_1,d_head_1->d_name,d_head_1->next->d_name,d_head_2,ip_store_head,ip_store_head->next);
 }
 
-void second_method(void *domain_list_one,void *domain_list_two,void *ip,void *mWorld){
+void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
     
     domain_store *d_head_1 = (domain_store *) domain_list_one;
     domain_store *d_head_2 = (domain_store *) domain_list_two;
-    ip_store *ip_store_head = (ip_store *) ip;
-    ip_store *ip_head_detected, *ip_rear_detected, *t_ip_detected;
+
+    ip_store *ip_head_detected, *ip_rear_detected, *t_ip_detected, *t_ip;
     domain_ip_store *list_ip;
     moleWorld *groupMole = (moleWorld *) mWorld;
+    char log_report[80];
     int a, b, c;
     float similarity = 0.0;
 
     a = b = c = 0;
     ip_head_detected = ip_rear_detected = NULL;
 
-    domain_store *t_domain_1, *t_domain_2;
+    domain_store *t_domain_1, *t_domain_2, *t_domain;
+
+    for(t_domain_1 = d_head_1; t_domain_1 != NULL; ){
+        
+        if(t_domain_1->queried_with_different_ip < (groupMole->parameters).activity_drop){
+            t_domain = t_domain_1->next;
+            remove_domain(t_domain_1,0);
+            t_domain_1 = t_domain;
+        } else
+            t_domain_1 = t_domain_1->next;
+    }
+
+    for(t_domain_2 = d_head_2; t_domain_2 != NULL; ){
+        
+        if(t_domain_2->queried_with_different_ip < (groupMole->parameters).activity_drop){
+            t_domain = t_domain_2->next;
+            remove_domain(t_domain_2,0);
+            t_domain_2 = t_domain;
+        } else
+            t_domain_2 = t_domain_1->next;
+    }
 
     t_domain_1 = d_head_1;
 
     while(t_domain_1){
+        
         if((t_domain_2 = find_domain(d_head_2,t_domain_1->d_name))){
         
-            if(t_domain_1->queried_with_different_ip < groupMole->parameters.activity_drop){
-                remove_domain(t_domain_1,0);
-            }
-            else if(t_domain_2->queried_with_different_ip < groupMole->parameters.activity_drop){
-                remove_domain(t_domain_2,0);
-            }
-
-            else{
-                a = t_domain_1->queried_with_different_ip;
-                b = t_domain_2->queried_with_different_ip;
-                list_ip = t_domain_1->domain_ip;
+            a = t_domain_1->queried_with_different_ip;
+            b = t_domain_2->queried_with_different_ip;
+            list_ip = t_domain_1->domain_ip;
             
-                while(list_ip){
-                    if(find_ip_in_domain(t_domain_2->domain_ip,list_ip->ip->ip)){
-                        if(ip_head_detected == NULL){
-                            ip_head_detected = ip_head_detected = new_ip(list_ip->ip->ip);
-                        }
-            
-                        else{
-                            t_ip_detected = new_ip(list_ip->ip->ip);
-                            ip_rear_detected->next = t_ip_detected;
-                            t_ip_detected->prev = ip_rear_detected;
-                            ip_rear_detected = t_ip_detected;
-                        }
+            while(list_ip){
 
-                        c++;
+                if(find_ip_in_domain(t_domain_2->domain_ip,list_ip->ip->ip)){
+        
+                    if(ip_head_detected == NULL){
+                        ip_head_detected = ip_head_detected = new_ip(list_ip->ip->ip);
 
-                        list_ip = list_ip->next;
+                    } else {
+                        t_ip_detected = new_ip(list_ip->ip->ip);
+                        ip_rear_detected->next = t_ip_detected;
+                        t_ip_detected->prev = ip_rear_detected;
+                        ip_rear_detected = t_ip_detected;
                     }
 
-                    similarity = 0.5*((float)c/a + (float)c/b);
+                    c++;
+
+                }   
+
+                list_ip = list_ip->next;
+            }
+
+            similarity = 0.5*((float)c/a + (float)c/b);
             
-                    if(similarity > groupMole->parameters.activity_similarity){
-                
-                        /* report sth. */
-                    }
+            if(similarity > (groupMole->parameters).activity_similarity){
 
-
-                    remove_ip(ip_head_detected);    
-                    c = 0;
+                load_domain(t_domain_1->d_name,groupMole->re,groupMole->root_list,0);    
+                snprintf(log_report,strlen(log_report),"Domain: (%s) added",t_domain_1->d_name);
+                report(groupMole->log_fp,2,1,log_report);
+                        
+                t_ip = t_ip_detected;
+                while(t_ip){
+                    report(groupMole->log_fp,2,3,(char *)inet_ntoa(t_ip->ip));
+                    t_ip = t_ip->next;
                 }
-
             }
+
+                
+            remove_ip(t_ip_detected);    
+            c = 0;
         }
+
         t_domain_1 = t_domain_1->next;
     }
 
     t_domain_1 = d_head_1;
 
     while(t_domain_1){
+
         t_domain_2 = d_head_2;
 
         if(t_domain_1 != t_domain_2){
 
-            if(t_domain_2->queried_with_different_ip < groupMole->parameters.activity_drop)
-                remove_domain(t_domain_2,0);
-
             while(t_domain_2){
+                
                 c = 0;
+        
                 if(abs(t_domain_1->queried_with_different_ip - t_domain_2->queried_with_different_ip) 
                     < 0.1*t_domain_1->queried_with_different_ip){
 
@@ -331,11 +350,13 @@ void second_method(void *domain_list_one,void *domain_list_two,void *ip,void *mW
                     list_ip = t_domain_1->domain_ip;
 
                     while(list_ip){
+
                         if(find_ip_in_domain(t_domain_2->domain_ip,list_ip->ip->ip)){
+
                             if(ip_head_detected == NULL){
                                 ip_head_detected = ip_head_detected = new_ip(list_ip->ip->ip); 
-                            }
-                            else{
+
+                            } else {
                                 t_ip_detected = new_ip(list_ip->ip->ip);
                                 ip_rear_detected->next = t_ip_detected;
                                 t_ip_detected->prev = ip_rear_detected;
@@ -349,17 +370,26 @@ void second_method(void *domain_list_one,void *domain_list_two,void *ip,void *mW
                     }
 
                     similarity = 0.5*((float)c/a + (float)c/b);
-                    if(similarity > groupMole->parameters.activity_similarity){
-
-                        /* report sth. */
-
+                    if(similarity > (groupMole->parameters).activity_similarity){
+                    
+                        snprintf(log_report,strlen(log_report),"Domains: (%s) (%s) added",t_domain_1->d_name,t_domain_2->d_name);
+                        load_domain(t_domain_1->d_name,groupMole->re,groupMole->root_list,0);    
+                        load_domain(t_domain_2->d_name,groupMole->re,groupMole->root_list,0);
+                        report(groupMole->log_fp,2,1,log_report);
+                        
+                        t_ip = t_ip_detected;
+                        while(t_ip){
+                            report(groupMole->log_fp,2,3,(char *) inet_ntoa(t_ip->ip));
+                            t_ip = t_ip->next;
+                        }
                     }   
 
-                    remove_ip(ip_head_detected);
+                    remove_ip(t_ip_detected);
                 }
                 t_domain_2 = t_domain_2->next;
             }
         }
+
         t_domain_1 = t_domain_1->next;
     }
 }
@@ -374,7 +404,9 @@ void first_method(void *domain,void **ip,void *mWorld){
     int weight_infected, weight_all;
     int count = 0;
     int ipIndex = 0;
+    int one = 0;
     ip_store *t_ip_store;
+    char log_report[80];
     domain_store *t_domain_1, *t_domain_2, *t_dom;
     domain_ip_store *t_domain_ip,*t_ip_for_change;
     
@@ -389,18 +421,18 @@ void first_method(void *domain,void **ip,void *mWorld){
 
         if(t_domain_1->type == -1){
             
-            printf("%i\n",count++);
             jaccard_index = 0.0;
-            index = -1.0;
+            index = 0.0;
+            one = 0;
             weight_infected = weight_all = 0;
             t_domain_2 = d_head;
 
             while(t_domain_2){
 
                 if(t_domain_2->type != -1){
+                    one = 1;
                     jaccard_index += calculate_jaccard_index(t_domain_1,t_domain_2);
                 }
-
                 t_domain_2 = t_domain_2->next; 
             }
 
@@ -416,42 +448,43 @@ void first_method(void *domain,void **ip,void *mWorld){
             }
 
             index = jaccard_index * (weight_infected/weight_all);
-            printf("\t\t index: %f\n",index);            
-            if( (index < blackMole->parameters.o_white) && (index >= 0.0)){
+        }
 
-                /* report sth. */
-                
-                load_domain(t_domain_1->d_name,blackMole->re,blackMole->root_list,0);
-                
-                t_ip_for_change = t_domain_1->domain_ip;
-                while(t_ip_for_change){
-                    ipIndex = t_ip_for_change->ip->ip >> blackMole->ipSpace;
-                    printf("(%s) %s\n",t_domain_1->d_name,inet_ntoa(t_ip_for_change->ip->ip));
-                    t_ip_store = find_ip(ip_store_head[ipIndex],t_ip_for_change->ip->ip);
-                    t_ip_store->white_hosts += t_ip_for_change->count;
-                    t_ip_for_change = t_ip_for_change->next;
-                }
-                
-                if(t_domain_1 == d_head)
-                    d_head = d_head->next;
+        if((index < (blackMole->parameters).o_white) && (index >= 0.0) && one){
 
-                t_dom = t_domain_1->next;
-                remove_domain(t_domain_1,0);
+            snprintf(log_report,strlen(log_report),"Domain: (%s) added",t_domain_1->d_name);
+            report(blackMole->log_fp,1,1,log_report);
+
+            load_domain(t_domain_1->d_name,blackMole->re,blackMole->root_list,0);
+                
+            t_ip_for_change = t_domain_1->domain_ip;
+            while(t_ip_for_change){
+                ipIndex = t_ip_for_change->ip->ip % blackMole->ipSpace;
+                t_ip_store = find_ip(ip_store_head[ipIndex],t_ip_for_change->ip->ip);
+                t_ip_store->white_hosts += t_ip_for_change->count;
+                t_ip_for_change = t_ip_for_change->next;
             }
-            
-            else if( index > blackMole->parameters.o_black ){
-
-                /* report sth. */
-
-                load_domain(t_domain_1->d_name,blackMole->re,blackMole->root_list,1);
                 
-                t_ip_for_change = t_domain_1->domain_ip;
-                while(t_ip_for_change){
-                    ipIndex = t_ip_for_change->ip->ip >> blackMole->ipSpace;
-                    t_ip_store = find_ip(ip_store_head[ipIndex],t_ip_for_change->ip->ip);
-                    t_ip_store->black_hosts += t_ip_for_change->count;
-                    t_ip_for_change = t_ip_for_change->next;
-                }
+            if(t_domain_1 == d_head)
+                d_head = d_head->next;
+
+            t_dom = t_domain_1->next;
+            remove_domain(t_domain_1,0);
+        }
+            
+        else if( index > (blackMole->parameters).o_black ){
+
+            snprintf(log_report,strlen(log_report),"Domain: (%s) (%s) added",t_domain_1->d_name);
+            report(blackMole->log_fp,1,1,log_report);
+                
+            load_domain(t_domain_1->d_name,blackMole->re,blackMole->root_list,1);
+                
+            t_ip_for_change = t_domain_1->domain_ip;
+            while(t_ip_for_change){
+                ipIndex = t_ip_for_change->ip->ip >> blackMole->ipSpace;
+                t_ip_store = find_ip(ip_store_head[ipIndex],t_ip_for_change->ip->ip);
+                t_ip_store->black_hosts += t_ip_for_change->count;
+                t_ip_for_change = t_ip_for_change->next;
             }
         }
 
@@ -459,16 +492,15 @@ void first_method(void *domain,void **ip,void *mWorld){
             t_domain_1 = t_domain_1->next;
     }
 
+
     for(count = 0; count < pow(2,blackMole->ipSpace) && ip_store_head[count]; count++){
         t_ip_store = ip_store_head[count];
 
         while(t_ip_store){
 
-            if((float)(t_ip_store->black_hosts/t_ip_store->all_hosts) >=  blackMole->parameters.black_ip_treshold){
-        
-                /* report sth */
-
-            }
+            if((float)(t_ip_store->black_hosts/t_ip_store->all_hosts) >=  blackMole->parameters.black_ip_treshold)
+                report(blackMole->log_fp,1,3,(char *)inet_ntoa(t_ip_store->ip));
+                 
             t_ip_store = t_ip_store->next;
         }
     }

@@ -47,19 +47,19 @@ void close_log(void *t){
     }
 }
 
-void report(FILE *fp,int method,int type,const char *report){
+void report(FILE *fp,int method,int type,char *report){
     
     char method_string[20];
 
     switch(method){
         case 1:
-            strcpy(method_string,"Method 1");
+            strcpy(method_string,"Blacklist extending");
             break;
         case 2:
-            strcpy(method_string,"Method 2");
+            strcpy(method_string,"Similarity");
             break;
         case 3:
-            strcpy(method_string,"Method 3");
+            strcpy(method_string,"Using statistics");
             break;
     }
 
