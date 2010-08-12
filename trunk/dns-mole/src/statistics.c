@@ -108,34 +108,57 @@ st_host * st_new_host(unsigned int ip) {
 	return host;
 }
 
-void st_add_query_to_list(st_host * list, query * q) {
-	st_host * host = list;
-	while (host != NULL) {
-		if (host->ip == q->srcip || host->ip == q->dstip) {
-			st_add_query_to_host(host, q);
-			if (host->ip == q->dstip)
-				st_add_query_to_list_src(host, q);
-			return;
-		}
-		host = host->next;
-	}
-	host = st_new_host(q->srcip);
-	st_host_insert(list, host);
-	st_add_query_to_host(host, q);
-}
-
-void st_add_query_to_list_src(st_host * list, query * q) {
+int st_add_query_to_list(st_host * list, query * q) {
 	st_host * host = list;
 	while (host != NULL) {
 		if (host->ip == q->srcip) {
 			st_add_query_to_host(host, q);
-			return;
+			if (st_add_query_to_list_dst(list, q))
+				return 1;
+			else return 0;
+		}  
+		else if (host->ip == q->dstip) {
+			st_add_query_to_host(host, q);
+			if (st_add_query_to_list_src(list, q))
+				return 1;
+			else return 0;
 		}
 		host = host->next;
 	}
 	host = st_new_host(q->srcip);
 	st_host_insert(list, host);
 	st_add_query_to_host(host, q);
+	return 1;
+}
+
+int st_add_query_to_list_src(st_host * list, query * q) {
+	st_host * host = list;
+	while (host != NULL) {
+		if (host->ip == q->srcip) {
+			st_add_query_to_host(host, q);
+			return 0;
+		}
+		host = host->next;
+	}
+	host = st_new_host(q->srcip);
+	st_host_insert(list, host);
+	st_add_query_to_host(host, q);
+	return 1;
+}
+
+int st_add_query_to_list_dst(st_host * list, query * q) {
+	st_host * host = list;
+	while (host != NULL) {
+		if (host->ip == q->dstip) {
+			st_add_query_to_host(host, q);
+			return 0;
+		}
+		host = host->next;
+	}
+	host = st_new_host(q->dstip);
+	st_host_insert(list, host);
+	st_add_query_to_host(host, q);
+	return 1;
 }
 
 void st_add_query_to_host(st_host * host, query * q) {
@@ -191,7 +214,7 @@ void st_add_query_to_host(st_host * host, query * q) {
 	}
 
 	/* set fields of num */
-	if (q->ansnum == 0) {
+	if (q->srcip == host->ip) {
 		num->query_num++;
 		host->query_total++;
 	}
@@ -211,6 +234,8 @@ void st_add_query_to_host(st_host * host, query * q) {
 			num->ptr_num++;
 			host->ptr_total++;
 			break;
+		default:
+			continue;
 		}
 	}
 	if (new_num_flag)
@@ -275,3 +300,4 @@ void st_host_free(st_host * host) {
 	}
 	free(host);
 }
+

@@ -58,7 +58,7 @@ void _analyzer(int fd,short event,void *arg){
 }                    
 
 void statistics_method(int num, void *mole) {
-	int i;
+	int size = 1;
 	st_host * list;
 	query * q;
 	moleWorld * st_mole = (moleWorld *)mole;
@@ -67,16 +67,23 @@ void statistics_method(int num, void *mole) {
 	list = st_new_host(q->srcip);
 	q = q->next;
 	while (q != NULL) {
-		st_add_query_to_list(list, q);
+		if (st_add_query_to_list(list, q))
+			size++;
 		q = q->next;
 	}
-	
+
 	st_host * h = list;
+	int bad = 0;
+	int normal = 0;
 	while (h != NULL) {
 		st_cal(h);
+		//printf("%s\ttype: %x\n", inet_ntoa(h->ip), h->type);
+		if (h->type == 0 || h->type == 0x10) normal++;
+		else bad++;
 		h = h->next;
 	}
 
+	printf("bad: %d\t normal: %d\n", bad, normal);
 	/* report sth. */
 }
 

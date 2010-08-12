@@ -86,10 +86,8 @@ struct static_RR {
 	unsigned short r_rdlength;
 };
 
-/*
- * count = -1 for infinite loop
- * count = 0 for stop until error
- */
+
+int pcap_dloff(pcap_t * pd);
 
 int sniffer_setup(void *);
 

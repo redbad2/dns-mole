@@ -22,7 +22,7 @@
 #ifndef DNSM_DNS_PARSER_H
 #define DNSM_DNS_PARSER_H
 
-void dns2query(u_char * packet, int len, query * q_store);
+int dns2query(u_char * packet, int len, query * q_store, int dl_len);
 int get_url_size(u_char * data);
 int extract_question(u_char * data, query * q);
 int extract_answers(u_char * data, u_char * start, int num, query * q);
