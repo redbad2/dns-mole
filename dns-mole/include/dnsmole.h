@@ -69,6 +69,8 @@ struct moleWorld{
     int type;
     int count;
     int ipSpace;
+    
+    int dl_len;
 
     pcre *re;
     pcap_t *p;

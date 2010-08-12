@@ -205,6 +205,8 @@ int read_pcap(const char *p_file){
             fprintf(stderr,"[pcap_open_offline] Error\n");
             return;
         }
+        
+        mWorld.dl_len = pcap_dloff(mWorld.p);
 
         if(pcap_compile(handler,&filter,DNS_QUERY_FILTER,0,0) == -1)
             return PCAP_COMPILE_ERROR;
@@ -243,7 +245,7 @@ int main(int argc,char **argv){
     while((option = getopt(argc,argv,"i:b:w:t:l:c:dsp:h?")) > 0){
 	switch(option){
 	    case 'b':
-i		blacklist_file = optarg;
+		blacklist_file = optarg;
 		break;
 
 	    case 'w':

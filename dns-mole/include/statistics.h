@@ -87,8 +87,9 @@ void st_insert_num(st_host * host, st_num * num);
 void st_insert_num_before(st_host * host, st_num * num);
 
 st_host * st_new_host(unsigned int ip);
-void st_add_query_to_list(st_host * list, query * q);
-void st_add_query_to_list_src(st_host * list, query * q);
+int st_add_query_to_list(st_host * list, query * q);
+int st_add_query_to_list_src(st_host * list, query * q);
+int st_add_query_to_list_dst(st_host * list, query * q);
 void st_add_query_to_host(st_host * host, query * q);
 void st_host_insert(st_host * list, st_host * host);
 void st_host_empty(st_host * list);

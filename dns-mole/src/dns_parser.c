@@ -26,18 +26,18 @@
 #include "../include/dns_parser.h"
 
 /* parse an DNS packet to a query */
-void dns2query(u_char * packet, int len, query * q_store) {
-	struct ip_header * iphdr = (struct ip_header *) (packet + sizeof(struct ether_header));	
+int dns2query(u_char * packet, int len, query * q_store, int dl_len) {
+	struct ip_header * iphdr = (struct ip_header *) (packet + dl_len);	
 	struct dns_query_header * dqhdr;
 	u_char * data;
 
 	//if (iphdr->ip_proto == IP_PROTOCOL_TCP) {
-	//	dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header));
-	//	data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct tcp_header) + sizeof(struct dns_query_header));
+	//	dqhdr = (struct dns_query_header *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct tcp_header));
+	//	data = (u_char *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct tcp_header) + sizeof(struct dns_query_header));
 	//}
 	//else if (iphdr->ip_proto == IP_PROTOCOL_UDP) {
-	dqhdr = (struct dns_query_header *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
-	data = (u_char *)(packet + sizeof(struct ether_header) + iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct dns_query_header));
+	dqhdr = (struct dns_query_header *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
+	data = (u_char *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct dns_query_header));
 	//}
 	
 	// set src ip
@@ -61,7 +61,7 @@ void dns2query(u_char * packet, int len, query * q_store) {
 	data += extract_question(data, q_store) + 4;
 	
 	if(anum == 0)
-		return;
+		return 1;
 
 	q_store->answers = malloc(anum * sizeof(answer));
 	data += extract_answers(data, (u_char *)dqhdr, anum, q_store);
@@ -70,6 +70,7 @@ void dns2query(u_char * packet, int len, query * q_store) {
 		// to do
 		// if questions number > 1 then
 	}
+	return 1;
 }
 
 int get_url_size(u_char * data) {
@@ -109,7 +110,7 @@ int extract_answers(u_char * data, u_char * start, int num, query * q) {
 		data += sizeof(struct static_RR) - 2;
 		extract_value(data, start, q->answers[i].type, &q->answers[i].value, ntohs(rr->r_rdlength));
 		data += ntohs(rr->r_rdlength);
-		size += sizeof(struct static_RR) + ntohs(rr->r_rdlength);
+		size += sizeof(struct static_RR) - 2 + ntohs(rr->r_rdlength);
 	}
 	return size;
 }

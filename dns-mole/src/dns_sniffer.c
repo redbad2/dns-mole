@@ -31,6 +31,37 @@
 #include "../include/dns_parser.h"
 
 
+/* stolen from jscan */
+int pcap_dloff(pcap_t *pd)
+{
+	int i;
+
+	i = pcap_datalink(pd);
+	
+	switch (i) {
+	case DLT_EN10MB:
+		i = 14;
+		break;
+	case DLT_IEEE802:
+		i = 22;
+		break;
+	case DLT_FDDI:
+		i = 21;
+		break;
+#ifdef DLT_LOOP
+	case DLT_LOOP:
+#endif
+	case DLT_NULL:
+		i = 4;
+		break;
+	default:
+		i = -1;
+		break;
+	}
+	return (i);
+}
+
+
 int sniffer_setup(void *mW) {
         char *dev;
         char errbuf[PCAP_ERRBUF_SIZE];
@@ -60,7 +91,9 @@ int sniffer_setup(void *mW) {
         if (mWorld->p == NULL) {
                 return PCAP_OPEN_LIVE_ERROR;
         }
-
+	    
+	    mWorld->dl_len = pcap_dloff(mWorld->p);
+        
         /* compile the program */
         struct bpf_program filter;
         if (pcap_compile(mWorld->p, &filter, DNS_QUERY_FILTER, 0, netp) == -1) {
@@ -110,7 +143,10 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
         if(ether_type == ETHERTYPE_IP){
             query *q = (query *)malloc(sizeof(query));
             memset(q, 0, sizeof(query));
-            dns2query((u_char *)packet, pkthdr->len, q);
+            if (dns2query((u_char *)packet, pkthdr->len, q, mWorld->dl_len) != 1) {
+            	free(q);
+            	return;
+            }
             q->time = pkthdr->ts.tv_sec;
             
             for(i = 0; q->dname[i] != '\0';i++)
