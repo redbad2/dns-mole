@@ -89,7 +89,7 @@ void statistics_method(int num, void *mole) {
 
 void print_ip(domain_ip_store *dip){
         if(dip){
-                    printf("\t\t%s (%i)\n",inet_ntoa(dip->ip->ip),dip->count);
+                    printf("\t\t%s (%i)\n",(char *)inet_ntoa(dip->ip->ip),dip->count);
                             print_ip(dip->next);
                                 }
 }
@@ -216,7 +216,7 @@ void populate_store_structure(int num_packets,void *black,int type){
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
-    printf("%i\n",time(NULL) - start);
+    printf("%i\n",(int)(time(NULL) - start));
     getchar();
     print_domain(d_head_1);
     print_domain(d_head_2);
