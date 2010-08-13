@@ -55,6 +55,15 @@ struct parameter{
     float o_black;
 
     int subnet;
+
+    float s_threshold_total;
+    float s_threshold_ptr;
+    float s_threshold_mx;
+    float s_threshold_balance;
+    float s_threshold_ptr_rate;
+    float s_threshold_mx_rate;
+    int s_classify_interval;
+    int s_analyze_interval;
 };
 
 struct moleWorld{
