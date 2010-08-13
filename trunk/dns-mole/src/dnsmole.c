@@ -54,7 +54,7 @@ void cleanup(){
     if(mWorld.p)
         pcap_close(mWorld.p);
     pcre_free(mWorld.re);
-    close_log(mWorld.log_fp);
+    close_log(&mWorld);
 }
 
 void handler(int sig){
@@ -207,7 +207,7 @@ int read_pcap(const char *p_file){
             return;
         }
         
-        mWorld.dl_len = pcap_dloff(mWorld.p);
+        mWorld.dl_len = pcap_dloff(handler);
 
         if(pcap_compile(handler,&filter,DNS_QUERY_FILTER,0,0) == -1)
             return PCAP_COMPILE_ERROR;
