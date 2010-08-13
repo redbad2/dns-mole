@@ -67,7 +67,7 @@ void statistics_method(int num, void *mole) {
 	list = st_new_host(q->srcip);
 	q = q->next;
 	while (q != NULL) {
-		if (st_add_query_to_list(list, q))
+		if (st_add_query_to_list(list, q, st_mole))
 			size++;
 		q = q->next;
 	}
@@ -76,7 +76,7 @@ void statistics_method(int num, void *mole) {
 	int bad = 0;
 	int normal = 0;
 	while (h != NULL) {
-		st_cal(h);
+		st_cal(h, st_mole);
 		//printf("%s\ttype: %x\n", inet_ntoa(h->ip), h->type);
 		if (h->type == 0 || h->type == 0x10) normal++;
 		else bad++;

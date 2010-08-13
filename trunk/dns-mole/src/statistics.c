@@ -21,7 +21,8 @@
 
 #include "../include/statistics.h"
 
-void st_cal(st_host * host) {
+void st_cal(st_host * host, void * mWorld) {
+	moleWorld * mw = (moleWorld *)mWorld;
 	host->mean_qr = (float)host->total / host->interval_num;
 	host->mean_ptr = (float)host->ptr_total / host->interval_num;
 	host->mean_mx = (float)host->mx_total / host->interval_num;
@@ -36,17 +37,17 @@ void st_cal(st_host * host) {
 	host->t_mx_rate = (float)host->mx_total / host->total;
 
 	/* infected type to decide */
-	if (host->t_total >= THRESHOLD_TOTAL)
+	if (host->t_total >= mw->parameters.s_threshold_total)
 		host->type |= 0x1;
-	if (host->t_balance >= THRESHOLD_BALANCE)
+	if (host->t_balance >= mw->parameters.s_threshold_balance)
 		host->type |= 0x10;
-	if (host->t_ptr >= THRESHOLD_PTR)
+	if (host->t_ptr >= mw->parameters.s_threshold_ptr)
 		host->type |= 0x100;
-	if (host->t_ptr_rate >= THRESHOLD_PTR_RATE)
+	if (host->t_ptr_rate >= mw->parameters.s_threshold_ptr_rate)
 		host->type |= 0x1000;
-	if (host->t_mx >= THRESHOLD_MX)
+	if (host->t_mx >= mw->parameters.s_threshold_mx)
 		host->type |= 0x10000;
-	if (host->t_mx_rate >= THRESHOLD_MX_RATE)
+	if (host->t_mx_rate >= mw->parameters.s_threshold_mx_rate)
 		host->type |= 0x100000;
 }
 
@@ -108,18 +109,19 @@ st_host * st_new_host(unsigned int ip) {
 	return host;
 }
 
-int st_add_query_to_list(st_host * list, query * q) {
+int st_add_query_to_list(st_host * list, query * q, void * mWorld) {
+	moleWorld * mw = (moleWorld *)mWorld;
 	st_host * host = list;
 	while (host != NULL) {
 		if (host->ip == q->srcip) {
-			st_add_query_to_host(host, q);
-			if (st_add_query_to_list_dst(list, q))
+			st_add_query_to_host(host, q, mw);
+			if (st_add_query_to_list_dst(list, q, mw))
 				return 1;
 			else return 0;
 		}  
 		else if (host->ip == q->dstip) {
-			st_add_query_to_host(host, q);
-			if (st_add_query_to_list_src(list, q))
+			st_add_query_to_host(host, q, mw);
+			if (st_add_query_to_list_src(list, q, mw))
 				return 1;
 			else return 0;
 		}
@@ -127,41 +129,44 @@ int st_add_query_to_list(st_host * list, query * q) {
 	}
 	host = st_new_host(q->srcip);
 	st_host_insert(list, host);
-	st_add_query_to_host(host, q);
+	st_add_query_to_host(host, q, mw);
 	return 1;
 }
 
-int st_add_query_to_list_src(st_host * list, query * q) {
+int st_add_query_to_list_src(st_host * list, query * q, void * mWorld) {
+	moleWorld * mw = (moleWorld *)mWorld;
 	st_host * host = list;
 	while (host != NULL) {
 		if (host->ip == q->srcip) {
-			st_add_query_to_host(host, q);
+			st_add_query_to_host(host, q, mw);
 			return 0;
 		}
 		host = host->next;
 	}
 	host = st_new_host(q->srcip);
 	st_host_insert(list, host);
-	st_add_query_to_host(host, q);
+	st_add_query_to_host(host, q, mw);
 	return 1;
 }
 
-int st_add_query_to_list_dst(st_host * list, query * q) {
+int st_add_query_to_list_dst(st_host * list, query * q, void * mWorld) {
+	moleWorld * mw = (moleWorld *)mWorld;
 	st_host * host = list;
 	while (host != NULL) {
 		if (host->ip == q->dstip) {
-			st_add_query_to_host(host, q);
+			st_add_query_to_host(host, q, mw);
 			return 0;
 		}
 		host = host->next;
 	}
 	host = st_new_host(q->dstip);
 	st_host_insert(list, host);
-	st_add_query_to_host(host, q);
+	st_add_query_to_host(host, q, mw);
 	return 1;
 }
 
-void st_add_query_to_host(st_host * host, query * q) {
+void st_add_query_to_host(st_host * host, query * q, void * mWorld) {
+	moleWorld * mw = (moleWorld *)mWorld;
 	/* find/allocate num for host */
 	st_num * num;
 	int new_num_flag = 0;
@@ -176,7 +181,7 @@ void st_add_query_to_host(st_host * host, query * q) {
 		new_num_flag = 1;
 	}
 	else {
-		int index = (q->time - host->start_time) / INTERVAL;
+		int index = (q->time - host->start_time) / mw->parameters.s_classify_interval;
 		if (index < 0) {
 			host->start_time = q->time;
 			while (index != 0) {

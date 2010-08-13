@@ -127,6 +127,14 @@ void read_config(const char *conf){
     register_config(config,"oWhite",(void *) &mWorld.parameters.o_white,1);
     register_config(config,"oBlack",(void *) &mWorld.parameters.o_black,1);
     register_config(config,"nSubnet",(void *) &mWorld.parameters.subnet,0);
+    register_config(config,"sThresholdTotal",(void *) &mWorld.parameters.s_threshold_total,1);
+    register_config(config,"sThresholdPTR",(void *) &mWorld.parameters.s_threshold_ptr,1);
+    register_config(config,"sThresholdMX",(void *) &mWorld.parameters.s_threshold_mx,1);
+    register_config(config,"sThresholdBalance",(void *) &mWorld.parameters.s_threshold_balance,1);
+    register_config(config,"sThresholdPTRRate",(void *) &mWorld.parameters.s_threshold_ptr_rate,1);
+    register_config(config,"sThresholdMXRate",(void *) &mWorld.parameters.s_threshold_mx_rate,1);
+    register_config(config,"sClassifyInterval",(void *) &mWorld.parameters.s_classify_interval,0);
+    register_config(config,"sAnalyzeInterval",(void *) &mWorld.parameters.s_analyze_interval,0);
     
     if((config_file = fopen(conf,"r")) != NULL){
         while(fgets(line,sizeof(line),config_file) != NULL){
@@ -368,7 +376,9 @@ int main(int argc,char **argv){
         if(!mWorld.parameters.analyze_interval)
             mWorld.parameters.analyze_interval = 2;
 
-        mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
+	if (mWorld.type != 3)
+        	mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
+	else mWorld.analyze_tv.tv_sec = mWorld.parameters.s_analyze_interval;
         mWorld.analyze_tv.tv_usec = 0;
 
         mWorld.learn_tv.tv_sec = mWorld.parameters.learn_interval;
