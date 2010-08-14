@@ -40,6 +40,7 @@ void usage(char *pname,const int exit_val){
 	"\t\t -d\t\t :daemonize\n"
 	"\t\t -s\t\t :sniffer mode\n"
 	"\t\t -p <file>\t : read pcap file\n" 
+        "\t\t -a <
 	"\t\t -h\t\t :display this usage screen\n"
 	"\t\t -t <1|2|3>\t :detection method\n\n"
 	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
@@ -168,14 +169,16 @@ void read_config(const char *conf){
                     t_config = config;
                     while(t_config && !done){
                         if(!strcmp(t_config->variable,config_variable)){
-                            if(t_config->type){
+                            if(t_config->type == 1){
                                 t_float = (float *)t_config->where;
                                 *t_float = atof(number_variable);
                             }
-                            else{
+                            else if(t_config->type == 2){
                                 t_int = (int *)t_config->where;
                                 *t_int = atoi(number_variable);
                             }
+                            else if(t_config->type == 3){
+                            }      
                             done = 1;
                             
                         }

@@ -101,53 +101,55 @@ domain_store *find_domain(domain_store *q,const char *name){
 }
 
 void remove_ip_in_domain(domain_ip_store *q){
-    domain_ip_store *q_temp;
+    domain_ip_store *temp;
     
     if(q != NULL){
-        printf("%p\n",q->next);
-        //if(q->prev == NULL){
-        //    q_temp = q->next;
-        //    free(q);
-        //    q = q_temp;
-       // }
-        remove_ip_in_domain(q->next);
-        //q->ip = NULL;
-        //next = prev = NULL;
-        free(q);
+        temp = q;
+        q = q->next;
+        temp->prev = temp->next = NULL;
+        temp->ip = NULL;
+        free(temp);
     }
 }
 
-void remove_domain(domain_store *q){
-    domain_store *q_temp;
-
-    if(q != NULL){
-        printf("(%s) %p - ( %p , %p)\n",q->d_name,q,q->domain_ip,q->next);
-	    printf("\t\t\t\t %p\n",q->domain_ip->next);	
-
-        if(q->prev && q->next){
-	        q->prev->next = q->next;
-	        q->next->prev = q->prev;
-        }
-        if(q->prev && !q->next)
-            q->prev->next = NULL;
-        
-        if(!q->prev && q->next)
-            q->next->prev = NULL;
+void remove_domain(domain_store *start,domain_store *q){
+    domain_store *temp;
             
-        remove_ip_in_domain(q->domain_ip);
-        //q->domain_ip = NULL;
-        free(q->d_name);
-        free(q);
+    if((start != NULL) && (q != NULL)){
+        temp = q;
+
+        if( start == q ) {
+            start = start->next;
+        }
+
+        else if(!q->next && q->prev){
+            q->prev->next = NULL;
+        }
+
+        else if(q->next && q->prev){
+            q->next->prev = q->prev;
+            q->prev->next = q->next;
+        }
+    
+        remove_ip_in_domain(temp->domain_ip);
+        temp->domain_ip = NULL;
+        temp->prev = temp->next = NULL;
+        free(temp->d_name);
+        free(temmp);
     }
 }
 
 void remove_domain_list(domain_store *q){
+    domain_store *temp;
 
     if(q != NULL){
-        remove_domain_list(q->next);
-        remove_ip_in_domain(q->domain_ip);
-        free(q->d_name);
-        free(q);
+        temp = q;
+        q = q->next;
+        remove_ip_in_domain(temp->domain_ip);
+        temp->domain_ip = NULL;
+        temp->prev = temp->next = NULL;
+        free(temp->d_name);
+        free(temp);
     }
 }
 
@@ -208,9 +210,12 @@ void remove_ip(ip_store **q,int size){
 }
 
 void remove_ip_single(ip_store *q){
-    
+    ip_store *temp;
+
     if(q != NULL){
-        remove_ip_single(q->next);
-        free(q);
+        temp = q;
+        q = q->next;
+        temp->prev = temp->next = NULL;
+        free(temp);
     }
 }
