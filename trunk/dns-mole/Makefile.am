@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = src include doc man
 
 # what flags you want to pass to the C compiler & linker
-CFLAGS = -Wall
+CFLAGS = -Wall -O3 -ffast-math -g
 LDFLAGS = -lpcap -levent -lpcre -lm
 
 inc = include

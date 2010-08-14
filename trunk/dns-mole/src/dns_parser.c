@@ -61,7 +61,7 @@ int dns2query(u_char * packet, int len, query * q_store,int dl_len) {
     data += 4;
 
     if(anum == 0)
-	return 1;
+    	return 1;
 
     q_store->answers = malloc(anum * sizeof(answer));
     data += extract_answers(data, (u_char *)dqhdr, anum, q_store);
@@ -87,7 +87,7 @@ int get_url_size(u_char * data) {
 }
 
 int extract_question(u_char * data, query * q) {
-	return get_url(data, q->dname);
+	return get_url(data, (u_char *)q->dname);
 }
 
 int extract_answers(u_char * data, u_char * start, int num, query * q) {
@@ -116,35 +116,37 @@ int extract_answers(u_char * data, u_char * start, int num, query * q) {
 	return size;
 }
 
-void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int length) {
-	switch (type) {
-	case RR_TYPE_A:
-		(*dst) = (u_char *)malloc(5);
-		strncpy((*dst), data, 4);
-	    break;	
-	case RR_TYPE_NS:
-	case RR_TYPE_CNAME:
-	case RR_TYPE_PTR:{
-		u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
-		int value_size = get_dns_value(data, start, &temp_val, length);
-		(*dst) = (u_char *)malloc(value_size);
-		strcpy((*dst), temp_val);
-		free(temp_val);
-		break;
-		}
-	case RR_TYPE_MX: {
-		u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
-		int value_size = get_dns_value(data + 2, start, &temp_val, length);
-		(*dst) = (u_char *)malloc(value_size + 2);
-		(*dst)[0] = data[0];
-		(*dst)[1] = data[1];
-		strcpy(&(*dst)[2], temp_val);
-		free(temp_val);
-		break;
-		}
-	default:
-		// error
-		break;
+void extract_value(u_char *data, u_char *start, int type, u_char **dst, int length) {
+	
+    switch (type) {
+	    case RR_TYPE_A:
+		    (*dst) = (u_char *)malloc(5);
+		    strncpy((*dst), data, 4);
+	        break;
+
+	    case RR_TYPE_NS:
+	    case RR_TYPE_CNAME:
+	    case RR_TYPE_PTR:{
+		    u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
+		    int value_size = get_dns_value(data, start, &temp_val, length);
+		    (*dst) = (u_char *)malloc(value_size);
+		    strcpy((*dst), temp_val);
+		    free(temp_val);
+		    break; 
+            }
+		    
+	    case RR_TYPE_MX: {
+		    u_char * temp_val = (u_char *)malloc(MAX_LENGTH);
+		    int value_size = get_dns_value(data + 2, start, &temp_val, length);
+		    (*dst) = (u_char *)malloc(value_size + 2);
+		    (*dst)[0] = data[0];
+		    (*dst)[1] = data[1];
+		    strcpy(&(*dst)[2], temp_val);
+		    free(temp_val);
+		    break;
+            }
+	    default:
+		    break;
 	}
 }
 

@@ -65,6 +65,7 @@ kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
             tdomain = tdomain->next;
         }
     }
+    return (kdomain *) 0;
 }
 
 void delete_domain(kdomain *domain){
@@ -105,6 +106,10 @@ kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
     unsigned int temp_hash = 0;
     kdomain *temp_domain = root_domain->kd_child;
 
+    if(!temp_domain){
+        pcre_free(re); return (kdomain *) 0;
+    }
+
     re = initialize_regex();
     split_domain(name,re,split_structure);
        
@@ -115,12 +120,13 @@ kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
     while(temp_domain){
         temp_hash = 0;
         
-        if((len_size = strlen(split_structure[count])) < 20)
+        if((len_size = strlen(split_structure[count])) < 10)
             temp_hash = hash(split_structure[count],len_size);
 
         if(((temp_domain->domain_hash == temp_hash) || !temp_hash)){
             len_size = (temp_domain->name_length <= len_size ? temp_domain->name_length : len_size);
             if(!memcmp(temp_domain->name,split_structure[count],len_size)){
+            
                 if((temp_domain->suspicious == 0) && (search_type == 0)){
                     pcre_free(re); return temp_domain;
                 }
@@ -172,7 +178,6 @@ kdomain *new_domain_structure(char *name,int suspicious){
     
 void load_domain(char *line,pcre *re,kdomain *domain,int type){
 
-    int vector[15]; 
     kdomain *temp_domain = domain, *new_domain;
     int i = 1;
     int splitcount;
@@ -230,7 +235,7 @@ pcre *initialize_regex(){
     pcre *tre; 
     const char *error; int error_offset;
     
-    if((tre = pcre_compile("([a-z0-9_\\-\\.]*?)([a-z0-9_\\-]*?)\\.?([a-z0-9_\\-]+)\\.([a-z0-9_\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
+    if((tre = pcre_compile("([a-z0-9_\\-\\.]*?)([a-z0-9_\\-]*?)\\.*?([a-z0-9_\\-]+)\\.([a-z0-9_\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
        fprintf(stderr,"[pcre] Error\n"); exit(EXIT_FAILURE); 
     }
     return tre;

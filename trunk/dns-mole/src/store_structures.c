@@ -101,37 +101,51 @@ domain_store *find_domain(domain_store *q,const char *name){
 }
 
 void remove_ip_in_domain(domain_ip_store *q){
-    if(q){
+    domain_ip_store *q_temp;
+    
+    if(q != NULL){
+        printf("%p\n",q->next);
+        //if(q->prev == NULL){
+        //    q_temp = q->next;
+        //    free(q);
+        //    q = q_temp;
+       // }
         remove_ip_in_domain(q->next);
+        //q->ip = NULL;
+        //next = prev = NULL;
         free(q);
     }
 }
-	
 
-void remove_domain(domain_store *q, int clean_type){
+void remove_domain(domain_store *q){
+    domain_store *q_temp;
 
-    if(q){
+    if(q != NULL){
         printf("(%s) %p - ( %p , %p)\n",q->d_name,q,q->domain_ip,q->next);
-	    printf("\t\t\t\t %p\n",q->domain_ip);	
+	    printf("\t\t\t\t %p\n",q->domain_ip->next);	
 
-        if(clean_type){
-            remove_domain(q->next,1);
-            q->prev = q->next = NULL;
-        }else{
-            if(q->prev && q->next){
-	            q->prev->next = q->next;
-	            q->next->prev = q->prev;
-            }
-            if(q->prev && !q->next)
-                q->prev->next = NULL;
-        
-            if(!q->prev && q->next)
-                q->next->prev = NULL;
-            
+        if(q->prev && q->next){
+	        q->prev->next = q->next;
+	        q->next->prev = q->prev;
         }
-        remove_ip_in_domain(q->domain_ip->next);
-        free(q->domain_ip);
-        q->domain_ip = NULL;
+        if(q->prev && !q->next)
+            q->prev->next = NULL;
+        
+        if(!q->prev && q->next)
+            q->next->prev = NULL;
+            
+        remove_ip_in_domain(q->domain_ip);
+        //q->domain_ip = NULL;
+        free(q->d_name);
+        free(q);
+    }
+}
+
+void remove_domain_list(domain_store *q){
+
+    if(q != NULL){
+        remove_domain_list(q->next);
+        remove_ip_in_domain(q->domain_ip);
         free(q->d_name);
         free(q);
     }
@@ -179,10 +193,24 @@ ip_store *find_ip(ip_store *q,unsigned int ip){
     return (ip_store *) 0;
 }
 
-void remove_ip(ip_store *q){
+void remove_ip(ip_store **q,int size){
+    int count;
+    ip_store *ip_store_temp,*ip_store_lookup;
+
+    for(count = 0; count < size; count++){
+        
+        if(q[count] != NULL){
+                
+            ip_store_temp = q[count];
+            while(ip_store_temp);
+        }
+    }
+}
+
+void remove_ip_single(ip_store *q){
     
-    if(q){
-        remove_ip(q->next);
+    if(q != NULL){
+        remove_ip_single(q->next);
         free(q);
     }
 }
