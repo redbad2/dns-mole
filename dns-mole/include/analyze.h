@@ -19,7 +19,8 @@
  * $Id$
  */
 
-#include "statistics.h"
+#ifndef DNM_ANALYZE_H
+#define DNM_ANALYZE_H
 
 void _learn(int ,short , void *);
 void _analyzer(int , short , void *);
@@ -29,3 +30,5 @@ void statistics_method(int , void *);
 void second_method(void *, void *, void *);
 void first_method(void *, void **, void *);
 float calculate_jaccard_index(void *, void *);
+
+#endif

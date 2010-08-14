@@ -115,7 +115,7 @@ void populate_store_structure(int num_packets,void *black,int type){
     
     time_t start = time(NULL);
     
-    ime_t now = time(NULL);
+    time_t now = time(NULL);
     
     time_t store_first_q_time = storeMole->qlist_head->time+60;   
 
@@ -220,6 +220,8 @@ void populate_store_structure(int num_packets,void *black,int type){
             second_method((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
             break;
     }
+    
+    remove_domain_list(d_head_1);
     if(type == 2) 
         remove_domain_list(d_head_2);
     
@@ -247,22 +249,24 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
     for(t_domain_1 = d_head_1; t_domain_1 != NULL; ){
         
         if(t_domain_1->queried_with_different_ip < (groupMole->parameters).activity_drop){
+        
             t_domain = t_domain_1->next;
-            if(t_domain_1 == d_head_1)
-                d_head_1 = d_head_1->next;
-
-            remove_domain(t_domain_1);
+            remove_domain(d_head_1,t_domain_1);
             t_domain_1 = t_domain;
+        
         } else
+
             t_domain_1 = t_domain_1->next;
     }
 
     for(t_domain_2 = d_head_2; t_domain_2 != NULL; ){
         
         if(t_domain_2->queried_with_different_ip < (groupMole->parameters).activity_drop){
+
             t_domain = t_domain_2->next;
-            remove_domain(t_domain_2);
+            remove_domain(d_head_2,t_domain_2);
             t_domain_2 = t_domain;
+
         } else
             t_domain_2 = t_domain_2->next;
     }
@@ -272,7 +276,7 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
     while(t_domain_1){
         
         if((t_domain_2 = find_domain(d_head_2,t_domain_1->d_name))){
-            getchar();
+            
             a = t_domain_1->queried_with_different_ip;
             b = t_domain_2->queried_with_different_ip;
             list_ip = t_domain_1->domain_ip;
@@ -323,7 +327,8 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
                 report(groupMole->log_fp,2,2,log_report);
             }
 
-            remove_ip_single(t_ip_detected);    
+            remove_ip_single(t_ip_detected); 
+            t_ip_detected = NULL;
             c = 0;
 
         } else {
@@ -397,7 +402,8 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
 
                     } 
 
-                    remove_ip_single(t_ip_detected);
+                    remove_ip_single(t_ip_detected); 
+                    t_ip_detected = NULL;
                 }
 
                 t_domain_2 = t_domain_2->next;
@@ -478,12 +484,9 @@ void first_method(void *domain,void **ip,void *mWorld){
                 t_ip_store->white_hosts += t_ip_for_change->count;
                 t_ip_for_change = t_ip_for_change->next;
             }
-                
-            if(t_domain_1 == d_head)
-                d_head = d_head->next;
 
             t_dom = t_domain_1->next;
-            remove_domain(t_domain_1);
+            remove_domain(d_head,t_domain_1);
         }
             
         else if( index > (blackMole->parameters).o_black ){
