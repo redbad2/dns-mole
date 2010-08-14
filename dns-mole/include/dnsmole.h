@@ -25,7 +25,13 @@
 #include <event.h>
 #include <time.h>
 #include <pcap.h>
+#include <ctype.h>
 #include <pcre.h>
+#include <unistd.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 #include "query.h"
 #include "knowndomain.h"

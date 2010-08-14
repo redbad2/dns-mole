@@ -36,7 +36,7 @@ AC_TYPE_PID_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([inet_ntoa memset sqrt strchr strdup])
+AC_CHECK_FUNCS([inet_ntoa memset memcpy sqrt strchr isalpha isdigit isuppser tolower strdup])
 
 #AC_CONFIG_FILES([include/Makefile
  #                src/Makefile])

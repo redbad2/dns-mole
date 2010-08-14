@@ -40,7 +40,7 @@ void usage(char *pname,const int exit_val){
 	"\t\t -d\t\t :daemonize\n"
 	"\t\t -s\t\t :sniffer mode\n"
 	"\t\t -p <file>\t : read pcap file\n" 
-        "\t\t -h\t\t :display this usage screen\n"
+	"\t\t -h\t\t :display this usage screen\n"
 	"\t\t -t <1|2|3>\t :detection method\n\n"
 	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
 	"\t\t\t\t - 2 - Detection by monitoring group activities\n"
@@ -64,7 +64,7 @@ void handler(int sig){
         if(mWorld.p)
             pcap_close(mWorld.p);
         
-        pcap_free(mWorld.re);
+        pcre_free(mWorld.re);
         close_log(mWorld.log_fp);
         exit(EXIT_SUCCESS);
     }
@@ -98,10 +98,11 @@ configuration *create_t_configuration(const char *name, void *where,int type){
             return t_config;
         }
     }
+    fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
 }
 
 void register_config(configuration *begin,const char *name,void *where,int type){
-    configuration *t_config,*loop_config;
+    configuration *loop_config;
 
     loop_config = begin;
     while(loop_config->next)
@@ -212,7 +213,7 @@ int read_pcap(const char *p_file){
     else{   
         if((handler = pcap_open_offline(p_file,errbuf)) == NULL){
             fprintf(stderr,"[pcap_open_offline] Error\n");
-            return;
+            return -1;
         }
         
         mWorld.dl_len = pcap_dloff(handler);
@@ -242,7 +243,6 @@ int main(int argc,char **argv){
     char *config = NULL;
     char *pcap_file = NULL;
     int daemonize = 0, sniffer = 0;
-    pid_t pid,sid;
 
     set_signal(SIGHUP);
     set_signal(SIGINT);
@@ -320,6 +320,20 @@ int main(int argc,char **argv){
     }
 
     read_config(config);
+
+    if(interface){
+        if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
+            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
+        }
+        memcpy(mWorld.interface,interface,strlen(interface)+1);
+    }
+    
+    
+    if(!logfile){
+        open_log(&mWorld,"dnsmole-log"); 
+    }
+    else 
+        open_log(&mWorld,logfile); 
     
     if(blacklist_file)
 	    read_list(mWorld.root_list,blacklist_file,1,mWorld.re);
@@ -354,31 +368,27 @@ int main(int argc,char **argv){
         }
         memcpy(mWorld.interface,interface,strlen(interface)+1);
     }
-
-    if(!logfile){
-        open_log(&mWorld,"dnsmole-log"); 
-    }
-    else 
-        open_log(&mWorld,logfile); 
     
     if(sniffer && interface){
         
         event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
-	    fprintf(stderr,"[sniffer_setup] error\n");
-	    exit(EXIT_FAILURE);
-	}
+	        fprintf(stderr,"[sniffer_setup] error\n");
+	        exit(EXIT_FAILURE);
+	    }
     
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
 
         if(!mWorld.parameters.analyze_interval)
-            mWorld.parameters.analyze_interval = 2;
+            mWorld.parameters.analyze_interval = 10;
 
-	if (mWorld.type != 3)
-        	mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
-	else mWorld.analyze_tv.tv_sec = mWorld.parameters.s_analyze_interval;
+	    if (mWorld.type != 3)
+            mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
+	    else 
+            mWorld.analyze_tv.tv_sec = mWorld.parameters.s_analyze_interval;
+
         mWorld.analyze_tv.tv_usec = 0;
 
         mWorld.learn_tv.tv_sec = mWorld.parameters.learn_interval;

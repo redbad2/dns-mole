@@ -76,7 +76,9 @@ int sniffer_setup(void *mW) {
         if (mWorld->interface == NULL) {
                 dev = pcap_lookupdev(errbuf);
         }
-        else dev = mWorld->interface;
+        else 
+            dev = mWorld->interface;
+
         if (dev == NULL) {
                 return PCAP_LOOKUPDEV_ERROR;
         }
@@ -92,7 +94,7 @@ int sniffer_setup(void *mW) {
                 return PCAP_OPEN_LIVE_ERROR;
         }
 	    
-	mWorld->dl_len = pcap_dloff(mWorld->p);
+	    mWorld->dl_len = pcap_dloff(mWorld->p);
         
         /* compile the program */
         struct bpf_program filter;
@@ -117,9 +119,8 @@ int sniffer_setup(void *mW) {
 
 void _dns_sniffer(int fd, short event, void *arg) {
     struct moleWorld *myMole = (struct moleWorld *) arg;
-
-    if(myMole->interface)
-        evtimer_add(&myMole->recv_ev, &myMole->tv);
+    
+    evtimer_add(&myMole->recv_ev, &myMole->tv);
    
     if(pcap_dispatch(myMole->p, 0,(void *) pcap_callback,(void *) myMole) < 0){
         fprintf(stderr,"[pcap] pcap_dispatch\n"); exit(EXIT_FAILURE);
@@ -133,7 +134,6 @@ void _dns_sniffer(int fd, short event, void *arg) {
 void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
                 const u_char *packet) {
         moleWorld *mWorld = (moleWorld *)args;
-        unsigned int length = pkthdr->len;
         struct ether_header * ehdr;
         unsigned short ether_type;
 
@@ -143,12 +143,12 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
         if(ether_type == ETHERTYPE_IP){
             query *q = (query *)malloc(sizeof(query));
             memset(q, 0, sizeof(query));
-            if (dns2query((u_char *)packet, pkthdr->len, q, mWorld->dl_len) != 1) {
+            if (dns2query((u_char *)packet, pkthdr->len, q,mWorld->dl_len) != 1) {
             	free(q);
             	return;
             }
             q->time = pkthdr->ts.tv_sec;
-            
+
             if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->is_answer == 1))){
                 if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->q_type != 1))){
                     if(mWorld->qlist_head == NULL){
