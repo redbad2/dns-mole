@@ -148,7 +148,7 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
             	return;
             }
             q->time = pkthdr->ts.tv_sec;
-
+            
             if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->is_answer == 1))){
                 if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->q_type != 1))){
                     if(mWorld->qlist_head == NULL){

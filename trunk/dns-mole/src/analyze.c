@@ -55,7 +55,14 @@ void _analyzer(int fd,short event,void *arg){
     
     event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
                     
-}                    
+}       
+
+void print_domain(domain_store *q){
+    if(q){
+        printf("domain: %s\n",q->d_name);
+        print_domain(q->next);
+    }
+}
 
 void statistics_method(int num, void *mole) {
 	int size = 1;
@@ -103,8 +110,10 @@ void populate_store_structure(int num_packets,void *black,int type){
     
     int t_type;
     int do_first = 1;
-    unsigned int half_analyze_interval = (int) (storeMole->parameters).analyze_interval/2.;
+    
+    unsigned int half_analyze;
     unsigned int index;
+    time_t store_first_q_time;
 
     d_head = d_rear = NULL;
     d_head_1 = d_rear_1 = NULL;
@@ -112,21 +121,24 @@ void populate_store_structure(int num_packets,void *black,int type){
     
     for(count = 0; count < storeMole->ipSpace; count++)
         ip_store_head[count] = ip_store_rear[count] = NULL;
-    
-    time_t start = time(NULL);
-    
-    time_t now = time(NULL);
-    
-    time_t store_first_q_time = storeMole->qlist_head->time+60;   
 
+    if((storeMole->parameters).pcap_interval != 0){
+        store_first_q_time = storeMole->qlist_head->time + (storeMole->parameters).pcap_interval;
+        half_analyze = (storeMole->parameters).pcap_interval / 2;
+    } else {
+        store_first_q_time = time(NULL);
+        half_analyze = (storeMole->parameters).analyze_interval / 2;
+    }
+    
+    
     for(count = 0; count < num_packets; count++){
 
-        if(!(count % 10000))
-            printf("%i - %i\n",count,num_packets);        
-
+        printf("%i - %i\n",count,num_packets);        
+        
         t_type = -1;
         t_query = storeMole->qlist_head;
-        
+    
+
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
         
         domain_list = search_domain(t_query->dname,storeMole->root_list,0);
@@ -156,14 +168,16 @@ void populate_store_structure(int num_packets,void *black,int type){
 
         if((t_type == -1) || (t_type == 1)){
 
-            time_t difference = store_first_q_time - t_query->time;
-            
-            if((difference > half)){
+            int difference = store_first_q_time - t_query->time;
+
+            if((difference < half_analyze)){
+                printf("%i %i %i\n",(int)difference,half_analyze,difference < half_analyze);
                 do_first = 1;
             }
-            else if(difference <= half)
+            else if(difference >= half_analyze){
+                printf("%i %i %i\n",(int)difference,half_analyze,difference < half_analyze);
                 do_first = 0;
-            
+            }
 
             if((type == 1) || do_first){
                 d_head = d_head_1;
@@ -202,8 +216,9 @@ void populate_store_structure(int num_packets,void *black,int type){
                     if((type == 1) || do_first){
                         d_rear_1 = d_rear;
                     }
-                    else
+                    else{
                         d_rear_2 = d_rear;
+                    }
                 }
             }
         }
@@ -211,6 +226,11 @@ void populate_store_structure(int num_packets,void *black,int type){
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
+
+    print_domain(d_head_1);
+    getchar();
+    print_domain(d_head_2);
+    getchar();
     
     switch(type){
         case 1:
@@ -244,7 +264,7 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
     ip_head_detected = ip_rear_detected = NULL;
     t_ip_detected = NULL;
 
-    domain_store *t_domain_1, *t_domain_2, *t_domain;
+    domain_store *t_domain_1, *t_domain_2, *t_domain = NULL;
 
     for(t_domain_1 = d_head_1; t_domain_1 != NULL; ){
         
@@ -301,8 +321,9 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
 
                 list_ip = list_ip->next;
             }
-
-            if((a != 0) || (b != 0) || c){
+                
+            
+            if((a != 0) && (b != 0) && (c != 0)){
                 similarity = 0.5*((float)c/a + (float)c/b);
                 printf("(same host) %s - a: %i b: %i c: %i sim: %f\n",t_domain_1->d_name,a,b,c,similarity);
                 getchar();
@@ -334,7 +355,7 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
         } else {
 
             load_domain(t_domain_1->d_name,groupMole->re,groupMole->root_list,0);
-            snprintf(log_report,strlen(log_report),"Domain: (%s) added",t_domain->d_name);
+            snprintf(log_report,strlen(log_report),"Domain: (%s) added",t_domain_1->d_name);
             report(groupMole->log_fp,2,2,log_report);
         }
 
@@ -380,7 +401,7 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
                         list_ip = list_ip->next;
                     }
 
-                    if(c){
+                    if(c != 0){
                         
                         similarity = 0.5*((float)c/a + (float)c/b);
                         printf("2. %s - a: %i b: %i c: %i sim: %f\n",t_domain_1->d_name,a,b,c,similarity);
@@ -515,7 +536,6 @@ void first_method(void *domain,void **ip,void *mWorld){
 
         if(t_ip_store){
             while(t_ip_store){
-                printf("%i - (%i,%i)\n",t_ip_store->ip,t_ip_store->black_hosts,t_ip_store->all_hosts);
 
                 if((float)(t_ip_store->black_hosts/t_ip_store->all_hosts) >=  blackMole->parameters.black_ip_treshold);
                     //report(blackMole->log_fp,1,3,(char *)inet_ntoa(t_ip_store->ip));

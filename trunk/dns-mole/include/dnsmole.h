@@ -52,6 +52,7 @@ struct parameter{
 
     int learn_interval;
     int analyze_interval;
+    int pcap_interval;
 
     int activity_drop;
     float activity_similarity;

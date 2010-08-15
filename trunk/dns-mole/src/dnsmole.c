@@ -32,15 +32,15 @@ moleWorld mWorld;
 
 void usage(char *pname,const int exit_val){
 	fprintf(stdout,"\n\nUsage: %s "
-	"\t -b <file>\t :blacklist file\n"
+	"-b <file>\t :blacklist file\n"
 	"\t\t -w <file>\t :whitelist file\n"
 	"\t\t -c <file>\t :config file\n"
 	"\t\t -l <file>\t :log file\n"
 	"\t\t -i <interface>\t :set interface\n"
 	"\t\t -d\t\t :daemonize\n"
 	"\t\t -s\t\t :sniffer mode\n"
-	"\t\t -p <file>\t : read pcap file\n" 
-        "\t\t -a <
+	"\t\t -p <file>\t :read pcap file\n" 
+	"\t\t -a <interval>\t :duration of .pcap package dump\n"
 	"\t\t -h\t\t :display this usage screen\n"
 	"\t\t -t <1|2|3>\t :detection method\n\n"
 	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
@@ -254,7 +254,7 @@ int main(int argc,char **argv){
     //set_signal(SIGSEGV);
     set_signal(SIGTERM);
     
-    while((option = getopt(argc,argv,"i:b:w:t:l:c:dsp:h?")) > 0){
+    while((option = getopt(argc,argv,"i:b:w:t:l:c:dsp:a:h?")) > 0){
 	switch(option){
 	    case 'b':
 		blacklist_file = optarg;
@@ -288,7 +288,11 @@ int main(int argc,char **argv){
 		pcap_file = optarg;
 		break;
                 
-	    case 'i':
+        case 'a':
+        mWorld.parameters.pcap_interval = atoi(optarg);
+        break;
+        
+        case 'i':
 		interface = optarg;
 		break;
 
@@ -330,7 +334,6 @@ int main(int argc,char **argv){
         }
         memcpy(mWorld.interface,interface,strlen(interface)+1);
     }
-    
     
     if(!logfile){
         open_log(&mWorld,"dnsmole-log"); 

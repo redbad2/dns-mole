@@ -100,7 +100,7 @@ void domain_add_cname(char *domain_name,char *name,kdomain *root_domain){
 
 kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
 
-    pcre *re;
+    pcre *re = NULL;
     char **split_structure = malloc(sizeof(char *) * 4);
     int count = 0, len_size = 0;
     unsigned int temp_hash = 0;
