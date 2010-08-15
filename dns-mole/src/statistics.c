@@ -28,9 +28,7 @@ void st_cal(st_host * host, void * mWorld) {
 	host->mean_mx = (float)host->mx_total / host->interval_num;
 	st_cal_dev(host);
 	host->t_total = (host->total - host->mean_qr) / host->dev_qr;
-	host->t_balance = (host->query_total - host->response_total) / host->total;
-	if (host->t_balance < 0)
-		host->t_balance = -host->t_balance;
+	host->t_balance = (abs(host->tqry - host->rres) + abs(host->rqry - host->tres)) / host->total;
 	host->t_ptr = (host->ptr_total - host->mean_ptr) / host->dev_ptr;
 	host->t_ptr_rate = (float)host->ptr_total / host->total;
 	host->t_mx = (host->mx_total - host->mean_mx) / host->dev_mx;
@@ -38,17 +36,17 @@ void st_cal(st_host * host, void * mWorld) {
 
 	/* infected type to decide */
 	if (host->t_total >= mw->parameters.s_threshold_total)
-		host->type |= 0x1;
+		host->abnormal_type |= 0x1;
 	if (host->t_balance >= mw->parameters.s_threshold_balance)
-		host->type |= 0x10;
+		host->abnormal_type |= 0x10;
 	if (host->t_ptr >= mw->parameters.s_threshold_ptr)
-		host->type |= 0x100;
+		host->abnormal_type |= 0x100;
 	if (host->t_ptr_rate >= mw->parameters.s_threshold_ptr_rate)
-		host->type |= 0x1000;
+		host->abnormal_type |= 0x1000;
 	if (host->t_mx >= mw->parameters.s_threshold_mx)
-		host->type |= 0x10000;
+		host->abnormal_type |= 0x10000;
 	if (host->t_mx_rate >= mw->parameters.s_threshold_mx_rate)
-		host->type |= 0x100000;
+		host->abnormal_type |= 0x100000;
 }
 
 void st_cal_dev(st_host * host) {
@@ -58,7 +56,7 @@ void st_cal_dev(st_host * host) {
 	float temp;
 	st_num * num = host->num_head;
 	while (num != NULL) {
-		temp = (num->query_num + num->response_num) - host->mean_qr;
+		temp = num->total - host->mean_qr;
 		temp *= temp;
 		dev_qr += temp;
 
@@ -98,7 +96,7 @@ void st_insert_num_before(st_host * host, st_num * num) {
 	host->interval_num++;
 }
 
-st_host * st_new_host(unsigned int ip) {
+st_host * st_new_host(unsigned int ip, query * q) {
 	st_host * host;
 	if ((host = (st_host *)malloc(sizeof(st_host))) == NULL) {
 		fprintf(stderr,"[malloc] OOM\n");
@@ -106,6 +104,10 @@ st_host * st_new_host(unsigned int ip) {
 	}
 	memset(host, 0, sizeof(st_host));
 	host->ip = ip;
+	if (ip == q->srcip && q->is_answer)
+		host->kind = 1;
+	else if (ip == q->dstip && !q->is_answer)
+		host->kind = 1;
 	return host;
 }
 
@@ -127,7 +129,7 @@ int st_add_query_to_list(st_host * list, query * q, void * mWorld) {
 		}
 		host = host->next;
 	}
-	host = st_new_host(q->srcip);
+	host = st_new_host(q->srcip, q);
 	st_host_insert(list, host);
 	st_add_query_to_host(host, q, mw);
 	return 1;
@@ -143,7 +145,7 @@ int st_add_query_to_list_src(st_host * list, query * q, void * mWorld) {
 		}
 		host = host->next;
 	}
-	host = st_new_host(q->srcip);
+	host = st_new_host(q->srcip, q);
 	st_host_insert(list, host);
 	st_add_query_to_host(host, q, mw);
 	return 1;
@@ -159,7 +161,7 @@ int st_add_query_to_list_dst(st_host * list, query * q, void * mWorld) {
 		}
 		host = host->next;
 	}
-	host = st_new_host(q->dstip);
+	host = st_new_host(q->dstip, q);
 	st_host_insert(list, host);
 	st_add_query_to_host(host, q, mw);
 	return 1;
@@ -170,7 +172,6 @@ void st_add_query_to_host(st_host * host, query * q, void * mWorld) {
 	/* find/allocate num for host */
 	st_num * num;
 	int new_num_flag = 0;
-	int i;
 	if (host->start_time == 0) {
 		host->start_time = q->time;
 		if ((num = (st_num *)malloc(sizeof(st_num))) == NULL) {
@@ -220,28 +221,48 @@ void st_add_query_to_host(st_host * host, query * q, void * mWorld) {
 
 	/* set fields of num */
 	if (q->srcip == host->ip) {
-		num->query_num++;
-		host->query_total++;
+		num->total++;
+		if (q->is_answer)
+			host->kind = 1;
+		if (host->kind == 0) {
+			if (q->is_answer) {
+			/* error */
+			}
+			else
+				host->tqry++;
+		}
+		else if (host->kind == 1) {
+			if (q->is_answer)
+				host->tres++;
+			else host->tqry++;
+		}
 	}
 	else {
-		num->response_num++;
-		host->response_total++;
+		num->total++;
+		if (!q->is_answer)
+			host->kind = 1;
+		if (host->kind == 0) {
+			if (q->is_answer)
+				host->rres++;
+			/* else error */
+		}
+		else if (host->kind == 1) {
+			if (q->is_answer)
+				host->rres++;
+			else host->rqry++;
+		}
 	}
 	host->total++;
 	
-	for (i = 0; i < q->ansnum; i++) {
-		switch(q->answers[i].type) {
-		case RR_TYPE_MX:
-			num->mx_num++;
-			host->mx_total++;
-			break;
-		case RR_TYPE_PTR:
-			num->ptr_num++;
-			host->ptr_total++;
-			break;
-		default:
-			continue;
-		}
+	switch(q->q_type) {
+	case RR_TYPE_MX:
+		num->mx_num++;
+		host->mx_total++;
+		break;
+	case RR_TYPE_PTR:
+		num->ptr_num++;
+		host->ptr_total++;
+		break;
 	}
 	if (new_num_flag)
 		st_insert_num(host, num);
@@ -306,3 +327,30 @@ void st_host_free(st_host * host) {
 	free(host);
 }
 
+st_host ** st_frequent_host_selection(st_host * list, int size) {
+	st_host * h = list;
+	int count = 0;
+	int i;
+
+	st_host ** array = malloc(sizeof(sizeof(st_host *) * size));
+	while (h != NULL) {
+		if (h->kind != 0) {
+			h = h->next;
+			continue;
+		}
+		if (count < size) {
+			array[count++] = h;
+		}
+		else {
+			for(i = 0; i < size; i++) {
+				if (array[i]->total < h->total) {
+					array[i] = h;
+					break;
+				}
+			}
+		}
+		h = h->next;
+	}
+
+	return array;
+}

@@ -29,9 +29,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#define RATE 0.01
+
 typedef struct st_num {
-	int query_num;
-	int response_num;
+	int total;
 	int mx_num;
 	int ptr_num;
 	struct st_num * next;
@@ -41,10 +42,19 @@ typedef struct st_num {
 typedef struct st_host {
 	unsigned int ip;
 	int total;
-	int query_total;
-	int response_total;
+	
+	/* tqry, rres for client
+	 * rqry, tres for authoriative server
+	 * tqry, tres, rqry, rres for cache server
+	 */
+	int tqry;
+	int tres;
+	int rqry;
+	int rres;
+
 	int mx_total;
 	int ptr_total;
+
 	int interval_num;
 
 	st_num * num_head;
@@ -65,7 +75,14 @@ typedef struct st_host {
 	float t_mx;
 	float t_mx_rate;
 
-	int type;
+	int abnormal_type;
+
+	/* kind:
+	 * 0 = client
+	 * 1 = cache server
+	 * 2 = authoriative server
+	 */
+	int kind;
 
 	struct st_host * prev;
 	struct st_host * next;
@@ -77,7 +94,7 @@ void st_cal_dev(st_host * host);
 void st_insert_num(st_host * host, st_num * num);
 void st_insert_num_before(st_host * host, st_num * num);
 
-st_host * st_new_host(unsigned int ip);
+st_host * st_new_host(unsigned int ip, query * q);
 int st_add_query_to_list(st_host * list, query * q, void * mWorld);
 int st_add_query_to_list_src(st_host * list, query * q, void * mWorld);
 int st_add_query_to_list_dst(st_host * list, query * q, void * mWorld);
@@ -86,5 +103,7 @@ void st_host_insert(st_host * list, st_host * host);
 void st_host_empty(st_host * list);
 void st_host_remove(st_host * host);
 void st_host_free(st_host * host);
+
+st_host ** st_frequent_host_selection(st_host * list, int size);
 
 #endif
