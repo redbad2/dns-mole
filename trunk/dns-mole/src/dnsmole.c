@@ -173,7 +173,7 @@ void read_config(const char *conf){
                                 t_float = (float *)t_config->where;
                                 *t_float = atof(number_variable);
                             }
-                            else if(t_config->type == 2){
+                            else if(t_config->type == 0){
                                 t_int = (int *)t_config->where;
                                 *t_int = atoi(number_variable);
                             }

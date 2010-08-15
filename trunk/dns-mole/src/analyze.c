@@ -65,33 +65,53 @@ void print_domain(domain_store *q){
 }
 
 void statistics_method(int num, void *mole) {
-	int size = 1;
+	int net_size = 1;
 	st_host * list;
 	query * q;
 	moleWorld * st_mole = (moleWorld *)mole;
 
 	q = st_mole->qlist_head;
-	list = st_new_host(q->srcip);
+	list = st_new_host(q->srcip, q);
 	q = q->next;
+	int packet_count = 0;
 	while (q != NULL) {
 		if (st_add_query_to_list(list, q, st_mole))
-			size++;
+			net_size++;
+		packet_count++;
 		q = q->next;
 	}
 
-	st_host * h = list;
+	int select_num = net_size * RATE;
+	st_host ** h = st_frequent_host_selection(list, select_num);
+
 	int bad = 0;
 	int normal = 0;
-	while (h != NULL) {
-		st_cal(h, st_mole);
-		//printf("%s\ttype: %x\n", inet_ntoa(h->ip), h->type);
-		if (h->type == 0 || h->type == 0x10) normal++;
-		else bad++;
-		h = h->next;
+	char msg[512];
+	int i;
+	report(st_mole, 3, 4, "[Using statistics]\n");
+	for (i = 0; i < select_num; i++) {
+		st_cal(h[i], st_mole);
+		if (h[i]->abnormal_type == 0) normal++;
+		else {
+			sprintf(msg, "\t%s\t%s\n\t\ttotal: %d\tmx: %d\tptr: %d\n\t\ttime: %s\t\tt_total: %f\tt_balance: %f\n\t\tt_ptr: %f\tt_ptr_rate: %f\n\t\tt_mx: %f\tt_mx_rate: %f\n\t\tanormal type: %x\n", 
+				inet_ntoa(*(struct in_addr *)&h[i]->ip),
+				(h[i]->kind == 1)?"Server":"Client",
+				h[i]->total, h[i]->mx_total, h[i]->ptr_total,
+				ctime((const time_t *)&h[i]->start_time),
+				h[i]->t_total, h[i]->t_balance,
+				h[i]->t_ptr, h[i]->t_ptr_rate,
+				h[i]->t_mx, h[i]->t_mx_rate,
+				h[i]->abnormal_type
+				);
+			report(st_mole, 3, 4, msg);
+			//printf("%s", msg);
+			bad++;
+		}
 	}
 
-	printf("bad: %d\t normal: %d\n", bad, normal);
-	/* report sth. */
+	sprintf(msg, "[%d] packets captured\n[%d] hosts selected\n[%d] total hosts\n[%d] abnormal\n", packet_count, select_num, net_size, bad);
+	report(st_mole, 3, 4, msg);
+	printf("%s", msg);
 }
 
 void populate_store_structure(int num_packets,void *black,int type){
