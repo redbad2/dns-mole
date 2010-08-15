@@ -135,7 +135,7 @@ void remove_domain(domain_store *start,domain_store *q){
         temp->domain_ip = NULL;
         temp->prev = temp->next = NULL;
         free(temp->d_name);
-        free(temmp);
+        free(temp);
     }
 }
 

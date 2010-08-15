@@ -56,18 +56,19 @@ void query_insert_before(query * q1, query * q2) {
 	}
 }
 
-void query_insert_after(query * q1, query * q2) {
-	query * next = q1->next;
-	if (next != NULL) {
-		q1->next = q2;
-		q2->prev = q1;
-		q2->next = next;
-		next->prev = q2;
-	}
-	else {
-		q1->next = q2;
-		q2->prev = q1;
-	}
+void query_insert_after(query * q1, query *q2) {
+    query * next = q1->next;
+    if (next != NULL) {
+        q1->next = q2; 
+        q2->prev = q1;
+        q2->next = next;
+        next->prev = q2;
+    }
+    else {
+        q1->next = q2;
+        q2->prev = q1;
+    }
+    
 }
 
 void query_remove(query * q) {
