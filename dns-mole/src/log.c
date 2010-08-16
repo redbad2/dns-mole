@@ -47,10 +47,28 @@ void close_log(void *t){
     }
 }
 
-void report(void *t,int method,int type,char *report){
-    moleWorld *mW = (moleWorld *) t;
+void report(FILE *fp,char *d_name_1,char *d_name_2,unsigned int ip,int method,int type,char *additional){
     
     char method_string[20];
+    char message[80]; memset(message,'\0',80);
+    struct in_addr report_ip;
+    
+    if(type != 4){
+        if(!ip){
+            if(d_name_2){
+                snprintf(message,80,"Domains: {%s , %s} added",d_name_1,d_name_2);
+            } else
+                snprintf(message,80,"Domain: (%s) added",d_name_1);
+        } else {
+            report_ip.s_addr = ip;
+            if(d_name_2 && d_name_1){
+                snprintf(message,80,"Ip: [%s] - {%s , %s}",inet_ntoa(report_ip),d_name_1,d_name_2);
+            } else if(!d_name_2 && d_name_1){
+                snprintf(message,80,"Ip: [%s] - (%s)",inet_ntoa(report_ip),d_name_1);
+            } else
+                snprintf(message,80,"Ip: [%s]",inet_ntoa(report_ip));
+        }
+    }
 
     switch(method){
         case 1:
@@ -60,19 +78,19 @@ void report(void *t,int method,int type,char *report){
             strcpy(method_string,"Similarity");
             break;
         case 3:
-            strcpy(method_string,"Using statistics");
+            strcpy(method_string,"Statistic");
             break;
     }
 
     if(type == 1)
-        fprintf(mW->log_fp,"[%s] [blacklist] %s\n",method_string,report);
+        fprintf(fp,"[%s][blacklist] %s\n",method_string,message);
     if(type == 2)
-        fprintf(mW->log_fp,"[%s] [whitelist] %s\n",method_string,report);
+        fprintf(fp,"[%s][whitelist] %s\n",method_string,message);
     if(type == 3)
-        fprintf(mW->log_fp,"[%s] [newip] %s",method_string,report);
+        fprintf(fp,"[%s][ip] %s\n",method_string,message);
     if(type == 4)
-    	fprintf(mW->log_fp, "%s", report);
+    	fprintf(fp, "%s",additional);
 
-    fflush(mW->log_fp);
+    fflush(fp);
 }
 

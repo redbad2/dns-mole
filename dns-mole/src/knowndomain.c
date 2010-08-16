@@ -109,11 +109,11 @@ kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
     if(!temp_domain){
         pcre_free(re); return (kdomain *) 0;
     }
-
+    
     re = initialize_regex();
     split_domain(name,re,split_structure);
-       
-    if(!split_structure[0]){
+     
+    if(split_structure[0]){
         pcre_free(re); return (kdomain *) 0;  
     }
     
@@ -235,7 +235,7 @@ pcre *initialize_regex(){
     pcre *tre; 
     const char *error; int error_offset;
     
-    if((tre = pcre_compile("([a-z0-9_\\-\\.]*?)([a-z0-9_\\-]*?)\\.*?([a-z0-9_\\-]+)\\.([a-z0-9_\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
+    if((tre = pcre_compile("([a-z0-9_\\-\\.]*?)([a-z0-9_\\-]*?)\\.*?([a-z0-9_\\-]*?)\\.*?([a-z0-9_\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
        fprintf(stderr,"[pcre] Error\n"); exit(EXIT_FAILURE); 
     }
     return tre;

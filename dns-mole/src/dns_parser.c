@@ -29,7 +29,7 @@
 int dns2query(u_char * packet, int len, query * q_store,int dl_len) {
     struct ip_header * iphdr = (struct ip_header *) (packet + sizeof(struct ether_header)); 
     struct dns_query_header *dqhdr;
-    u_char * data;
+    u_char * data; int name_length;
     
     dqhdr = (struct dns_query_header *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
     data = (u_char *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct dns_query_header));
@@ -52,7 +52,8 @@ int dns2query(u_char * packet, int len, query * q_store,int dl_len) {
     q_store->ansnum = anum;
 	
     //int size = get_url_size(data);
-    data += extract_question(data,q_store);
+
+    data += extract_question(data,q_store); 
 
     q_store->q_type = *(data);
     q_store->q_type = q_store->q_type << 8;
@@ -156,13 +157,15 @@ int get_url(u_char * data, u_char * dst) {
 	int start = 1;
 	int j = 0;
 	
-	while (toread != 0) {
+	while(toread != 0 ) {
 		for (; i < toread + start; i++)
-			dst[j++] = (isupper(data[i]) ? tolower(data[i]): data[i]);
+                dst[j++] = (isupper(data[i]) ? tolower(data[i]): data[i]);
+
 		dst[j++] = '.';
 		toread = data[i++];
 		start = i;
-	}
+	    
+    }
 	dst[j - 1] = '\0';
 	return i;
 }

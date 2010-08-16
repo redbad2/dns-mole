@@ -202,10 +202,15 @@ void remove_ip(ip_store **q,int size){
     for(count = 0; count < size; count++){
         
         if(q[count] != NULL){
-                
-            ip_store_temp = q[count];
-            while(ip_store_temp);
-        }
+        
+            ip_store_lookup = q[count];
+            while(ip_store_lookup){
+                ip_store_temp = ip_store_lookup;
+                ip_store_lookup = ip_store_lookup->next;
+                ip_store_temp->prev = ip_store_temp->next = NULL;
+                free(ip_store_temp);
+            }
+        }   
     }
 }
 

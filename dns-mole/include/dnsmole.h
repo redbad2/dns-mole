@@ -55,7 +55,8 @@ struct parameter{
     int pcap_interval;
 
     int activity_drop;
-    float activity_similarity;
+    float activity_bl_similarity;
+    float activity_wl_similarity;
 
     float black_ip_treshold;
     float o_white;
@@ -118,6 +119,6 @@ void register_config(configuration *, const char *, void *, int);
 
 void open_log(void *, const char *);
 void close_log(void *);
-void report(void *, int, int, char *);
+void report(FILE *,char *,char *,unsigned int, int, int, char *);
 
 #endif

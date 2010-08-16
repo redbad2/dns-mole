@@ -117,14 +117,15 @@ void read_config(const char *conf){
     configuration *config = NULL;
     configuration *t_config;
     char line[80],config_variable[80],number_variable[10];
-    int first,second,count,variable_count,number_count,line_count;
+    int first,second,count,variable_count,number_count,line_count = 0;
     int done, *t_int;
     float *t_float;
 
     config = create_t_configuration("LearnInterval",&mWorld.parameters.learn_interval,0);
     register_config(config,"AnalyzeInterval",(void *) &mWorld.parameters.analyze_interval,0);
     register_config(config,"aDrop",(void *) &mWorld.parameters.activity_drop,0);
-    register_config(config,"aSimilarity",(void *) &mWorld.parameters.activity_similarity,1);
+    register_config(config,"aBlackSimilarity",(void *) &mWorld.parameters.activity_bl_similarity,1);
+    register_config(config,"aWhiteSimilarity",(void *) &mWorld.parameters.activity_wl_similarity,1);
     register_config(config,"oBlackIpTreshold",(void *) &mWorld.parameters.black_ip_treshold,1);
     register_config(config,"oWhite",(void *) &mWorld.parameters.o_white,1);
     register_config(config,"oBlack",(void *) &mWorld.parameters.o_black,1);
@@ -177,8 +178,6 @@ void read_config(const char *conf){
                                 t_int = (int *)t_config->where;
                                 *t_int = atoi(number_variable);
                             }
-                            else if(t_config->type == 3){
-                            }      
                             done = 1;
                             
                         }
@@ -321,6 +320,11 @@ int main(int argc,char **argv){
         exit(EXIT_FAILURE);
     }
 
+    if((pcap_file == NULL) && !mWorld.parameters.pcap_interval){
+        fprintf(stderr,"\n[*] Please set pcap file dump interval [ -a ]\n");
+        exit(EXIT_FAILURE);
+    }
+
     if(!config){
         fprintf(stderr,"\n[*] Please set config file [ -c ]\n");
         exit(EXIT_FAILURE);
@@ -349,9 +353,12 @@ int main(int argc,char **argv){
     
     if(!mWorld.parameters.subnet)
         mWorld.parameters.subnet = 16;
-    
+   
+    time_t now = time(NULL);
     if(pcap_file){
         if(read_pcap(pcap_file)){
+            printf("reading: %i\n",time(NULL) - now);
+            getchar();
             switch(mWorld.type){
                 case 1:
                     populate_store_structure(mWorld.count,(void *) &mWorld,1);
@@ -367,6 +374,7 @@ int main(int argc,char **argv){
     }
 
     pcap_file = NULL;
+    mWorld.parameters.pcap_interval = 0;
 
     if(interface){
         if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){

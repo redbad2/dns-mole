@@ -131,31 +131,30 @@ void _dns_sniffer(int fd, short event, void *arg) {
 /* handle every packet capturedmWorld.qlist_head = (query *)malloc(sizeof(query));
     mWorld.qlist_rear; */
 
-void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
-                const u_char *packet) {
-        moleWorld *mWorld = (moleWorld *)args;
-        struct ether_header * ehdr;
-        unsigned short ether_type;
-
-        ehdr = (struct ether_header *) packet;
-        ether_type = ntohs(ehdr->ether_type);
+void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char *packet) {
         
-        if(ether_type == ETHERTYPE_IP){
-            query *q = (query *)malloc(sizeof(query));
-            memset(q, 0, sizeof(query));
-            if (dns2query((u_char *)packet, pkthdr->len, q,mWorld->dl_len) != 1) {
-            	free(q);
-            	return;
-            }
+    moleWorld *mWorld = (moleWorld *)args;
+    struct ether_header * ehdr;
+    unsigned short ether_type;
+    ehdr = (struct ether_header *) packet;
+    ether_type = ntohs(ehdr->ether_type);
+        
+    if(ether_type == ETHERTYPE_IP){
+        
+        query *q = (query *)malloc(sizeof(query));
+        memset(q, 0, sizeof(query));
+        if(dns2query((u_char *)packet, pkthdr->len, q,mWorld->dl_len) != 1) {
+            free(q);
+        } else {
             q->time = pkthdr->ts.tv_sec;
-            
+                         
             if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->is_answer == 1))){
                 if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->q_type != 1))){
+
                     if(mWorld->qlist_head == NULL){
                         mWorld->qlist_head = q;
                         mWorld->qlist_rear = q;
-                    }
-                    else 
+                    } else 
                         query_insert_after(mWorld->qlist_rear, q);
                 
                     mWorld->count++;
@@ -164,5 +163,6 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr,
             else
                 query_remove(q);
         }
+    }
 }
 
