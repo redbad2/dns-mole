@@ -32,6 +32,7 @@ void open_log(void *t,const char *name){
     }
 
     fprintf(mW->log_fp,"[dns-mole] Log Started : %s", asctime(localtime(&now)));
+    fflush(mW->log_fp);
 }
 
 
@@ -45,28 +46,29 @@ void close_log(void *t){
     if(fclose(mW->log_fp)){
         fprintf(stderr,"[fclose] Can't close log file\n"); exit(EXIT_FAILURE);
     }
+    fflush(mW->log_fp);
 }
 
 void report(FILE *fp,char *d_name_1,char *d_name_2,unsigned int ip,int method,int type,char *additional){
     
     char method_string[20];
-    char message[80]; memset(message,'\0',80);
+    char message[120]; memset(message,'\0',120);
     struct in_addr report_ip;
     
     if(type != 4){
         if(!ip){
             if(d_name_2){
-                snprintf(message,80,"Domains: {%s , %s} added",d_name_1,d_name_2);
+                snprintf(message,120,"Domains: {%s , %s} added",d_name_1,d_name_2);
             } else
-                snprintf(message,80,"Domain: (%s) added",d_name_1);
+                snprintf(message,120,"Domain: (%s) added",d_name_1);
         } else {
             report_ip.s_addr = ip;
             if(d_name_2 && d_name_1){
-                snprintf(message,80,"Ip: [%s] - {%s , %s}",inet_ntoa(report_ip),d_name_1,d_name_2);
+                snprintf(message,120,"Ip: [%s] - {%s , %s}",inet_ntoa(report_ip),d_name_1,d_name_2);
             } else if(!d_name_2 && d_name_1){
-                snprintf(message,80,"Ip: [%s] - (%s)",inet_ntoa(report_ip),d_name_1);
+                snprintf(message,120,"Ip: [%s] - (%s)",inet_ntoa(report_ip),d_name_1);
             } else
-                snprintf(message,80,"Ip: [%s]",inet_ntoa(report_ip));
+                snprintf(message,120,"Ip: [%s]",inet_ntoa(report_ip));
         }
     }
 

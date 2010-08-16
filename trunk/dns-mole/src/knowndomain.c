@@ -72,8 +72,8 @@ void delete_domain(kdomain *domain){
     domain->prev = domain->next;
 
     domain_child_free(domain->kd_child);
-    if(domain->name) free(domain->name);
-    if(domain->cname) free(domain->cname);
+     if(domain->name) free(domain->name);
+     if(domain->cname) free(domain->cname);
     free(domain);
 }
 
@@ -206,7 +206,7 @@ void split_domain(char *line,pcre *re,char **split_structure){
     int vector[15];
     char *substring, *nice_substring;
     int rc,i,substring_length;
-
+        
     rc = pcre_exec(re,NULL,line,strlen(line),0,0,vector,15);
 
     for(i = rc-1; i >= 1; i--){
@@ -235,7 +235,7 @@ pcre *initialize_regex(){
     pcre *tre; 
     const char *error; int error_offset;
     
-    if((tre = pcre_compile("([a-z0-9_\\-\\.]*?)([a-z0-9_\\-]*?)\\.*?([a-z0-9_\\-]*?)\\.*?([a-z0-9_\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
+    if((tre = pcre_compile("([a-z0-9\\-\\.]*?)([a-z0-9\\-]*?)\\.*?([a-z0-9\\-]*?)\\.*?([a-z0-9\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
        fprintf(stderr,"[pcre] Error\n"); exit(EXIT_FAILURE); 
     }
     return tre;

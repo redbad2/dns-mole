@@ -90,7 +90,7 @@ void add_ip_to_domain(domain_store *q,ip_store *t_ip_store){
 domain_store *find_domain(domain_store *q,const char *name){
     domain_store *start_domain = q;
     
-    while(start_domain){
+    while(start_domain != NULL){
         if(!memcmp(start_domain->d_name,name,strlen(name)))
             return start_domain;
 

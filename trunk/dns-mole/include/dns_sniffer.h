@@ -72,7 +72,7 @@ struct tcp_header {
 struct dns_query_header {
 	unsigned short dq_id;
 	unsigned short dq_flags;
-#define DQH_QR(dq) (((dq)->dq_flags & 0x8000) >> 15)
+#define DQH_QR(dq) ((dq)->dq_flags & 0x8000)
 	unsigned short dq_qc;
 	unsigned short dq_ac;
 	unsigned short dq_nc;
