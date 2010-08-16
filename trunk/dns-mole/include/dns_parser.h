@@ -24,7 +24,7 @@
 
 int dns2query(u_char * packet, int len, query * q_store, int dl_len);
 int get_url_size(u_char * data);
-int extract_question(u_char * data, query * q);
+int extract_question(u_char * ,query *q );
 int extract_answers(u_char * data, u_char * start, int num, query * q);
 void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int length);
 int get_url(u_char * data, u_char * dst);

@@ -50,7 +50,8 @@ typedef struct answer {
 typedef struct Query {
 	char dname[MAX_LENGTH];
 	unsigned short q_type;
-	time_t time;
+	int suspicious; 
+    time_t time;
 	unsigned int srcip;
 	unsigned int dstip;
 	int ansnum;

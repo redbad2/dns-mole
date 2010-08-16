@@ -25,7 +25,9 @@
 void _learn(int ,short , void *);
 void _analyzer(int , short , void *);
 
+int is_domain_name_valid(const char *);
 void populate_store_structure(int , void *, int);
+
 void statistics_method(int , void *); 
 void second_method(void *, void *, void *);
 void first_method(void *, void **, void *);
