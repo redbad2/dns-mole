@@ -57,15 +57,6 @@ void _analyzer(int fd,short event,void *arg){
                     
 }       
 
-void print_domain(domain_store *dom){
-    if(dom){
-        printf("%s\n",dom->d_name);
-        if(strlen(dom->d_name) < 2){
-            getchar();
-        }
-        print_domain(dom->next);
-    }
-}
 void statistics_method(int num, void *mole) {
 	int net_size = 1;
 	st_host * list;
@@ -92,11 +83,12 @@ void statistics_method(int num, void *mole) {
 	int i;
 	report(st_mole->log_fp,NULL,NULL,0,3, 4,"[Using statistics]\n");
 	for (i = 0; i < select_num; i++) {
+        printf("%i\n",i);
 		st_cal(h[i], st_mole);
 		if (h[i]->abnormal_type == 0) normal++;
 		else {
 			sprintf(msg, "\t%s\t%s\n\t\ttotal: %d\tmx: %d\tptr: %d\n\t\ttime: %s\t\tt_total: %f\tt_balance: %f\n" 
-                    "\t\tt_ptr: %f\tt_ptr_rate: %f\n\t\tt_mx: %f\tt_mx_rate: %f\n\t\tanormal type: %x\n", 
+				"\t\tt_ptr: %f\tt_ptr_rate: %f\n\t\tt_mx: %f\tt_mx_rate: %f\n\t\tanormal type: %x\n", 
 				inet_ntoa(*(struct in_addr *)&h[i]->ip),
 				(h[i]->kind == 1)?"Server":"Client",
 				h[i]->total, h[i]->mx_total, h[i]->ptr_total,
@@ -153,11 +145,12 @@ void populate_store_structure(int num_packets,void *black,int type){
     unsigned int index;
     int not_valid_names = 0;
     time_t store_first_q_time;
+    time_t s_analyse = time(NULL);
 
     d_head = d_rear = NULL;
     d_head_1 = d_rear_1 = NULL;
     d_head_2 = d_rear_2 = NULL;
-    
+
     for(count = 0; count < storeMole->ipSpace; count++)
         ip_store_head[count] = ip_store_rear[count] = NULL;
 
@@ -165,16 +158,15 @@ void populate_store_structure(int num_packets,void *black,int type){
         store_first_q_time = storeMole->qlist_head->time + (storeMole->parameters).pcap_interval;
         half_analyze = (storeMole->parameters).pcap_interval / 2;
     } else {
-        store_first_q_time = time(NULL);
+        store_first_q_time = (storeMole->qlist_head ? storeMole->qlist_head->time + (storeMole->parameters).analyze_interval : time(NULL));
         half_analyze = (storeMole->parameters).analyze_interval / 2;
     }
     
-    time_t now = time(NULL);
     
     t_query = storeMole->qlist_head; 
-    
+    fprintf(stdout,"[ Starting Analysis (num_packets: %i]\n",num_packets);
+
     for(count = 0; count < num_packets; count ++){
-        
         if(!is_domain_name_valid(t_query->dname)){
             t_query_temp = t_query->next;
             query_remove(t_query);
@@ -183,21 +175,17 @@ void populate_store_structure(int num_packets,void *black,int type){
         } else {
             temp_domain = search_domain(t_query->dname,storeMole->root_list,0);
             t_query->suspicious = -1;   
+            
             if(temp_domain)
                 t_query->suspicious = temp_domain->suspicious;
         
             t_query = t_query->next;
         }
     }
-
-    printf("%i\n",time(NULL) - now);
-    getchar();
-
+    
     for(count = 0; count < (num_packets - not_valid_names); count++){
-        printf("%i\n",count);
         t_type = -1;
         t_query = storeMole->qlist_head;
-    
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
         
         t_type = t_query->suspicious;
@@ -280,7 +268,8 @@ void populate_store_structure(int num_packets,void *black,int type){
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
-    
+    fprintf(stdout,"[ End creating structures (%i)]\n",time(NULL) - s_analyse);
+
     switch(type){
         case 1:
             first_method((void *) d_head_1,(void **) ip_store_head,(void *)storeMole);
@@ -289,15 +278,8 @@ void populate_store_structure(int num_packets,void *black,int type){
             second_method((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
             break;
     }
-    
 
-    printf("analyze %i \n",time(NULL) - now);
-
-    remove_domain_list(d_head_1);
-    
-    if(type == 2) 
-        remove_domain_list(d_head_2);
-    
+    fprintf(stdout,"[ End Analysis (%i)]\n",time(NULL) - s_analyse);
     remove_ip(ip_store_head,storeMole->ipSpace);
 }
 
@@ -320,6 +302,10 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
     while(t_domain_1){
         if(t_domain_1->queried_with_different_ip < (groupMole->parameters).activity_drop){
             t_domain = t_domain_1->next;
+
+            if(d_head_1 == t_domain_1)
+                d_head_1 = d_head_1->next;
+
             remove_domain(d_head_1,t_domain_1);
             t_domain_1 = t_domain;
         
@@ -333,8 +319,11 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
     while(t_domain_2){
         
         if(t_domain_2->queried_with_different_ip < (groupMole->parameters).activity_drop){
-
             t_domain = t_domain_2->next;
+            
+            if(d_head_2 == t_domain_2)
+                d_head_2 = d_head_2->next;
+
             remove_domain(d_head_2,t_domain_2);
             t_domain_2 = t_domain;
 
@@ -345,6 +334,7 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
     t_domain_1 = d_head_1;
     t_domain = NULL;
 
+    
     while(t_domain_1){
 
         if(t_domain){
@@ -377,6 +367,10 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
                 } else if( similarity < (groupMole->parameters).activity_wl_similarity) {
                 
                     t_domain = t_domain_1->next;
+
+                    if(d_head_1 == t_domain_1)
+                        d_head_1 = d_head_1->next;
+
                     load_domain(t_domain_1->d_name,groupMole->re,groupMole->root_list,0);
                     report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,2,NULL);
                     remove_domain(d_head_1,t_domain_1);
@@ -440,6 +434,9 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
 
         t_domain_1 = t_domain_1->next;
     }
+
+    remove_domain_list(d_head_1);
+    remove_domain_list(d_head_2);
 }
 
 void first_method(void *domain,void **ip,void *mWorld){
@@ -460,7 +457,6 @@ void first_method(void *domain,void **ip,void *mWorld){
     t_domain_1 = d_head;
     
     while(t_domain_1){
-        
         if(t_dom){
             t_domain_1 = t_dom; t_dom = NULL;
         }
@@ -511,6 +507,10 @@ void first_method(void *domain,void **ip,void *mWorld){
             }
 
             t_dom = t_domain_1->next;
+
+            if(d_head == t_domain_1)
+                d_head = d_head->next;
+            
             remove_domain(d_head,t_domain_1);
         }
             
@@ -540,13 +540,15 @@ void first_method(void *domain,void **ip,void *mWorld){
         if(t_ip_store){
             while(t_ip_store){
 
-                if((float)(t_ip_store->black_hosts/t_ip_store->all_hosts) >=  (blackMole->parameters).black_ip_treshold);
+                if(((float)t_ip_store->black_hosts/(float)t_ip_store->all_hosts) >=  (blackMole->parameters).black_ip_treshold)
                     report(blackMole->log_fp,NULL,NULL,t_ip_store->ip,1,3,NULL);
                  
                 t_ip_store = t_ip_store->next;
             }
         }
     }
+
+    remove_domain_list(d_head);
 }
 
 float calculate_jaccard_index(void *unknown,void *black){

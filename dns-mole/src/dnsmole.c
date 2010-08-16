@@ -245,6 +245,8 @@ int main(int argc,char **argv){
     char *config = NULL;
     char *pcap_file = NULL;
     int daemonize = 0, sniffer = 0;
+    int dev_null;
+    pid_t pid,sid;
 
     set_signal(SIGHUP);
     set_signal(SIGINT);
@@ -286,12 +288,12 @@ int main(int argc,char **argv){
 	    case 'p':
 		pcap_file = optarg;
 		break;
-                
-        case 'a':
-        mWorld.parameters.pcap_interval = atoi(optarg);
-        break;
+            	
+	    case 'a':
+		mWorld.parameters.pcap_interval = atoi(optarg);
+		break;
         
-        case 'i':
+	    case 'i':
 		interface = optarg;
 		break;
 
@@ -307,6 +309,9 @@ int main(int argc,char **argv){
     argc -= optind;
     argv += optind;
 
+    if(daemonize)
+        daemon(1,0);
+    
     mWorld.re = initialize_regex();
     mWorld.root_list = new_domain_structure("ROOT",-1);
 
@@ -320,8 +325,8 @@ int main(int argc,char **argv){
         exit(EXIT_FAILURE);
     }
 
-    if((pcap_file == NULL) && !mWorld.parameters.pcap_interval){
-        fprintf(stderr,"\n[*] Please set pcap file dump interval [ -a ]\n");
+    if(!(pcap_file == NULL) && !mWorld.parameters.pcap_interval && mWorld.type == 2){
+        fprintf(stderr,"\n[*] Please set pcap file dump interval for method 2 [ -a ]\n");
         exit(EXIT_FAILURE);
     }
 
@@ -345,20 +350,17 @@ int main(int argc,char **argv){
     else 
         open_log(&mWorld,logfile); 
     
-    if(blacklist_file)
+    if(blacklist_file &&  (mWorld.type != 3))
 	    read_list(mWorld.root_list,blacklist_file,1,mWorld.re);
         
-    if(whitelist_file)
+    if(whitelist_file && (mWorld.type != 3))
 	    read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
     
     if(!mWorld.parameters.subnet)
         mWorld.parameters.subnet = 16;
    
-    time_t now = time(NULL);
     if(pcap_file){
         if(read_pcap(pcap_file)){
-            printf("reading: %i\n",time(NULL) - now);
-            getchar();
             switch(mWorld.type){
                 case 1:
                     populate_store_structure(mWorld.count,(void *) &mWorld,1);
@@ -375,17 +377,10 @@ int main(int argc,char **argv){
 
     pcap_file = NULL;
     mWorld.parameters.pcap_interval = 0;
-
-    if(interface){
-        if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
-            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-        }
-        memcpy(mWorld.interface,interface,strlen(interface)+1);
-    }
-    
+   
     if(sniffer && interface){
         
-        event_init();
+	event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
 	        fprintf(stderr,"[sniffer_setup] error\n");
@@ -398,9 +393,9 @@ int main(int argc,char **argv){
         if(!mWorld.parameters.analyze_interval)
             mWorld.parameters.analyze_interval = 10;
 
-	    if (mWorld.type != 3)
-            mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
-	    else 
+    	if (mWorld.type != 3){
+	        mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
+	    } else 
             mWorld.analyze_tv.tv_sec = mWorld.parameters.s_analyze_interval;
 
         mWorld.analyze_tv.tv_usec = 0;
