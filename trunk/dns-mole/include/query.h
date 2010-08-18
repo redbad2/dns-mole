@@ -51,7 +51,7 @@ typedef struct Query {
 	char dname[MAX_LENGTH];
 	unsigned short q_type;
 	int suspicious; 
-    time_t time;
+	time_t time;
 	unsigned int srcip;
 	unsigned int dstip;
 	int ansnum;

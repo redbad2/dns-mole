@@ -41,10 +41,9 @@ void domain_child_free(kdomain *);
 void domain_add_cname(char *, char *, kdomain *);
 kdomain *search_domain(char *, kdomain *,int);
 kdomain *new_domain_structure(char *, int);
-void load_domain(char *, pcre *, kdomain *, int);
-void split_domain(char *, pcre *, char **);
-pcre *initialize_regex();
-void read_list(kdomain *, char *, int, pcre *);
+void load_domain(char *, kdomain *, int);
+void split_domain(char *, char **);
+void read_list(kdomain *, char *, int);
 unsigned int hash(const char *,int);
 
 #endif

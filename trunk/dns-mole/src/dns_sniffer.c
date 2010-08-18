@@ -150,7 +150,6 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
             
             if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->is_answer == 1))){
                 if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->q_type != 1))){
-
                     if(mWorld->qlist_head == NULL){
                         mWorld->qlist_head = q;
                         mWorld->qlist_rear = q;
@@ -158,9 +157,9 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
                         query_insert_after(mWorld->qlist_rear, q);
                 
                     mWorld->count++;
-                }
-            }
-            else
+                } else
+                    query_remove(q);
+            }else
                 query_remove(q);
         }
     }

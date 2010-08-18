@@ -12,21 +12,7 @@ AC_PROG_CC
 
 # Checks for libraries.
 AC_CHECK_LIB(pcap, pcap_compile, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_close, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_free, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_open_offline, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_setfilter, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_dispatch, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_fileno, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_datalink, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcap, pcap_lookupdev, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(pcre, pcre_free, , AC_MSG_ERROR(pcre libary required))
-AC_CHECK_LIB(pcre, pcre_exec, , AC_MSG_ERROR(pcre libary required))
-AC_CHECK_LIB(pcre, pcre_compile, , AC_MSG_ERROR(pcre libary required))
-AC_CHECK_LIB(event, event_add, , AC_MSG_ERROR(event libary required))
-AC_CHECK_LIB(event, event_init, , AC_MSG_ERROR(event libary required))
 AC_CHECK_LIB(event, event_set, , AC_MSG_ERROR(event libary required))
-AC_CHECK_LIB(event, event_dispatch, , AC_MSG_ERROR(event libary required))
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdio.h math.h stdlib.h string.h unistd.h])

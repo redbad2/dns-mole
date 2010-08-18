@@ -24,7 +24,6 @@
 #define FALSE 0
 
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
-
     kdomain *tdomain = search_domain;
     if(!strcmp(search_domain->name,"ROOT") && !search_domain->kd_child){
         search_domain->kd_child = new_domain;
@@ -100,36 +99,38 @@ void domain_add_cname(char *domain_name,char *name,kdomain *root_domain){
 
 kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
 
-    pcre *re = NULL;
     char **split_structure = malloc(sizeof(char *) * 4);
     int count = 0, len_size = 0;
     unsigned int temp_hash = 0;
     kdomain *temp_domain = root_domain->kd_child;
 
-    if(!temp_domain){
-        pcre_free(re); return (kdomain *) 0;
-    }
+    //if(!temp_domain){
+    //    return (kdomain *) 0;
+    //}
     
-    re = initialize_regex();
-    split_domain(name,re,split_structure);
-     
-    if(split_structure[0]){
-        pcre_free(re); return (kdomain *) 0;  
+    split_domain(name,split_structure);
+    if(!split_structure[0]){
+        return (kdomain *) 0;  
     }
     
     while(temp_domain){
         temp_hash = 0;
-        
-        if((len_size = strlen(split_structure[count])) < 10)
+         
+        if((len_size = strlen(split_structure[count])) <= 10){
             temp_hash = hash(split_structure[count],len_size);
+        } else
+            temp_hash = hash(split_structure[count],10);
+    
+        if(((temp_domain->domain_hash == temp_hash))){
 
-        if(((temp_domain->domain_hash == temp_hash) || !temp_hash)){
             len_size = (temp_domain->name_length <= len_size ? temp_domain->name_length : len_size);
-            if(!memcmp(temp_domain->name,split_structure[count],len_size)){
             
+            if(!memcmp(temp_domain->name,split_structure[count],len_size)){
+                
                 if((temp_domain->suspicious == 0) && (search_type == 0)){
-                    pcre_free(re); return temp_domain;
+                    return temp_domain;
                 }
+                
                 else if((count != 3) && (split_structure[count+1] != NULL)){
                     count++; 
                     temp_domain = temp_domain->kd_child;
@@ -149,7 +150,6 @@ kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
         
     }
     free(split_structure);
-    pcre_free(re);
     return (kdomain *)0;
 }
 
@@ -166,7 +166,7 @@ kdomain *new_domain_structure(char *name,int suspicious){
         tmp_domain->cname = NULL;
         tmp_domain->suspicious = suspicious;
         tmp_domain->name_length = strlen(name);
-        tmp_domain->domain_hash = hash(name,tmp_domain->name_length);
+        tmp_domain->domain_hash = (tmp_domain->name_length <= 10 ? hash(name,tmp_domain->name_length): hash(name,10));
     }
 
     else{ 
@@ -176,13 +176,13 @@ kdomain *new_domain_structure(char *name,int suspicious){
     return tmp_domain;
 }
     
-void load_domain(char *line,pcre *re,kdomain *domain,int type){
+void load_domain(char *line,kdomain *domain,int type){
 
     kdomain *temp_domain = domain, *new_domain;
     int i = 1;
     int splitcount;
     char **split_structure = malloc(sizeof(char *) * 4);;
-    split_domain(line,re,split_structure);
+    split_domain(line,split_structure);
     for(splitcount = 0; splitcount < 4;splitcount++){
         if(split_structure[splitcount] != NULL){
             if(split_structure[splitcount+1] == NULL){
@@ -201,54 +201,50 @@ void load_domain(char *line,pcre *re,kdomain *domain,int type){
     free(split_structure);
 }
 
-void split_domain(char *line,pcre *re,char **split_structure){
+void split_domain(char *line,char **split_structure){
     
-    int vector[15];
-    char *substring, *nice_substring;
-    int rc,i,substring_length;
-        
-    rc = pcre_exec(re,NULL,line,strlen(line),0,0,vector,15);
-
-    for(i = rc-1; i >= 1; i--){
-        substring = line + vector[2*i];
-        substring_length = vector[2*i+1] - vector[2*i];
-        nice_substring = strdup(substring); 
-        *(nice_substring + substring_length) = '\0';
-        if(substring_length){
-            if(i == 1){ 
-                nice_substring[strlen(nice_substring)-1] = '\0';
-            }
-            if((split_structure[rc-1 - i] = malloc(strlen(nice_substring)+1)) == NULL){
-                fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-            }
-            memcpy(split_structure[rc-1 - i],nice_substring,strlen(nice_substring)+1);
-        }
-        else {
-            split_structure[rc-1 - i] = NULL;
-        }
-    }
-}
-
-
-        
-pcre *initialize_regex(){
-    pcre *tre; 
-    const char *error; int error_offset;
+    char *substring, *split_substring;
+    int length;
+    int count, reverse = 0;
+    int i;
     
-    if((tre = pcre_compile("([a-z0-9\\-\\.]*?)([a-z0-9\\-]*?)\\.*?([a-z0-9\\-]*?)\\.*?([a-z0-9\\-]+)$",0,&error,&error_offset,NULL)) == NULL){
-       fprintf(stderr,"[pcre] Error\n"); exit(EXIT_FAILURE); 
+    split_substring = strdup(line);
+    count = strlen(split_substring);
+    
+    if(split_substring[count-1] == '\n'){
+        split_substring[count-1] = '\0'; count--;
     }
-    return tre;
+
+    while(((reverse != 3) && (count != 0)) ){
+        if((split_substring[count] == '.')){
+            reverse++; split_substring[count] = '\0';
+        }
+
+        count--;
+    }
+
+    for(i = 0; i <= reverse; i++){
+        substring = strdup(split_substring);
+        length = strlen(substring);
+        if((split_structure[reverse-i] = (char *)malloc(sizeof(char)*length+1)) == NULL){
+            fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
+        }
+        memcpy(split_structure[reverse-i],substring,length+1);
+        split_substring = split_substring + length+1;
+    }
+    
+    for(; i < 4; i++)
+        split_structure[i] = NULL;
 }
     
-void read_list(kdomain *root,char *bl_filename,int type,pcre *re){
+void read_list(kdomain *root,char *bl_filename,int type){
 	
     FILE *fp; char line[80];
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
 			if(isalpha(line[0]) || isdigit(line[0])){ 		
-            		    if(strchr(line,'.'))
-                    		load_domain(line,re,root,type);
+                //if(strchr(line,'.'))
+                    load_domain(line,root,type);
 			}
 		}
 	}

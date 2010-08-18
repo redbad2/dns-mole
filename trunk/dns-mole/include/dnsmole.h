@@ -50,14 +50,14 @@ struct configuration{
 
 struct parameter{
 
-    int learn_interval;
-    int analyze_interval;
     int pcap_interval;
 
     int activity_drop;
+    int a_analyze_interval;
     float activity_bl_similarity;
     float activity_wl_similarity;
 
+    int o_analyze_interval;
     float black_ip_treshold;
     float o_white;
     float o_black;
@@ -89,18 +89,15 @@ struct moleWorld{
     
     int dl_len;
 
-    pcre *re;
     pcap_t *p;
     int pcap_fd;
     
     char *interface;
 	
     struct event recv_ev;
-    struct event learn_ev;
     struct event analyze_ev;
 
     struct timeval tv;
-    struct timeval learn_tv;
     struct timeval analyze_tv;
 
     FILE *log_fp;
@@ -115,7 +112,9 @@ void handler(int);
 void set_signal(int);
 
 configuration *create_t_configuration(const char *, void *, int );
+void set_config();
 void register_config(configuration *, const char *, void *, int);
+void read_config(const char *);
 
 void open_log(void *, const char *);
 void close_log(void *);
