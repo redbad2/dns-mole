@@ -29,6 +29,7 @@
 #include "../include/dnsmole.h"
 
 moleWorld mWorld;
+configuration *config;
 
 void usage(char *pname,const int exit_val){
 	fprintf(stdout,"\n\nUsage: %s "
@@ -54,7 +55,6 @@ void cleanup(){
 
     if(mWorld.p)
         pcap_close(mWorld.p);
-    pcre_free(mWorld.re);
     close_log(&mWorld);
 }
 
@@ -65,7 +65,6 @@ void handler(int sig){
         if(mWorld.p)
             pcap_close(mWorld.p);
         
-        pcre_free(mWorld.re);
         close_log(mWorld.log_fp);
         exit(EXIT_SUCCESS);
     }
@@ -111,24 +110,18 @@ void register_config(configuration *begin,const char *name,void *where,int type)
 
     loop_config->next = create_t_configuration(name,where,type);;
 }
-            
-void read_config(const char *conf){ 
-    FILE *config_file;
-    configuration *config = NULL;
-    configuration *t_config;
-    char line[80],config_variable[80],number_variable[10];
-    int first,second,count,variable_count,number_count,line_count = 0;
-    int done, *t_int;
-    float *t_float;
 
-    config = create_t_configuration("LearnInterval",&mWorld.parameters.learn_interval,0);
-    register_config(config,"AnalyzeInterval",(void *) &mWorld.parameters.analyze_interval,0);
+void set_config(){
+    configuration *t_config;
+    
+    config = create_t_configuration("aAnalyzeInterval",&mWorld.parameters.a_analyze_interval,0);
     register_config(config,"aDrop",(void *) &mWorld.parameters.activity_drop,0);
     register_config(config,"aBlackSimilarity",(void *) &mWorld.parameters.activity_bl_similarity,1);
     register_config(config,"aWhiteSimilarity",(void *) &mWorld.parameters.activity_wl_similarity,1);
     register_config(config,"oBlackIpTreshold",(void *) &mWorld.parameters.black_ip_treshold,1);
     register_config(config,"oWhite",(void *) &mWorld.parameters.o_white,1);
     register_config(config,"oBlack",(void *) &mWorld.parameters.o_black,1);
+    register_config(config,"oAnalyzeInterval",(void *) &mWorld.parameters.o_analyze_interval,0);
     register_config(config,"nSubnet",(void *) &mWorld.parameters.subnet,0);
     register_config(config,"sThresholdTotal",(void *) &mWorld.parameters.s_threshold_total,1);
     register_config(config,"sThresholdPTR",(void *) &mWorld.parameters.s_threshold_ptr,1);
@@ -138,6 +131,15 @@ void read_config(const char *conf){
     register_config(config,"sThresholdMXRate",(void *) &mWorld.parameters.s_threshold_mx_rate,1);
     register_config(config,"sClassifyInterval",(void *) &mWorld.parameters.s_classify_interval,0);
     register_config(config,"sAnalyzeInterval",(void *) &mWorld.parameters.s_analyze_interval,0);
+}
+            
+void read_config(const char *conf){ 
+    FILE *config_file;
+    configuration *t_config;
+    char line[80],config_variable[80],number_variable[10];
+    int first,second,count,variable_count,number_count,line_count = 0;
+    int done, *t_int;
+    float *t_float;
     
     if((config_file = fopen(conf,"r")) != NULL){
         while(fgets(line,sizeof(line),config_file) != NULL){
@@ -245,8 +247,7 @@ int main(int argc,char **argv){
     char *config = NULL;
     char *pcap_file = NULL;
     int daemonize = 0, sniffer = 0;
-    int dev_null;
-    pid_t pid,sid;
+    kdomain *temp_domain;
 
     set_signal(SIGHUP);
     set_signal(SIGINT);
@@ -312,7 +313,6 @@ int main(int argc,char **argv){
     if(daemonize)
         daemon(1,0);
     
-    mWorld.re = initialize_regex();
     mWorld.root_list = new_domain_structure("ROOT",-1);
 
     if(mWorld.type == 0){
@@ -335,6 +335,7 @@ int main(int argc,char **argv){
         exit(EXIT_FAILURE);
     }
 
+    set_config();
     read_config(config);
 
     if(interface){
@@ -350,12 +351,12 @@ int main(int argc,char **argv){
     else 
         open_log(&mWorld,logfile); 
     
-    if(blacklist_file &&  (mWorld.type != 3))
-	    read_list(mWorld.root_list,blacklist_file,1,mWorld.re);
+    if(blacklist_file) //&&  (mWorld.type != 3))
+	    read_list(mWorld.root_list,blacklist_file,1);
         
-    if(whitelist_file && (mWorld.type != 3))
-	    read_list(mWorld.root_list,whitelist_file,0,mWorld.re);
-    
+    if(whitelist_file) //&& (mWorld.type != 3))
+	    read_list(mWorld.root_list,whitelist_file,0);
+
     if(!mWorld.parameters.subnet)
         mWorld.parameters.subnet = 16;
    
@@ -390,33 +391,30 @@ int main(int argc,char **argv){
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
 
-        if(!mWorld.parameters.analyze_interval)
-            mWorld.parameters.analyze_interval = 10;
+        switch(mWorld.type){
+            case 1:
+                mWorld.analyze_tv.tv_sec = mWorld.parameters.a_analyze_interval;
+                break;
+            case 2:
+                mWorld.analyze_tv.tv_sec = mWorld.parameters.o_analyze_interval;
+                break;
+            case 3:
+                mWorld.analyze_tv.tv_sec = mWorld.parameters.s_analyze_interval;
+                break;
+        }
 
-    	if (mWorld.type != 3){
-	        mWorld.analyze_tv.tv_sec = mWorld.parameters.analyze_interval;
-	    } else 
-            mWorld.analyze_tv.tv_sec = mWorld.parameters.s_analyze_interval;
+        if(!mWorld.analyze_tv.tv_sec) 
+            mWorld.analyze_tv.tv_sec = 600;
 
         mWorld.analyze_tv.tv_usec = 0;
-
-        mWorld.learn_tv.tv_sec = mWorld.parameters.learn_interval;
-        mWorld.learn_tv.tv_usec = 0;
         
         mWorld.pcap_fd = pcap_fileno(mWorld.p);
 
         event_set(&mWorld.recv_ev,mWorld.pcap_fd,EV_READ, _dns_sniffer, (void *)&mWorld);
         event_add(&mWorld.recv_ev, NULL);
 
-        if(mWorld.parameters.learn_interval){
-            evtimer_set(&mWorld.learn_ev, _learn,(void *)&mWorld);
-            evtimer_add(&mWorld.learn_ev,&mWorld.learn_tv);
-        }
-    
         evtimer_set(&mWorld.analyze_ev, _analyzer, (void *)&mWorld);
-        
-        if(!mWorld.parameters.learn_interval)
-            evtimer_add(&mWorld.analyze_ev,&mWorld.analyze_tv);
+        evtimer_add(&mWorld.analyze_ev,&mWorld.analyze_tv);
         
         event_dispatch();
 

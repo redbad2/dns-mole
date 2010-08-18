@@ -3,7 +3,7 @@ SUBDIRS = src include doc man
 
 # what flags you want to pass to the C compiler & linker
 CFLAGS = -Wall -O3 -ffast-math -g
-LDFLAGS = -lpcap -levent -lpcre -lm
+LDFLAGS = -lm
 
 inc = include
 src = src

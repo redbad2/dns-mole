@@ -22,7 +22,6 @@
 #ifndef DNM_ANALYZE_H
 #define DNM_ANALYZE_H
 
-void _learn(int ,short , void *);
 void _analyzer(int , short , void *);
 
 int is_domain_name_valid(const char *);

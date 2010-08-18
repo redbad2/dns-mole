@@ -1,4 +1,4 @@
-/* dns_sniffer.h
+	/* dns_sniffer.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -71,8 +71,19 @@ struct tcp_header {
 
 struct dns_query_header {
 	unsigned short dq_id;
-	unsigned short dq_flags;
-#define DQH_QR(dq) ((dq)->dq_flags & 0x8000)
+	
+	unsigned	char rd     :1;
+	unsigned	char tc     :1;	
+	unsigned	char aa     :1;
+	unsigned	char opcode :4;
+	unsigned	char qr     :1;
+	
+	unsigned	char rcode  :4;
+	unsigned	char cd     :1;
+	unsigned	char ad     :1;
+	unsigned	char z      :1;
+	unsigned	char ra     :1;
+	
 	unsigned short dq_qc;
 	unsigned short dq_ac;
 	unsigned short dq_nc;

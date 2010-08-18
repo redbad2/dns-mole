@@ -21,20 +21,6 @@
 
 #include "../include/dnsmole.h"
 
-void _learn(int fd,short event,void *arg){
-    
-    moleWorld *myMole= (moleWorld *) arg;
-
-    switch(myMole->type){
-        case 1:
-            break;
-        case 2:
-            break;
-    }
-    
-    event_add(&myMole->analyze_ev,&myMole->analyze_tv);
-}
-
 void _analyzer(int fd,short event,void *arg){
 
     moleWorld *analyzeMole = (moleWorld *) arg;
@@ -113,8 +99,9 @@ int is_domain_name_valid(const char *domain){
     int domain_size = strlen(domain);
     int lookup;
     for(lookup = 0; lookup < domain_size; lookup++){
-        if(isalpha(domain[lookup]) || isdigit(domain[lookup]) || (domain[lookup] == '.') || (domain[lookup] == '-')){
-            if(domain[lookup] == '.' && domain[lookup+1] == '-'){
+        if(isalpha(domain[lookup]) || isdigit(domain[lookup]) || (domain[lookup] == '.') || (domain[lookup] == '-') || (domain[lookup] == '_')){
+            if(((domain[lookup] == '.' && domain[lookup+1] == '-')) || (domain[lookup] == '.' && domain[lookup+1] == '.') 
+                    || (domain[lookup] == '.' && domain[lookup] == '\0')){
                 return 0;
             }
         } else {
@@ -158,13 +145,13 @@ void populate_store_structure(int num_packets,void *black,int type){
         store_first_q_time = storeMole->qlist_head->time + (storeMole->parameters).pcap_interval;
         half_analyze = (storeMole->parameters).pcap_interval / 2;
     } else {
-        store_first_q_time = (storeMole->qlist_head ? storeMole->qlist_head->time + (storeMole->parameters).analyze_interval : time(NULL));
-        half_analyze = (storeMole->parameters).analyze_interval / 2;
+        store_first_q_time = (storeMole->qlist_head ? storeMole->qlist_head->time + (storeMole->analyze_tv).tv_sec : time(NULL));
+        half_analyze = (storeMole->analyze_tv).tv_sec / 2;
     }
     
     
     t_query = storeMole->qlist_head; 
-    fprintf(stdout,"[ Starting Analysis (num_packets: %i]\n",num_packets);
+    fprintf(stdout,"[ Starting Analysis (num_packets: %i)]\n",num_packets);
 
     for(count = 0; count < num_packets; count ++){
         if(!is_domain_name_valid(t_query->dname)){
@@ -361,7 +348,7 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
             
                 if(similarity > (groupMole->parameters).activity_bl_similarity){
 
-                    load_domain(t_domain_1->d_name,groupMole->re,groupMole->root_list,1);    
+                    load_domain(t_domain_1->d_name,groupMole->root_list,1);    
                     report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,1,NULL);
 
                 } else if( similarity < (groupMole->parameters).activity_wl_similarity) {
@@ -371,7 +358,7 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
                     if(d_head_1 == t_domain_1)
                         d_head_1 = d_head_1->next;
 
-                    load_domain(t_domain_1->d_name,groupMole->re,groupMole->root_list,0);
+                    load_domain(t_domain_1->d_name,groupMole->root_list,0);
                     report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,2,NULL);
                     remove_domain(d_head_1,t_domain_1);
 
@@ -417,8 +404,8 @@ void second_method(void *domain_list_one,void *domain_list_two,void *mWorld){
                     
                         if(similarity > (groupMole->parameters).activity_bl_similarity){
                                  
-                            load_domain(t_domain_1->d_name,groupMole->re,groupMole->root_list,1);    
-                            load_domain(t_domain_2->d_name,groupMole->re,groupMole->root_list,1);
+                            load_domain(t_domain_1->d_name,groupMole->root_list,1);    
+                            load_domain(t_domain_2->d_name,groupMole->root_list,1);
                             report(groupMole->log_fp,t_domain_1->d_name,t_domain_2->d_name,0,2,1,NULL); 
                             
                         }   
@@ -496,7 +483,7 @@ void first_method(void *domain,void **ip,void *mWorld){
 
             report(blackMole->log_fp,t_domain_1->d_name,NULL,0,1,2,NULL);
 
-            load_domain(t_domain_1->d_name,blackMole->re,blackMole->root_list,0);
+            load_domain(t_domain_1->d_name,blackMole->root_list,0);
                 
             t_ip_for_change = t_domain_1->domain_ip;
             while(t_ip_for_change){
@@ -518,7 +505,7 @@ void first_method(void *domain,void **ip,void *mWorld){
 
             report(blackMole->log_fp,t_domain_1->d_name,NULL,0,1,1,NULL);
                 
-            load_domain(t_domain_1->d_name,blackMole->re,blackMole->root_list,1);
+            load_domain(t_domain_1->d_name,blackMole->root_list,1);
                 
             t_ip_for_change = t_domain_1->domain_ip;
             while(t_ip_for_change){

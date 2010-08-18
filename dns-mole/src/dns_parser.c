@@ -27,9 +27,10 @@
 
 /* parse an DNS packet to a query */
 int dns2query(u_char * packet, int len, query * q_store,int dl_len) {
+    
     struct ip_header * iphdr = (struct ip_header *) (packet + sizeof(struct ether_header)); 
     struct dns_query_header *dqhdr;
-    u_char * data; int name_length;
+    u_char * data; 
     
     dqhdr = (struct dns_query_header *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct udp_header));
     data = (u_char *)(packet + dl_len + iphdr->ip_ihl * 4 + sizeof(struct udp_header) + sizeof(struct dns_query_header));
@@ -38,12 +39,7 @@ int dns2query(u_char * packet, int len, query * q_store,int dl_len) {
     q_store->srcip = iphdr->ip_src;
     q_store->dstip = iphdr->ip_dst;
 	
-
-    if(DQH_QR(dqhdr)){
-        q_store->is_answer = 1;
-    }   
-    else
-        q_store->is_answer = 0;
+    q_store->is_answer = dqhdr->qr;
     
     int qnum = ntohs(dqhdr->dq_qc);
     int anum = ntohs(dqhdr->dq_ac);
