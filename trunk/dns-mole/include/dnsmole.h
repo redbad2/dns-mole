@@ -26,7 +26,6 @@
 #include <time.h>
 #include <pcap.h>
 #include <ctype.h>
-#include <pcre.h>
 #include <unistd.h>
 
 #include <netinet/in.h>

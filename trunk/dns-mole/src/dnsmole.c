@@ -112,7 +112,6 @@ void register_config(configuration *begin,const char *name,void *where,int type)
 }
 
 void set_config(){
-    configuration *t_config;
     
     config = create_t_configuration("aAnalyzeInterval",&mWorld.parameters.a_analyze_interval,0);
     register_config(config,"aDrop",(void *) &mWorld.parameters.activity_drop,0);

@@ -69,11 +69,11 @@ void statistics_method(int num, void *mole) {
 	int i;
 	report(st_mole->log_fp,NULL,NULL,0,3, 4,"[Using statistics]\n");
 	for (i = 0; i < select_num; i++) {
-        printf("%i\n",i);
 		st_cal(h[i], st_mole);
 		if (h[i]->abnormal_type == 0) normal++;
 		else {
-			sprintf(msg, "\t%s\t%s\n\t\ttotal: %d\tmx: %d\tptr: %d\n\t\ttime: %s\t\tt_total: %f\tt_balance: %f\n" 
+			s
+                printf(msg, "\t%s\t%s\n\t\ttotal: %d\tmx: %d\tptr: %d\n\t\ttime: %s\t\tt_total: %f\tt_balance: %f\n" 
 				"\t\tt_ptr: %f\tt_ptr_rate: %f\n\t\tt_mx: %f\tt_mx_rate: %f\n\t\tanormal type: %x\n", 
 				inet_ntoa(*(struct in_addr *)&h[i]->ip),
 				(h[i]->kind == 1)?"Server":"Client",
@@ -151,7 +151,6 @@ void populate_store_structure(int num_packets,void *black,int type){
     
     
     t_query = storeMole->qlist_head; 
-    fprintf(stdout,"[ Starting Analysis (num_packets: %i)]\n",num_packets);
 
     for(count = 0; count < num_packets; count ++){
         if(!is_domain_name_valid(t_query->dname)){
@@ -255,8 +254,7 @@ void populate_store_structure(int num_packets,void *black,int type){
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
-    fprintf(stdout,"[ End creating structures (%i)]\n",time(NULL) - s_analyse);
-
+    
     switch(type){
         case 1:
             first_method((void *) d_head_1,(void **) ip_store_head,(void *)storeMole);
@@ -266,7 +264,6 @@ void populate_store_structure(int num_packets,void *black,int type){
             break;
     }
 
-    fprintf(stdout,"[ End Analysis (%i)]\n",time(NULL) - s_analyse);
     remove_ip(ip_store_head,storeMole->ipSpace);
 }
 

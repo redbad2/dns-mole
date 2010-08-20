@@ -332,24 +332,25 @@ st_host ** st_frequent_host_selection(st_host * list, int size) {
 	int count = 0;
 	int i;
 
-	st_host ** array = malloc(sizeof(sizeof(st_host *) * size));
+	st_host ** array = malloc(sizeof(sizeof(st_host) * size));
 	while (h != NULL) {
-		if (h->kind != 0) {
-			h = h->next;
-			continue;
-		}
-		if (count < size) {
-			array[count++] = h;
-		}
-		else {
-			for(i = 0; i < size; i++) {
-				if (array[i]->total < h->total) {
-					array[i] = h;
-					break;
-				}
-			}
-		}
+
+	    if (h->kind != 0) {
 		h = h->next;
+		continue;
+	    }
+	    if (count < size) {
+		array[count++] = h;
+	    }
+	    else {
+		for(i = 0; i < size; i++) {
+		    if (array[i]->total < h->total) {
+			array[i] = h;
+			break;
+		    }
+		}
+	    }
+	    h = h->next;
 	}
 
 	return array;
