@@ -1,4 +1,4 @@
-/* analyze.h
+/* detection.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,17 +19,27 @@
  * $Id$
  */
 
-#ifndef DNM_ANALYZE_H
-#define DNM_ANALYZE_H
+#ifndef DETECTION_H
+#define DETECTION_H
 
-void _analyzer(int , short , void *);
+#include "../../include/dnsmole.h"
+#include "qss.h"
+#include "fhs-structures.h"
 
-int is_domain_name_valid(const char *);
-void populate_store_structure(int , void *, int);
+void cor_initialize(moleWorld corMole);
+int cor_filter(void *q_filter);
+void cor_process(unsigned int n_pkt,void *tMole);
+void cor_analyze(void *domain,void **ip,void *mWorld);
+float calculate_jaccard_index(void *unknown,void *black);
 
-void statistics_method(int , void *); 
-void second_method(void *, void *, void *);
-void first_method(void *, void **, void *);
-float calculate_jaccard_index(void *, void *);
+void ga_initialize(moleWorld corMole);
+int ga_filter(void *q_filter);
+void ga_process(unsigned int n_pkt,void *tMole);
+void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld);
+
+void fhs_initialize(moleWorld corMole);
+int fhs_filter(void *q_filter);
+void fhs_process(unsigned int n_pkt,void *tMole);
 
 #endif
+

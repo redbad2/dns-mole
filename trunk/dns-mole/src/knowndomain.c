@@ -71,8 +71,11 @@ void delete_domain(kdomain *domain){
     domain->prev = domain->next;
 
     domain_child_free(domain->kd_child);
-     if(domain->name) free(domain->name);
-     if(domain->cname) free(domain->cname);
+    if(domain->name) 
+		free(domain->name);
+    if(domain->cname) 
+		free(domain->cname);
+    
     free(domain);
 }
 
@@ -80,8 +83,10 @@ void domain_child_free(kdomain *domain_free){
     
     if(domain_free){
         domain_child_free(domain_free->kd_child);
-        if(domain_free->name) free(domain_free->name);
-        if(domain_free->cname) free(domain_free->cname);
+        if(domain_free->name) 
+			free(domain_free->name);
+        if(domain_free->cname) 
+			free(domain_free->cname);
         domain_child_free(domain_free->next);
         free(domain_free);
     }
@@ -104,11 +109,12 @@ kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
     unsigned int temp_hash = 0;
     kdomain *temp_domain = root_domain->kd_child;
 
-    //if(!temp_domain){
-    //    return (kdomain *) 0;
-    //}
+    if(!temp_domain){
+        return (kdomain *) 0;
+    }
     
     split_domain(name,split_structure);
+    
     if(!split_structure[0]){
         return (kdomain *) 0;  
     }
@@ -242,10 +248,8 @@ void read_list(kdomain *root,char *bl_filename,int type){
     FILE *fp; char line[80];
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
-			if(isalpha(line[0]) || isdigit(line[0])){ 		
-                //if(strchr(line,'.'))
-                    load_domain(line,root,type);
-			}
+			if(isalpha(line[0]) || isdigit(line[0]))
+                            load_domain(line,root,type);
 		}
 	}
 	

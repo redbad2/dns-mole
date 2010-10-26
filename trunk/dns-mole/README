@@ -100,15 +100,3 @@ dnsMole is using:
 	1. event library ( -levent )
 	2. pcap libirary ( -lpcap )
 	3. mathematic library ( -lm )					
-
-Future development check list
-=============================
-
-1. As for the statistics part, examining the relationships between combinations of alerts could be a way to
-improve accuracy. Most observed hosts have multiple  heuristics, if we could find their relationship with the details 
-of anomaly, we could make detection more efficiently.
-
-2. Combining the statistics method with blacklist/whitelist method for analysis. Another idea is like bayesian botnet 
-detection, use the known infected hosts' behavior for further detection.
-
-3. Other improvement on code :) 
