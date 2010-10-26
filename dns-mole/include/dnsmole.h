@@ -32,20 +32,18 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+
 #include "query.h"
 #include "knowndomain.h"
 #include "dns_sniffer.h"
-#include "analyze.h"
-#include "store_structures.h"
-#include "statistics.h"
+//#include "analyze.h"
+//#include "store_structures.h"
+//#include "statistics.h"
 #include "error.h"
-
-struct configuration{
-    char *variable;
-    void *where;
-    int type;
-    struct configuration *next;
-};
+#include "config.h"
 
 struct parameter{
 
@@ -71,11 +69,20 @@ struct parameter{
     float s_threshold_mx_rate;
     int s_classify_interval;
     int s_analyze_interval;
+
+};
+
+struct functions{
+
+    int (*filter) (void *);
+    void (*analyze) (unsigned int,void *);
+    void (*log) (FILE *,char *);
 };
 
 struct moleWorld{
 
     struct parameter parameters;
+    struct functions moleFunctions;
 
     kdomain *root_list;
 
@@ -98,25 +105,22 @@ struct moleWorld{
 
     struct timeval tv;
     struct timeval analyze_tv;
-
+	
+	char *config_file;
     FILE *log_fp;
 
 };
 
 
-typedef struct configuration configuration; 
 typedef struct moleWorld moleWorld;
+
+void _analyzer(int , short , void *);
 
 void handler(int);
 void set_signal(int);
 
-configuration *create_t_configuration(const char *, void *, int );
-void set_config();
-void register_config(configuration *, const char *, void *, int);
-void read_config(const char *);
-
-void open_log(void *, const char *);
-void close_log(void *);
+void openLog(void *, const char *);
+void closeLog(void *);
 void report(FILE *,char *,char *,unsigned int, int, int, char *);
 
 #endif

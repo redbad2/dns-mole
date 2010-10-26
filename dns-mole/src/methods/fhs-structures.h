@@ -22,24 +22,22 @@
 #ifndef DNSM_STATISTICS_H
 #define DNSM_STATISTICS_H
 
-#include "query.h"
-#include "dnsmole.h"
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "detection.h"
 
 #define RATE 0.01
 
 typedef struct st_num {
+	
 	int total;
 	int mx_num;
 	int ptr_num;
 	struct st_num * next;
 	struct st_num * prev;
+	
 } st_num;
 
 typedef struct st_host {
+	
 	unsigned int ip;
 	int total;
 	
@@ -47,6 +45,7 @@ typedef struct st_host {
 	 * rqry, tres for authoriative server
 	 * tqry, tres, rqry, rres for cache server
 	 */
+	 
 	int tqry;
 	int tres;
 	int rqry;
@@ -86,6 +85,7 @@ typedef struct st_host {
 
 	struct st_host * prev;
 	struct st_host * next;
+	
 } st_host;
 
 void st_cal(st_host * host, void * mWorld);
@@ -94,7 +94,7 @@ void st_cal_dev(st_host * host);
 void st_insert_num(st_host * host, st_num * num);
 void st_insert_num_before(st_host * host, st_num * num);
 
-st_host * st_new_host(unsigned int ip, query * q);
+st_host *st_new_host(unsigned int ip, query * q);
 int st_add_query_to_list(st_host * list, query * q, void * mWorld);
 int st_add_query_to_list_src(st_host * list, query * q, void * mWorld);
 int st_add_query_to_list_dst(st_host * list, query * q, void * mWorld);
@@ -104,6 +104,6 @@ void st_host_empty(st_host * list);
 void st_host_remove(st_host * host);
 void st_host_free(st_host * host);
 
-st_host ** st_frequent_host_selection(st_host * list, int size);
+st_host **st_frequent_host_selection(st_host * list, int size);
 
 #endif

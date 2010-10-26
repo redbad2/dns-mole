@@ -24,6 +24,6 @@ AC_TYPE_PID_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([inet_ntoa memset memcpy sqrt strchr isalpha isdigit isuppser tolower strdup])
 
-#AC_CONFIG_FILES([include/Makefile
- #                src/Makefile])
-AC_OUTPUT(Makefile src/Makefile include/Makefile doc/Makefile man/Makefile)
+AC_CONFIG_FILES([Makefile include/Makefile src/Makefile src/methods/Makefile])
+#AC_OUTPUT(Makefile src/Makefile include/Makefile doc/Makefile man/Makefile src/methods/Makefile)
+AC_OUTPUT

@@ -1,4 +1,4 @@
-/* statistics.c
+/* fhs-structures.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,7 +19,7 @@
  * $Id$
  */
 
-#include "../include/statistics.h"
+#include "fhs-structures.h"
 
 void st_cal(st_host * host, void * mWorld) {
 	moleWorld * mw = (moleWorld *)mWorld;
@@ -168,6 +168,7 @@ int st_add_query_to_list_dst(st_host * list, query * q, void * mWorld) {
 }
 
 void st_add_query_to_host(st_host * host, query * q, void * mWorld) {
+	
 	moleWorld * mw = (moleWorld *)mWorld;
 	/* find/allocate num for host */
 	st_num * num;

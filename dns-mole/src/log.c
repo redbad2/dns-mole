@@ -21,7 +21,7 @@
 
 #include "../include/dnsmole.h"
 
-void open_log(void *t,const char *name){
+void openLog(void *t,const char *name){
 
     moleWorld *mW = (moleWorld *) t;
     time_t now = time(NULL);
@@ -36,7 +36,7 @@ void open_log(void *t,const char *name){
 }
 
 
-void close_log(void *t){
+void closeLog(void *t){
     
     moleWorld *mW = (moleWorld *) t;
     time_t now = time(NULL);

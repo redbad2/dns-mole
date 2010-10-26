@@ -36,7 +36,6 @@ void usage(char *pname,const int exit_val){
 	"-b <file>\t :blacklist file\n"
 	"\t\t -w <file>\t :whitelist file\n"
 	"\t\t -c <file>\t :config file\n"
-	"\t\t -l <file>\t :log file\n"
 	"\t\t -i <interface>\t :set interface\n"
 	"\t\t -d\t\t :daemonize\n"
 	"\t\t -s\t\t :sniffer mode\n"
@@ -55,17 +54,20 @@ void cleanup(){
 
     if(mWorld.p)
         pcap_close(mWorld.p);
-    close_log(&mWorld);
+        
+    closeLog(&mWorld);
 }
 
 void handler(int sig){
+	
     if(sig == SIGILL || sig == SIGTERM){
         fflush(mWorld.log_fp);
         fflush(stderr); fflush(stdout);
+        
         if(mWorld.p)
             pcap_close(mWorld.p);
         
-        close_log(mWorld.log_fp);
+        closeLog(mWorld.log_fp);
         exit(EXIT_SUCCESS);
     }
 
@@ -86,121 +88,6 @@ void set_signal(int signal) {
     }
 }
 
-configuration *create_t_configuration(const char *name, void *where,int type){
-    configuration *t_config;
-    
-    if((t_config = (configuration *) malloc(sizeof(configuration))) != NULL){
-        if((t_config->variable = malloc(strlen(name) * sizeof(char) + 1)) != NULL){
-            memcpy(t_config->variable,name,strlen(name)+1);
-            t_config->where = where;
-            t_config->type = type;
-            t_config->next = NULL;
-            return t_config;
-        }
-    }
-    fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-}
-
-void register_config(configuration *begin,const char *name,void *where,int type){
-    configuration *loop_config;
-
-    loop_config = begin;
-    while(loop_config->next)
-        loop_config = loop_config->next;
-
-    loop_config->next = create_t_configuration(name,where,type);;
-}
-
-void set_config(){
-    
-    config = create_t_configuration("aAnalyzeInterval",&mWorld.parameters.a_analyze_interval,0);
-    register_config(config,"aDrop",(void *) &mWorld.parameters.activity_drop,0);
-    register_config(config,"aBlackSimilarity",(void *) &mWorld.parameters.activity_bl_similarity,1);
-    register_config(config,"aWhiteSimilarity",(void *) &mWorld.parameters.activity_wl_similarity,1);
-    register_config(config,"oBlackIpTreshold",(void *) &mWorld.parameters.black_ip_treshold,1);
-    register_config(config,"oWhite",(void *) &mWorld.parameters.o_white,1);
-    register_config(config,"oBlack",(void *) &mWorld.parameters.o_black,1);
-    register_config(config,"oAnalyzeInterval",(void *) &mWorld.parameters.o_analyze_interval,0);
-    register_config(config,"nSubnet",(void *) &mWorld.parameters.subnet,0);
-    register_config(config,"sThresholdTotal",(void *) &mWorld.parameters.s_threshold_total,1);
-    register_config(config,"sThresholdPTR",(void *) &mWorld.parameters.s_threshold_ptr,1);
-    register_config(config,"sThresholdMX",(void *) &mWorld.parameters.s_threshold_mx,1);
-    register_config(config,"sThresholdBalance",(void *) &mWorld.parameters.s_threshold_balance,1);
-    register_config(config,"sThresholdPTRRate",(void *) &mWorld.parameters.s_threshold_ptr_rate,1);
-    register_config(config,"sThresholdMXRate",(void *) &mWorld.parameters.s_threshold_mx_rate,1);
-    register_config(config,"sClassifyInterval",(void *) &mWorld.parameters.s_classify_interval,0);
-    register_config(config,"sAnalyzeInterval",(void *) &mWorld.parameters.s_analyze_interval,0);
-}
-            
-void read_config(const char *conf){ 
-    FILE *config_file;
-    configuration *t_config;
-    char line[80],config_variable[80],number_variable[10];
-    int first,second,count,variable_count,number_count,line_count = 0;
-    int done, *t_int;
-    float *t_float;
-    
-    if((config_file = fopen(conf,"r")) != NULL){
-        while(fgets(line,sizeof(line),config_file) != NULL){
-            line_count++;
-            variable_count = number_count = second = done = 0;
-            first = 1;
-            if((isalpha(line[0]) || isdigit(line[0]))){
-                for(count = 0; count < strlen(line); count++){
-                    if(first && line[count] != ' '){
-                        config_variable[variable_count] = line[count];
-                        variable_count++;
-                        if(line[count + 1] == ' '){
-                            first = 0; second = 1;
-                        }
-                    }
-                    else if(second && line[count] != ' '){
-                        number_variable[number_count] = line[count];
-                        number_count++;
-                        if(line[count + 1] == ' ' || line[count + 1] == '\n'){
-                            second = 0;
-                        }
-                    }
-                }
-
-                config_variable[variable_count] = '\0';
-                number_variable[number_count] = '\0';
-
-                if(!first && !second){
-
-                    t_config = config;
-                    while(t_config && !done){
-                        if(!strcmp(t_config->variable,config_variable)){
-                            if(t_config->type == 1){
-                                t_float = (float *)t_config->where;
-                                *t_float = atof(number_variable);
-                            }
-                            else if(t_config->type == 0){
-                                t_int = (int *)t_config->where;
-                                *t_int = atoi(number_variable);
-                            }
-                            done = 1;
-                            
-                        }
-                        t_config = t_config->next;
-    
-                    }
-
-                    if(!done){
-                        fprintf(stderr,"Error in reading configuration (line: %i), what is %s ?\n",line_count,config_variable);
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                else{
-                    fprintf(stderr,"Error in configuration file, line %i\n",line_count);
-                    exit(EXIT_FAILURE);
-                }
-            }
-            
-        }
-    }
-}
-
 int read_pcap(const char *p_file){
 
     mWorld.qlist_head = mWorld.qlist_rear = 0;
@@ -212,8 +99,7 @@ int read_pcap(const char *p_file){
     if(access(p_file,F_OK)){
         fprintf(stderr,"Error opening %s (is the path correct ? )\n",p_file);
         return -1;
-    }
-    else{   
+    }else{   
         if((handler = pcap_open_offline(p_file,errbuf)) == NULL){
             fprintf(stderr,"[pcap_open_offline] Error\n");
             return -1;
@@ -237,13 +123,23 @@ int read_pcap(const char *p_file){
 
 }
 
+void _analyzer(int fd,short event,void *arg){
+	
+	moleWorld *analyzeMole = (moleWorld *) arg;
+    int num_packets = analyzeMole->count;
+
+	analyzeMole->count = 0;
+	(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
+	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+                    
+}       
 int main(int argc,char **argv){
+	
     char option;
     char *blacklist_file = NULL;
     char *whitelist_file = NULL;
-    char *logfile = NULL;
+    char *file_config = NULL;
     char *interface = NULL;
-    char *config = NULL;
     char *pcap_file = NULL;
     int daemonize = 0, sniffer = 0;
     kdomain *temp_domain;
@@ -255,9 +151,11 @@ int main(int argc,char **argv){
     //set_signal(SIGSEGV);
     set_signal(SIGTERM);
     
-    while((option = getopt(argc,argv,"i:b:w:t:l:c:dsp:a:h?")) > 0){
+	
+    while((option = getopt(argc,argv,"i:b:w:t:c:dsp:a:h?")) > 0){
 	switch(option){
-	    case 'b':
+			
+		case 'b':
 		blacklist_file = optarg;
 		break;
 
@@ -265,14 +163,10 @@ int main(int argc,char **argv){
 		whitelist_file = optarg;
 		break;
 
-	    case 'l':
-		logfile = optarg;
-		break;
-	
 	    case 'c':
-		config = optarg;
+		file_config = optarg;
 		break;
-            
+
 	    case 't':
 		mWorld.type = atoi(optarg);
 		break;
@@ -315,7 +209,7 @@ int main(int argc,char **argv){
     mWorld.root_list = new_domain_structure("ROOT",-1);
 
     if(mWorld.type == 0){
-	    fprintf(stderr,"\n[*] Please choose detection method [ -t ])\n");
+	fprintf(stderr,"\n[*] Please choose detection method [ -t ])\n");
         exit(EXIT_FAILURE);
     }
 
@@ -324,18 +218,18 @@ int main(int argc,char **argv){
         exit(EXIT_FAILURE);
     }
 
-    if(!(pcap_file == NULL) && !mWorld.parameters.pcap_interval && mWorld.type == 2){
+    if(!(pcap_file == NULL) && !mWorld.parameters.pcap_interval && (mWorld.type == 2)){
         fprintf(stderr,"\n[*] Please set pcap file dump interval for method 2 [ -a ]\n");
         exit(EXIT_FAILURE);
     }
 
-    if(!config){
+    if(!file_config){
         fprintf(stderr,"\n[*] Please set config file [ -c ]\n");
         exit(EXIT_FAILURE);
     }
 
-    set_config();
-    read_config(config);
+    config = set_config((void *)&mWorld);
+    read_config(file_config,config);
 
     if(interface){
         if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
@@ -344,16 +238,16 @@ int main(int argc,char **argv){
         memcpy(mWorld.interface,interface,strlen(interface)+1);
     }
     
-    if(!logfile){
-        open_log(&mWorld,"dnsmole-log"); 
+    if(!mWorld.config_file){
+        openLog(&mWorld,"dnsmole-log"); 
     }
     else 
-        open_log(&mWorld,logfile); 
+        openLog(&mWorld,mWorld.config_file); 
     
-    if(blacklist_file) //&&  (mWorld.type != 3))
+    if(blacklist_file)
 	    read_list(mWorld.root_list,blacklist_file,1);
         
-    if(whitelist_file) //&& (mWorld.type != 3))
+    if(whitelist_file)
 	    read_list(mWorld.root_list,whitelist_file,0);
 
     if(!mWorld.parameters.subnet)
@@ -361,17 +255,7 @@ int main(int argc,char **argv){
    
     if(pcap_file){
         if(read_pcap(pcap_file)){
-            switch(mWorld.type){
-                case 1:
-                    populate_store_structure(mWorld.count,(void *) &mWorld,1);
-                    break;
-                case 2:
-                    populate_store_structure(mWorld.count,(void *) &mWorld,2);
-                    break;
-                case 3:
-                    statistics_method(mWorld.count,(void *) &mWorld);
-                    break;
-            }
+			mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
         }
     }
 

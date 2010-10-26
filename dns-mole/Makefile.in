@@ -51,10 +51,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_dnsmole_OBJECTS = analyze.$(OBJEXT) dnsmole.$(OBJEXT) \
-	dns_parser.$(OBJEXT) dns_sniffer.$(OBJEXT) \
-	knowndomain.$(OBJEXT) log.$(OBJEXT) query.$(OBJEXT) \
-	statistics.$(OBJEXT) store_structures.$(OBJEXT)
+am_dnsmole_OBJECTS = dnsmole.$(OBJEXT) dns_parser.$(OBJEXT) \
+	dns_sniffer.$(OBJEXT) knowndomain.$(OBJEXT) log.$(OBJEXT) \
+	query.$(OBJEXT) config.$(OBJEXT) cor-detection.$(OBJEXT) \
+	ga-detection.$(OBJEXT) fhs-detection.$(OBJEXT) \
+	fhs-structures.$(OBJEXT) qss.$(OBJEXT)
 dnsmole_OBJECTS = $(am_dnsmole_OBJECTS)
 dnsmole_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -150,7 +151,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 
 # what flags you want to pass to the C compiler & linker
-CFLAGS = -Wall -O3 -ffast-math -g
+CFLAGS = -Wall -O3 -ffast-math -g 
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -229,11 +230,12 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = src include doc man
+SUBDIRS = src include doc man src/methods
 inc = include
 src = src
-include_HEADERS = $(inc)/analyze.h $(inc)/dnsmole.h $(inc)/dns_parser.h $(inc)/dns_sniffer.h $(inc)/error.h $(inc)/knowndomain.h $(inc)/query.h $(inc)/statistics.h $(inc)/store_structures.h
-dnsmole_SOURCES = $(src)/analyze.c $(src)/dnsmole.c $(src)/dns_parser.c $(src)/dns_sniffer.c $(src)/knowndomain.c $(src)/log.c $(src)/query.c $(src)/statistics.c $(src)/store_structures.c
+methods = src/methods
+include_HEADERS = $(inc)/dnsmole.h $(inc)/dns_parser.h $(inc)/dns_sniffer.h $(inc)/error.h $(inc)/knowndomain.h $(inc)/query.h $(inc)/config.h $(methods)/detection.h $(methods)/fhs-structures.h $(methods)/qss.h	
+dnsmole_SOURCES = $(src)/dnsmole.c $(src)/dns_parser.c $(src)/dns_sniffer.c $(src)/knowndomain.c $(src)/log.c $(src)/query.c $(src)/config.c $(methods)/cor-detection.c $(methods)/ga-detection.c $(methods)/fhs-detection.c $(methods)/fhs-structures.c $(methods)/qss.c
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -337,15 +339,18 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/analyze.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/config.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cor-detection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dns_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dns_sniffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dnsmole.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fhs-detection.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fhs-structures.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ga-detection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/knowndomain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/qss.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/query.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statistics.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_structures.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -360,20 +365,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-analyze.o: $(src)/analyze.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT analyze.o -MD -MP -MF $(DEPDIR)/analyze.Tpo -c -o analyze.o `test -f '$(src)/analyze.c' || echo '$(srcdir)/'`$(src)/analyze.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/analyze.Tpo $(DEPDIR)/analyze.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/analyze.c' object='analyze.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o analyze.o `test -f '$(src)/analyze.c' || echo '$(srcdir)/'`$(src)/analyze.c
-
-analyze.obj: $(src)/analyze.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT analyze.obj -MD -MP -MF $(DEPDIR)/analyze.Tpo -c -o analyze.obj `if test -f '$(src)/analyze.c'; then $(CYGPATH_W) '$(src)/analyze.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/analyze.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/analyze.Tpo $(DEPDIR)/analyze.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/analyze.c' object='analyze.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o analyze.obj `if test -f '$(src)/analyze.c'; then $(CYGPATH_W) '$(src)/analyze.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/analyze.c'; fi`
 
 dnsmole.o: $(src)/dnsmole.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT dnsmole.o -MD -MP -MF $(DEPDIR)/dnsmole.Tpo -c -o dnsmole.o `test -f '$(src)/dnsmole.c' || echo '$(srcdir)/'`$(src)/dnsmole.c
@@ -459,33 +450,89 @@ query.obj: $(src)/query.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o query.obj `if test -f '$(src)/query.c'; then $(CYGPATH_W) '$(src)/query.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/query.c'; fi`
 
-statistics.o: $(src)/statistics.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT statistics.o -MD -MP -MF $(DEPDIR)/statistics.Tpo -c -o statistics.o `test -f '$(src)/statistics.c' || echo '$(srcdir)/'`$(src)/statistics.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/statistics.Tpo $(DEPDIR)/statistics.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/statistics.c' object='statistics.o' libtool=no @AMDEPBACKSLASH@
+config.o: $(src)/config.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT config.o -MD -MP -MF $(DEPDIR)/config.Tpo -c -o config.o `test -f '$(src)/config.c' || echo '$(srcdir)/'`$(src)/config.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/config.Tpo $(DEPDIR)/config.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/config.c' object='config.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o statistics.o `test -f '$(src)/statistics.c' || echo '$(srcdir)/'`$(src)/statistics.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o config.o `test -f '$(src)/config.c' || echo '$(srcdir)/'`$(src)/config.c
 
-statistics.obj: $(src)/statistics.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT statistics.obj -MD -MP -MF $(DEPDIR)/statistics.Tpo -c -o statistics.obj `if test -f '$(src)/statistics.c'; then $(CYGPATH_W) '$(src)/statistics.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/statistics.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/statistics.Tpo $(DEPDIR)/statistics.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/statistics.c' object='statistics.obj' libtool=no @AMDEPBACKSLASH@
+config.obj: $(src)/config.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT config.obj -MD -MP -MF $(DEPDIR)/config.Tpo -c -o config.obj `if test -f '$(src)/config.c'; then $(CYGPATH_W) '$(src)/config.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/config.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/config.Tpo $(DEPDIR)/config.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/config.c' object='config.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o statistics.obj `if test -f '$(src)/statistics.c'; then $(CYGPATH_W) '$(src)/statistics.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/statistics.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o config.obj `if test -f '$(src)/config.c'; then $(CYGPATH_W) '$(src)/config.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/config.c'; fi`
 
-store_structures.o: $(src)/store_structures.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT store_structures.o -MD -MP -MF $(DEPDIR)/store_structures.Tpo -c -o store_structures.o `test -f '$(src)/store_structures.c' || echo '$(srcdir)/'`$(src)/store_structures.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/store_structures.Tpo $(DEPDIR)/store_structures.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/store_structures.c' object='store_structures.o' libtool=no @AMDEPBACKSLASH@
+cor-detection.o: $(methods)/cor-detection.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cor-detection.o -MD -MP -MF $(DEPDIR)/cor-detection.Tpo -c -o cor-detection.o `test -f '$(methods)/cor-detection.c' || echo '$(srcdir)/'`$(methods)/cor-detection.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/cor-detection.Tpo $(DEPDIR)/cor-detection.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/cor-detection.c' object='cor-detection.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o store_structures.o `test -f '$(src)/store_structures.c' || echo '$(srcdir)/'`$(src)/store_structures.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cor-detection.o `test -f '$(methods)/cor-detection.c' || echo '$(srcdir)/'`$(methods)/cor-detection.c
 
-store_structures.obj: $(src)/store_structures.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT store_structures.obj -MD -MP -MF $(DEPDIR)/store_structures.Tpo -c -o store_structures.obj `if test -f '$(src)/store_structures.c'; then $(CYGPATH_W) '$(src)/store_structures.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/store_structures.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/store_structures.Tpo $(DEPDIR)/store_structures.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(src)/store_structures.c' object='store_structures.obj' libtool=no @AMDEPBACKSLASH@
+cor-detection.obj: $(methods)/cor-detection.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cor-detection.obj -MD -MP -MF $(DEPDIR)/cor-detection.Tpo -c -o cor-detection.obj `if test -f '$(methods)/cor-detection.c'; then $(CYGPATH_W) '$(methods)/cor-detection.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/cor-detection.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/cor-detection.Tpo $(DEPDIR)/cor-detection.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/cor-detection.c' object='cor-detection.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o store_structures.obj `if test -f '$(src)/store_structures.c'; then $(CYGPATH_W) '$(src)/store_structures.c'; else $(CYGPATH_W) '$(srcdir)/$(src)/store_structures.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cor-detection.obj `if test -f '$(methods)/cor-detection.c'; then $(CYGPATH_W) '$(methods)/cor-detection.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/cor-detection.c'; fi`
+
+ga-detection.o: $(methods)/ga-detection.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ga-detection.o -MD -MP -MF $(DEPDIR)/ga-detection.Tpo -c -o ga-detection.o `test -f '$(methods)/ga-detection.c' || echo '$(srcdir)/'`$(methods)/ga-detection.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ga-detection.Tpo $(DEPDIR)/ga-detection.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/ga-detection.c' object='ga-detection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ga-detection.o `test -f '$(methods)/ga-detection.c' || echo '$(srcdir)/'`$(methods)/ga-detection.c
+
+ga-detection.obj: $(methods)/ga-detection.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ga-detection.obj -MD -MP -MF $(DEPDIR)/ga-detection.Tpo -c -o ga-detection.obj `if test -f '$(methods)/ga-detection.c'; then $(CYGPATH_W) '$(methods)/ga-detection.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/ga-detection.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ga-detection.Tpo $(DEPDIR)/ga-detection.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/ga-detection.c' object='ga-detection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ga-detection.obj `if test -f '$(methods)/ga-detection.c'; then $(CYGPATH_W) '$(methods)/ga-detection.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/ga-detection.c'; fi`
+
+fhs-detection.o: $(methods)/fhs-detection.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT fhs-detection.o -MD -MP -MF $(DEPDIR)/fhs-detection.Tpo -c -o fhs-detection.o `test -f '$(methods)/fhs-detection.c' || echo '$(srcdir)/'`$(methods)/fhs-detection.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/fhs-detection.Tpo $(DEPDIR)/fhs-detection.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/fhs-detection.c' object='fhs-detection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o fhs-detection.o `test -f '$(methods)/fhs-detection.c' || echo '$(srcdir)/'`$(methods)/fhs-detection.c
+
+fhs-detection.obj: $(methods)/fhs-detection.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT fhs-detection.obj -MD -MP -MF $(DEPDIR)/fhs-detection.Tpo -c -o fhs-detection.obj `if test -f '$(methods)/fhs-detection.c'; then $(CYGPATH_W) '$(methods)/fhs-detection.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/fhs-detection.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/fhs-detection.Tpo $(DEPDIR)/fhs-detection.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/fhs-detection.c' object='fhs-detection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o fhs-detection.obj `if test -f '$(methods)/fhs-detection.c'; then $(CYGPATH_W) '$(methods)/fhs-detection.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/fhs-detection.c'; fi`
+
+fhs-structures.o: $(methods)/fhs-structures.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT fhs-structures.o -MD -MP -MF $(DEPDIR)/fhs-structures.Tpo -c -o fhs-structures.o `test -f '$(methods)/fhs-structures.c' || echo '$(srcdir)/'`$(methods)/fhs-structures.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/fhs-structures.Tpo $(DEPDIR)/fhs-structures.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/fhs-structures.c' object='fhs-structures.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o fhs-structures.o `test -f '$(methods)/fhs-structures.c' || echo '$(srcdir)/'`$(methods)/fhs-structures.c
+
+fhs-structures.obj: $(methods)/fhs-structures.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT fhs-structures.obj -MD -MP -MF $(DEPDIR)/fhs-structures.Tpo -c -o fhs-structures.obj `if test -f '$(methods)/fhs-structures.c'; then $(CYGPATH_W) '$(methods)/fhs-structures.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/fhs-structures.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/fhs-structures.Tpo $(DEPDIR)/fhs-structures.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/fhs-structures.c' object='fhs-structures.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o fhs-structures.obj `if test -f '$(methods)/fhs-structures.c'; then $(CYGPATH_W) '$(methods)/fhs-structures.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/fhs-structures.c'; fi`
+
+qss.o: $(methods)/qss.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT qss.o -MD -MP -MF $(DEPDIR)/qss.Tpo -c -o qss.o `test -f '$(methods)/qss.c' || echo '$(srcdir)/'`$(methods)/qss.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/qss.Tpo $(DEPDIR)/qss.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/qss.c' object='qss.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o qss.o `test -f '$(methods)/qss.c' || echo '$(srcdir)/'`$(methods)/qss.c
+
+qss.obj: $(methods)/qss.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT qss.obj -MD -MP -MF $(DEPDIR)/qss.Tpo -c -o qss.obj `if test -f '$(methods)/qss.c'; then $(CYGPATH_W) '$(methods)/qss.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/qss.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/qss.Tpo $(DEPDIR)/qss.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(methods)/qss.c' object='qss.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o qss.obj `if test -f '$(methods)/qss.c'; then $(CYGPATH_W) '$(methods)/qss.c'; else $(CYGPATH_W) '$(srcdir)/$(methods)/qss.c'; fi`
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
