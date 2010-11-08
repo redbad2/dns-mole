@@ -1,4 +1,4 @@
-/* detection.h
+/* config.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -19,27 +19,21 @@
  * $Id$
  */
 
-#ifndef DETECTION_H
-#define DETECTION_H
+#ifndef DNM_CONFIG_H
+#define DNM_CONFIG_H
 
-#include "../../include/dnsmole.h"
-#include "qss.h"
-#include "fhs-structures.h"
+struct configuration{
+    char *variable;
+    void *where;
+    int type;
+    struct configuration *next;
+};
 
-void cor_initialize(void *tMole);
-int cor_filter(void *q_filter);
-void cor_process(unsigned int n_pkt,void *tMole);
-void cor_analyze(void *domain,void **ip,void *mWorld);
-float calculate_jaccard_index(void *unknown,void *black);
+typedef struct configuration configuration;
 
-void ga_initialize(void *tMole);
-int ga_filter(void *q_filter);
-void ga_process(unsigned int n_pkt,void *tMole);
-void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld);
-
-void fhs_initialize(void *tMole);
-int fhs_filter(void *q_filter);
-void fhs_process(unsigned int n_pkt,void *tMole);
+configuration *create_t_configuration(const char *, void *, int);
+configuration *set_config(void *);
+void register_config(configuration *, const char *, void *, int);
+void read_config(const char *, configuration *);
 
 #endif
-

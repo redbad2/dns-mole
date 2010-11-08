@@ -21,11 +21,12 @@
 
 #include "detection.h"
 
-void ga_initialize(moleWorld corMole){
+void ga_initialize(void *tMole){
 
-    corMole.moleFunctions.filter = ga_filter;
-    corMole.moleFunctions.analyze = ga_process;
-    //corMole.moleFunctions.log = ga_log;
+    moleWorld *gaMole = (moleWorld *) tMole;
+
+    (gaMole->moleFunctions).filter = ga_filter;
+    (gaMole->moleFunctions).analyze = ga_process;
 }
 
 int ga_filter(void *q_filter){
@@ -49,18 +50,16 @@ void ga_process(unsigned  int n_pkt,void *tMole){
     qss_domain *d_head, *d_rear, *t_domain_store;
     qss_domain *d_head_1, *d_rear_1;
     qss_domain *d_head_2, *d_rear_2;
-    query *t_query,*t_query_temp;
-    //kdomain *temp_domain;
+    query *t_query;
+    kdomain *temp_domain;
 
     int t_type;
     int do_first = 1;
     
     unsigned int half_analyze;
     unsigned int index;
-    int not_valid_names = 0;
     
     time_t store_first_q_time;
-    time_t s_analyse = time(NULL);
 
     d_head = d_rear = NULL;
     d_head_1 = d_rear_1 = NULL;
@@ -82,23 +81,17 @@ void ga_process(unsigned  int n_pkt,void *tMole){
     t_query = storeMole->qlist_head; 
 
     for(count = 0; count < n_pkt; count ++){
-      //  if(!is_domain_name_valid(t_query->dname)){
-            t_query_temp = t_query->next;
-            query_remove(t_query);
-            t_query = t_query_temp;
-            not_valid_names++;
-        /*} else {
-            temp_domain = search_domain(t_query->dname,storeMole->root_list,0);
-            t_query->suspicious = -1;   
-            
-            if(temp_domain)
-                t_query->suspicious = temp_domain->suspicious;
         
-            t_query = t_query->next;
-        }*/
+        temp_domain = search_domain(t_query->dname,storeMole->root_list,0);
+        t_query->suspicious = -1;   
+            
+        if(temp_domain)
+            t_query->suspicious = temp_domain->suspicious;
+        
+        t_query = t_query->next;
     }
     
-    for(count = 0; count < (n_pkt - not_valid_names); count++){
+    for(count = 0; count < n_pkt; count++){
         t_type = -1;
         t_query = storeMole->qlist_head;
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));

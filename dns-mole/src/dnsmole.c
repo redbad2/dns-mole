@@ -32,7 +32,9 @@ moleWorld mWorld;
 configuration *config;
 
 void usage(char *pname,const int exit_val){
-	fprintf(stdout,"\n\nUsage: %s "
+	fprintf(stdout,"\nDNSMole - DNS traffic analyzer for detecting botnet activity\n");
+    fprintf(stdout,"( http://code.google.com/p/dns-mole ) \n");
+    fprintf(stdout,"\n\nUsage: %s "
 	"-b <file>\t :blacklist file\n"
 	"\t\t -w <file>\t :whitelist file\n"
 	"\t\t -c <file>\t :config file\n"
@@ -99,7 +101,7 @@ int read_pcap(const char *p_file){
     if(access(p_file,F_OK)){
         fprintf(stderr,"Error opening %s (is the path correct ? )\n",p_file);
         return -1;
-    }else{   
+    } else {   
         if((handler = pcap_open_offline(p_file,errbuf)) == NULL){
             fprintf(stderr,"[pcap_open_offline] Error\n");
             return -1;
@@ -132,7 +134,8 @@ void _analyzer(int fd,short event,void *arg){
 	(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
 	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
                     
-}       
+}   
+
 int main(int argc,char **argv){
 	
     char option;
@@ -142,7 +145,6 @@ int main(int argc,char **argv){
     char *interface = NULL;
     char *pcap_file = NULL;
     int daemonize = 0, sniffer = 0;
-    kdomain *temp_domain;
 
     set_signal(SIGHUP);
     set_signal(SIGINT);
@@ -212,6 +214,18 @@ int main(int argc,char **argv){
 	fprintf(stderr,"\n[*] Please choose detection method [ -t ])\n");
         exit(EXIT_FAILURE);
     }
+    
+    switch(mWorld.type){
+        case 1:
+            cor_initialize((void *) &mWorld);
+            break;
+        case 2:
+            ga_initialize((void *) &mWorld);
+            break;
+        case 3:
+            fhs_initialize((void *) &mWorld);
+            break;
+    }
 
     if(((interface == NULL) && sniffer) && (pcap_file == NULL)){
         fprintf(stderr,"\n[*] Please set interface for sniffer or provide .pcap file for analysis\n");
@@ -238,11 +252,11 @@ int main(int argc,char **argv){
         memcpy(mWorld.interface,interface,strlen(interface)+1);
     }
     
-    if(!mWorld.config_file){
+    if(!mWorld.log_file){
         openLog(&mWorld,"dnsmole-log"); 
     }
     else 
-        openLog(&mWorld,mWorld.config_file); 
+        openLog(&mWorld,mWorld.log_file); 
     
     if(blacklist_file)
 	    read_list(mWorld.root_list,blacklist_file,1);
@@ -254,9 +268,8 @@ int main(int argc,char **argv){
         mWorld.parameters.subnet = 16;
    
     if(pcap_file){
-        if(read_pcap(pcap_file)){
-			mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
-        }
+        if(read_pcap(pcap_file))
+		mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
     }
 
     pcap_file = NULL;
@@ -264,7 +277,7 @@ int main(int argc,char **argv){
    
     if(sniffer && interface){
         
-	event_init();
+    	event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
 	        fprintf(stderr,"[sniffer_setup] error\n");
