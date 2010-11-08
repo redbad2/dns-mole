@@ -51,6 +51,10 @@ void closeLog(void *t){
 
 void report(FILE *fp,char *d_name_1,char *d_name_2,unsigned int ip,int method,int type,char *additional){
     
+    time_t rawtime;
+    struct tm *timeinfo;
+    char timeBuf[80];
+
     char method_string[20];
     char message[120]; memset(message,'\0',120);
     struct in_addr report_ip;
@@ -74,22 +78,26 @@ void report(FILE *fp,char *d_name_1,char *d_name_2,unsigned int ip,int method,in
 
     switch(method){
         case 1:
-            strcpy(method_string,"Blacklist extending");
+            strcpy(method_string,"COR");
             break;
         case 2:
-            strcpy(method_string,"Similarity");
+            strcpy(method_string,"GA");
             break;
         case 3:
-            strcpy(method_string,"Statistic");
+            strcpy(method_string,"FHS");
             break;
     }
 
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(timeBuf,80,"[%x|%X]",timeinfo);
+
     if(type == 1)
-        fprintf(fp,"[%s][blacklist] %s\n",method_string,message);
+        fprintf(fp,"[%s][%s][BL] %s\n",timeBuf,method_string,message);
     if(type == 2)
-        fprintf(fp,"[%s][whitelist] %s\n",method_string,message);
+        fprintf(fp,"[%s][%s][WL] %s\n",timeBuf,method_string,message);
     if(type == 3)
-        fprintf(fp,"[%s][ip] %s\n",method_string,message);
+        fprintf(fp,"[%s][%s][IP] %s\n",timeBuf,method_string,message);
     if(type == 4)
     	fprintf(fp, "%s",additional);
 

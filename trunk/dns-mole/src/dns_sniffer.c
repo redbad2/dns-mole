@@ -145,21 +145,21 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
         memset(q, 0, sizeof(query));
         if(dns2query((u_char *)packet, pkthdr->len, q,mWorld->dl_len) != 1) {
             free(q);
-        } else {
+        } 
+        else {
             q->time = pkthdr->ts.tv_sec;
-            
-            if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->is_answer == 1))){
-                if(!(((mWorld->type == 1) || (mWorld->type == 2)) && (q->q_type != 1))){
-                    if(mWorld->qlist_head == NULL){
-                        mWorld->qlist_head = q;
-                        mWorld->qlist_rear = q;
-                    } else 
-                        query_insert_after(mWorld->qlist_rear, q);
+           
+            if(((mWorld->moleFunctions).filter != 0) && (mWorld->moleFunctions).filter((void *) q)){
+
+                if(mWorld->qlist_head == NULL){
+                    mWorld->qlist_head = q;
+                    mWorld->qlist_rear = q;
+                } else 
+                    query_insert_after(mWorld->qlist_rear, q);
                 
-                    mWorld->count++;
-                } else
-                    query_remove(q);
-            }else
+                mWorld->count++;
+
+            } else
                 query_remove(q);
         }
     }

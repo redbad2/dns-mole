@@ -44,6 +44,7 @@
 //#include "statistics.h"
 #include "error.h"
 #include "config.h"
+#include "../src/methods/detection.h"
 
 struct parameter{
 
@@ -76,7 +77,6 @@ struct functions{
 
     int (*filter) (void *);
     void (*analyze) (unsigned int,void *);
-    void (*log) (FILE *,char *);
 };
 
 struct moleWorld{
@@ -106,7 +106,7 @@ struct moleWorld{
     struct timeval tv;
     struct timeval analyze_tv;
 	
-	char *config_file;
+	char *log_file;
     FILE *log_fp;
 
 };

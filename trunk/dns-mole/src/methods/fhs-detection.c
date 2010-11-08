@@ -21,11 +21,12 @@
  
 #include "detection.h"
 
-void fhs_initialize(moleWorld corMole){
+void fhs_initialize(void *tMole){
+    
+    moleWorld *fhsMole = (moleWorld *) tMole;
 
-    corMole.moleFunctions.filter = fhs_filter;
-    corMole.moleFunctions.analyze = fhs_process;
-    //corMole.moleFunctions.log = fhs_log;
+    (fhsMole->moleFunctions).filter = fhs_filter;
+    (fhsMole->moleFunctions).analyze = fhs_process;
 }
 
 int fhs_filter(void *q_filter){

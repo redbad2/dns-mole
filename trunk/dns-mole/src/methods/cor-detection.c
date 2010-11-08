@@ -21,11 +21,12 @@
  
 #include "detection.h"
  
-void cor_initialize(moleWorld corMole){
+void cor_initialize(void *tMole){
 
-    corMole.moleFunctions.filter = cor_filter;
-    corMole.moleFunctions.analyze = cor_process;
-    //corMole.moleFunctions.log = cor_log;
+    moleWorld *corMole = (moleWorld *) tMole;
+
+    (corMole->moleFunctions).filter = cor_filter;
+    (corMole->moleFunctions).analyze = cor_process;
 }
 
 int cor_filter(void *q_filter){
@@ -47,12 +48,11 @@ void cor_process(unsigned int n_pkt,void *tMole){
     
     qss_ip *t_ip_store,*ip_store_head[storeMole->ipSpace],*ip_store_rear[storeMole->ipSpace];
     qss_domain *d_head, *d_rear, *t_domain_store;
-    query *t_query,*t_query_temp;
+    query *t_query;
     kdomain *temp_domain;
 
     int t_type;
     unsigned int index;
-    int not_valid_names = 0;
 
     d_head = d_rear = NULL;
     
@@ -63,24 +63,17 @@ void cor_process(unsigned int n_pkt,void *tMole){
 
     for(count = 0; count < n_pkt; count ++){
 		
-       //if(!is_domain_name_valid(t_query->dname)){
-            t_query_temp = t_query->next;
-            query_remove(t_query);
-            t_query = t_query_temp;
-            not_valid_names++;
-        /*} 
-        else {
-            temp_domain = search_domain(t_query->dname,storeMole->root_list,0);
-            t_query->suspicious = -1;   
+        temp_domain = search_domain(t_query->dname,storeMole->root_list,0);
+        t_query->suspicious = -1;   
             
-            if(temp_domain)
-                t_query->suspicious = temp_domain->suspicious;
+        if(temp_domain)
+            t_query->suspicious = temp_domain->suspicious;
         
-            t_query = t_query->next;
-        }*/
+        t_query = t_query->next;
     }
     
-    for(count = 0; count < (n_pkt - not_valid_names); count++){
+    for(count = 0; count < n_pkt; count++){
+        
         t_type = -1;
         t_query = storeMole->qlist_head;
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
@@ -91,7 +84,7 @@ void cor_process(unsigned int n_pkt,void *tMole){
             ip_store_head[index] = ip_store_rear[index] = t_ip_store =  new_ip(t_query->srcip);
         } 
         else{
-	    if((t_ip_store = find_ip(ip_store_head[index],t_query->srcip)) == 0){
+	        if((t_ip_store = find_ip(ip_store_head[index],t_query->srcip)) == 0){
                 t_ip_store = new_ip(t_query->srcip);
                 ip_store_rear[index]->next = t_ip_store;
                 t_ip_store->prev = ip_store_rear[index];
