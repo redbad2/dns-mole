@@ -22,9 +22,11 @@
 #include "detection.h"
  
 void cor_initialize(void *tMole){
+    
 
     moleWorld *corMole = (moleWorld *) tMole;
 
+    (corMole->analyze_tv).tv_sec = (corMole->parameters).a_analyze_interval;
     (corMole->moleFunctions).filter = cor_filter;
     (corMole->moleFunctions).analyze = cor_process;
 }
@@ -33,7 +35,7 @@ int cor_filter(void *q_filter){
 
     query *query_filter = (query *) q_filter;
 
-    if((query_filter->is_answer == 1) && (query_filter->q_type != 1)){
+    if((query_filter->is_answer == 0) && (query_filter->q_type == 1)){
         return 1;
     }
 
@@ -60,7 +62,7 @@ void cor_process(unsigned int n_pkt,void *tMole){
         ip_store_head[count] = ip_store_rear[count] = NULL;
     
     t_query = storeMole->qlist_head; 
-
+    
     for(count = 0; count < n_pkt; count ++){
 		
         temp_domain = search_domain(t_query->dname,storeMole->root_list,0);
@@ -78,6 +80,7 @@ void cor_process(unsigned int n_pkt,void *tMole){
         t_query = storeMole->qlist_head;
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
         
+        printf("%s,%s\n",t_query->dname,ctime(&t_query->time));
         t_type = t_query->suspicious;
        
         if(ip_store_head[index] == NULL){

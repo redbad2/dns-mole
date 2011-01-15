@@ -25,6 +25,7 @@ void ga_initialize(void *tMole){
 
     moleWorld *gaMole = (moleWorld *) tMole;
 
+    (gaMole->analyze_tv).tv_sec = (gaMole->parameters).o_analyze_interval;
     (gaMole->moleFunctions).filter = ga_filter;
     (gaMole->moleFunctions).analyze = ga_process;
 }
@@ -33,7 +34,7 @@ int ga_filter(void *q_filter){
 
     query *query_filter = (query *) q_filter;
 
-    if((query_filter->is_answer == 1) && (query_filter->q_type != 1)){
+    if((query_filter->is_answer == 0) && (query_filter->q_type == 1)){
         return 1;
     }
 
@@ -68,15 +69,16 @@ void ga_process(unsigned  int n_pkt,void *tMole){
     for(count = 0; count < storeMole->ipSpace; count++)
         ip_store_head[count] = ip_store_rear[count] = NULL;
 
-    if((storeMole->parameters).pcap_interval != 0){
-        store_first_q_time = storeMole->qlist_head->time + (storeMole->parameters).pcap_interval;
-        half_analyze = (storeMole->parameters).pcap_interval / 2;
-    } 
-    else {
-        store_first_q_time = (storeMole->qlist_head ? storeMole->qlist_head->time + (storeMole->analyze_tv).tv_sec : time(NULL));
-        half_analyze = (storeMole->analyze_tv).tv_sec / 2;
-    }
-    
+    //if((storeMole->parameters).pcap_interval != 0){
+        //store_first_q_time = storeMole->qlist_head->time;// + (storeMole->parameters).pcap_interval;
+        //half_analyze = (storeMole->parameters).pcap_interval / 2;
+    //} 
+    //else {
+        store_first_q_time = storeMole->qlist_rear->time; //? storeMole->qlist_head->time + (storeMole->analyze_tv).tv_sec : time(NULL));
+        half_analyze = (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2;//(storeMole->analyze_tv).tv_sec / 2;
+    //}
+   
+        printf("%d,%s\n",half_analyze,ctime(&store_first_q_time));
     
     t_query = storeMole->qlist_head; 
 
@@ -95,7 +97,7 @@ void ga_process(unsigned  int n_pkt,void *tMole){
         t_type = -1;
         t_query = storeMole->qlist_head;
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
-        
+       
         t_type = t_query->suspicious;
        
         if(ip_store_head[index] == NULL){
@@ -123,9 +125,11 @@ void ga_process(unsigned  int n_pkt,void *tMole){
             int difference = store_first_q_time - t_query->time;
 
             if((difference < half_analyze)){
+                printf("0 --- %s\n",t_query->dname);
                 do_first = 1;
             }
             else if(difference >= half_analyze){
+                printf("1 -- %s\n",t_query->dname);
                 do_first = 0;
             }
 
@@ -172,11 +176,23 @@ void ga_process(unsigned  int n_pkt,void *tMole){
                 }
             }
         }
-        
+            
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
-    
+   
+   d_head = d_head_1;
+   while(d_head != NULL){
+       printf("%s\n",d_head->d_name);
+       d_head = d_head_1->next;
+   }
+   
+   //d_head = d_head_2;
+   //while(d_head){
+   //    printf("%s\n",d_head->d_name);
+   //    d_head = d_head_2->next;
+   //}
+
    ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
    remove_ip(ip_store_head,storeMole->ipSpace);
 }

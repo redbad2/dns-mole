@@ -138,25 +138,29 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
     unsigned short ether_type;
     ehdr = (struct ether_header *) packet;
     ether_type = ntohs(ehdr->ether_type);
-        
+ 
+    //mWorld->qlist_head = mWorld->qlist_rear = NULL;
+
     if(ether_type == ETHERTYPE_IP){
         
         query *q = (query *)malloc(sizeof(query));
         memset(q, 0, sizeof(query));
+        
         if(dns2query((u_char *)packet, pkthdr->len, q,mWorld->dl_len) != 1) {
             free(q);
         } 
         else {
             q->time = pkthdr->ts.tv_sec;
-           
             if(((mWorld->moleFunctions).filter != 0) && (mWorld->moleFunctions).filter((void *) q)){
-
+            printf("%s\n",q->dname);
                 if(mWorld->qlist_head == NULL){
                     mWorld->qlist_head = q;
                     mWorld->qlist_rear = q;
-                } else 
+                } else{
                     query_insert_after(mWorld->qlist_rear, q);
-                
+                    mWorld->qlist_rear = mWorld->qlist_rear->next;
+                }
+                printf("***%s\n",mWorld->qlist_rear->dname);
                 mWorld->count++;
 
             } else
