@@ -24,7 +24,8 @@
 void fhs_initialize(void *tMole){
     
     moleWorld *fhsMole = (moleWorld *) tMole;
-
+    
+    (fhsMole->analyze_tv).tv_sec = (fhsMole->parameters).s_analyze_interval;
     (fhsMole->moleFunctions).filter = fhs_filter;
     (fhsMole->moleFunctions).analyze = fhs_process;
 }

@@ -215,6 +215,24 @@ int main(int argc,char **argv){
         exit(EXIT_FAILURE);
     }
     
+    if(((interface == NULL) && sniffer) && (pcap_file == NULL)){
+        fprintf(stderr,"\n[*] Please set interface for sniffer or provide .pcap file for analysis\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //if(!(pcap_file == NULL) && !mWorld.parameters.pcap_interval && (mWorld.type == 2)){
+    //    fprintf(stderr,"\n[*] Please set pcap file dump interval for method 2 [ -a ]\n");
+    //    exit(EXIT_FAILURE);
+    //}
+
+    if(!file_config){
+        fprintf(stderr,"\n[*] Please set config file [ -c ]\n");
+        exit(EXIT_FAILURE);
+    }
+
+    config = set_config((void *)&mWorld);
+    read_config(file_config,config);
+
     switch(mWorld.type){
         case 1:
             cor_initialize((void *) &mWorld);
@@ -226,24 +244,7 @@ int main(int argc,char **argv){
             fhs_initialize((void *) &mWorld);
             break;
     }
-
-    if(((interface == NULL) && sniffer) && (pcap_file == NULL)){
-        fprintf(stderr,"\n[*] Please set interface for sniffer or provide .pcap file for analysis\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if(!(pcap_file == NULL) && !mWorld.parameters.pcap_interval && (mWorld.type == 2)){
-        fprintf(stderr,"\n[*] Please set pcap file dump interval for method 2 [ -a ]\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if(!file_config){
-        fprintf(stderr,"\n[*] Please set config file [ -c ]\n");
-        exit(EXIT_FAILURE);
-    }
-
-    config = set_config((void *)&mWorld);
-    read_config(file_config,config);
+    
 
     if(interface){
         if(!(mWorld.interface = (char *) malloc(sizeof(char) * strlen(interface)))){
@@ -286,18 +287,6 @@ int main(int argc,char **argv){
     
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
-
-        switch(mWorld.type){
-            case 1:
-                mWorld.analyze_tv.tv_sec = mWorld.parameters.a_analyze_interval;
-                break;
-            case 2:
-                mWorld.analyze_tv.tv_sec = mWorld.parameters.o_analyze_interval;
-                break;
-            case 3:
-                mWorld.analyze_tv.tv_sec = mWorld.parameters.s_analyze_interval;
-                break;
-        }
 
         if(!mWorld.analyze_tv.tv_sec) 
             mWorld.analyze_tv.tv_sec = 600;
