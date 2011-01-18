@@ -42,7 +42,6 @@ void usage(char *pname,const int exit_val){
 	"\t\t -d\t\t :daemonize\n"
 	"\t\t -s\t\t :sniffer mode\n"
 	"\t\t -p <file>\t :read pcap file\n" 
-	"\t\t -a <interval>\t :duration of .pcap package dump\n"
 	"\t\t -h\t\t :display this usage screen\n"
 	"\t\t -t <1|2|3>\t :detection method\n\n"
 	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
@@ -129,10 +128,12 @@ void _analyzer(int fd,short event,void *arg){
 	
 	moleWorld *analyzeMole = (moleWorld *) arg;
     int num_packets = analyzeMole->count;
-
-	analyzeMole->count = 0;
-	(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
-	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+	
+	if(num_packets != 0){
+		analyzeMole->count = 0;
+		(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
+		event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+	}
                     
 }   
 
@@ -154,7 +155,7 @@ int main(int argc,char **argv){
     set_signal(SIGTERM);
     
 	
-    while((option = getopt(argc,argv,"i:b:w:t:c:dsp:a:h?")) > 0){
+    while((option = getopt(argc,argv,"i:b:w:t:c:dsp:h?")) > 0){
 	switch(option){
 			
 		case 'b':
@@ -185,10 +186,6 @@ int main(int argc,char **argv){
 		pcap_file = optarg;
 		break;
             	
-	    case 'a':
-		mWorld.parameters.pcap_interval = atoi(optarg);
-		break;
-        
 	    case 'i':
 		interface = optarg;
 		break;
@@ -219,11 +216,6 @@ int main(int argc,char **argv){
         fprintf(stderr,"\n[*] Please set interface for sniffer or provide .pcap file for analysis\n");
         exit(EXIT_FAILURE);
     }
-
-    //if(!(pcap_file == NULL) && !mWorld.parameters.pcap_interval && (mWorld.type == 2)){
-    //    fprintf(stderr,"\n[*] Please set pcap file dump interval for method 2 [ -a ]\n");
-    //    exit(EXIT_FAILURE);
-    //}
 
     if(!file_config){
         fprintf(stderr,"\n[*] Please set config file [ -c ]\n");
@@ -271,10 +263,10 @@ int main(int argc,char **argv){
     if(pcap_file){
         if(read_pcap(pcap_file))
 		mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
+        printf("File: %s analyzed\n",pcap_file);
     }
 
     pcap_file = NULL;
-    mWorld.parameters.pcap_interval = 0;
    
     if(sniffer && interface){
         
@@ -307,6 +299,5 @@ int main(int argc,char **argv){
 
     cleanup();
 	
-    fprintf(stdout,"... remember when you were young ... \n");
     exit(EXIT_SUCCESS);
 }

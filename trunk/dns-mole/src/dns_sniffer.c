@@ -152,7 +152,7 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
         else {
             q->time = pkthdr->ts.tv_sec;
             if(((mWorld->moleFunctions).filter != 0) && (mWorld->moleFunctions).filter((void *) q)){
-            printf("%s\n",q->dname);
+                printf("%s\n",q->dname);
                 if(mWorld->qlist_head == NULL){
                     mWorld->qlist_head = q;
                     mWorld->qlist_rear = q;
@@ -160,7 +160,6 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
                     query_insert_after(mWorld->qlist_rear, q);
                     mWorld->qlist_rear = mWorld->qlist_rear->next;
                 }
-                printf("***%s\n",mWorld->qlist_rear->dname);
                 mWorld->count++;
 
             } else
