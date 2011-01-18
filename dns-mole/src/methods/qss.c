@@ -72,7 +72,7 @@ void add_ip_to_domain(qss_domain *q,qss_ip *t_qss_ip){
 
         if(qss_temp_dip == NULL){
 
-            if((qss_temp_dip = (qss_domain_ip *) malloc(sizeof(qss_domain_ip))) == NULL){
+            if((qss_temp_dip = (qss_domain_ip *) malloc(sizeof(struct qss_domain_ip))) == NULL){
                 fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
             }
            
@@ -101,7 +101,7 @@ qss_domain *find_domain(qss_domain *q,const char *name){
 
 void remove_ip_in_domain(qss_domain_ip *q){
     qss_domain_ip *temp;
-    
+   
     if(q != NULL){
         temp = q;
         q = q->next;
@@ -155,7 +155,7 @@ void remove_domain_list(qss_domain *q){
 qss_ip *new_ip(unsigned int ip){
     qss_ip *t_qss_ip;
 
-    if((t_qss_ip = (qss_ip *) malloc(sizeof(qss_ip))) != NULL){
+    if((t_qss_ip = (qss_ip *) malloc(sizeof(struct qss_ip))) != NULL){
         t_qss_ip->ip = ip;
         t_qss_ip->black_hosts = 0;
         t_qss_ip->all_hosts = 0;

@@ -45,8 +45,6 @@
 
 struct parameter{
 
-    int pcap_interval;
-
     int activity_drop;
     int a_analyze_interval;
     float activity_bl_similarity;

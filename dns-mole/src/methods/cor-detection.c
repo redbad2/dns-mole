@@ -73,14 +73,13 @@ void cor_process(unsigned int n_pkt,void *tMole){
         
         t_query = t_query->next;
     }
-    
+   
     for(count = 0; count < n_pkt; count++){
         
         t_type = -1;
         t_query = storeMole->qlist_head;
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
-        
-        printf("%s,%s\n",t_query->dname,ctime(&t_query->time));
+       
         t_type = t_query->suspicious;
        
         if(ip_store_head[index] == NULL){
@@ -130,6 +129,7 @@ void cor_process(unsigned int n_pkt,void *tMole){
     cor_analyze((void *) d_head,(void **) ip_store_head,(void *)storeMole);
     remove_ip(ip_store_head,storeMole->ipSpace);
 }
+
 void cor_analyze(void *domain,void **ip,void *mWorld){
 
     qss_domain *d_head = (qss_domain *) domain;
@@ -238,6 +238,7 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
         }
     }
 
+    d_head = domain;
     remove_domain_list(d_head);
 }
 

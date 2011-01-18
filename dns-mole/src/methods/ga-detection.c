@@ -25,7 +25,7 @@ void ga_initialize(void *tMole){
 
     moleWorld *gaMole = (moleWorld *) tMole;
 
-    (gaMole->analyze_tv).tv_sec = (gaMole->parameters).o_analyze_interval;
+    (gaMole->analyze_tv).tv_sec = (gaMole->parameters).a_analyze_interval;
     (gaMole->moleFunctions).filter = ga_filter;
     (gaMole->moleFunctions).analyze = ga_process;
 }
@@ -44,7 +44,7 @@ int ga_filter(void *q_filter){
 void ga_process(unsigned  int n_pkt,void *tMole){
 		 
     moleWorld *storeMole = (moleWorld *) tMole;
-    unsigned int count;
+    unsigned int count,inner_count;
     storeMole->ipSpace = pow(2, (storeMole->parameters).subnet);
     
     qss_ip *t_ip_store,*ip_store_head[storeMole->ipSpace],*ip_store_rear[storeMole->ipSpace];
@@ -60,7 +60,7 @@ void ga_process(unsigned  int n_pkt,void *tMole){
     unsigned int half_analyze;
     unsigned int index;
     
-    time_t store_first_q_time;
+    time_t delta_time;
 
     d_head = d_rear = NULL;
     d_head_1 = d_rear_1 = NULL;
@@ -69,16 +69,14 @@ void ga_process(unsigned  int n_pkt,void *tMole){
     for(count = 0; count < storeMole->ipSpace; count++)
         ip_store_head[count] = ip_store_rear[count] = NULL;
 
-    //if((storeMole->parameters).pcap_interval != 0){
-        //store_first_q_time = storeMole->qlist_head->time;// + (storeMole->parameters).pcap_interval;
-        //half_analyze = (storeMole->parameters).pcap_interval / 2;
-    //} 
-    //else {
-        store_first_q_time = storeMole->qlist_rear->time; //? storeMole->qlist_head->time + (storeMole->analyze_tv).tv_sec : time(NULL));
-        half_analyze = (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2;//(storeMole->analyze_tv).tv_sec / 2;
-    //}
-   
-        printf("%d,%s\n",half_analyze,ctime(&store_first_q_time));
+    if((storeMole->parameters).a_analyze_interval > storeMole->qlist_rear->time){
+	delta_time = storeMole->qlist_rear->time;
+	half_analyze = (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2;
+    }
+    else{
+	delta_time = storeMole->qlist_head->time + (storeMole->parameters).a_analyze_interval;
+	half_analyze = (storeMole->parameters).a_analyze_interval/2;
+    }
     
     t_query = storeMole->qlist_head; 
 
@@ -96,6 +94,7 @@ void ga_process(unsigned  int n_pkt,void *tMole){
     for(count = 0; count < n_pkt; count++){
         t_type = -1;
         t_query = storeMole->qlist_head;
+        
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
        
         t_type = t_query->suspicious;
@@ -122,15 +121,13 @@ void ga_process(unsigned  int n_pkt,void *tMole){
 
         if((t_type == -1) || (t_type == 1)){
 
-            int difference = store_first_q_time - t_query->time;
+            int difference = delta_time - t_query->time;
 
             if((difference < half_analyze)){
-                printf("0 --- %s\n",t_query->dname);
-                do_first = 1;
+                do_first = 0;
             }
             else if(difference >= half_analyze){
-                printf("1 -- %s\n",t_query->dname);
-                do_first = 0;
+                do_first = 1;
             }
 
             if(do_first){
@@ -157,6 +154,7 @@ void ga_process(unsigned  int n_pkt,void *tMole){
             }
         
             else{
+               
                 if((t_domain_store = find_domain(d_head,t_query->dname))){
                     add_ip_to_domain(t_domain_store,(void *)t_ip_store);
                 }
@@ -166,7 +164,7 @@ void ga_process(unsigned  int n_pkt,void *tMole){
                     t_domain_store->prev = d_rear;
                     d_rear->next = t_domain_store;
                     d_rear = d_rear->next;
-
+	
                     if(do_first){
                         d_rear_1 = d_rear;
                     }
@@ -176,25 +174,34 @@ void ga_process(unsigned  int n_pkt,void *tMole){
                 }
             }
         }
-            
+         
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
-    }
-   
-   d_head = d_head_1;
-   while(d_head != NULL){
-       printf("%s\n",d_head->d_name);
-       d_head = d_head_1->next;
-   }
-   
-   //d_head = d_head_2;
-   //while(d_head){
-   //    printf("%s\n",d_head->d_name);
-   //    d_head = d_head_2->next;
-   //}
+        
+        if(storeMole->qlist_head ? (storeMole->qlist_head->time > delta_time): 0){
 
-   ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
-   remove_ip(ip_store_head,storeMole->ipSpace);
+	    ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
+	    d_head = d_rear = d_head_1 = d_head_2 = d_rear_1 = d_rear_2 = NULL;
+			
+	    remove_ip(ip_store_head,storeMole->ipSpace);
+			
+	    for(inner_count = 0; inner_count < storeMole->ipSpace; inner_count++)
+		ip_store_head[inner_count] = ip_store_rear[inner_count] = NULL;
+			
+	    if(storeMole->qlist_rear->time <= (delta_time + (storeMole->parameters).a_analyze_interval)){
+
+		delta_time = storeMole->qlist_head ? storeMole->qlist_rear->time : time(NULL);
+		half_analyze = storeMole->qlist_head ? (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2 : 0;
+	    }
+	    else
+		delta_time += (storeMole->parameters).a_analyze_interval;
+	}
+		
+	else if(storeMole->qlist_head == NULL){
+	    ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
+	    remove_ip(ip_store_head,storeMole->ipSpace);
+	}
+    }
 }
 
 void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
@@ -257,7 +264,8 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
         if((t_domain_2 = find_domain(d_head_2,t_domain_1->d_name))){
             a = t_domain_1->queried_with_different_ip;
             b = t_domain_2->queried_with_different_ip;
-            
+           
+    
             list_ip = t_domain_1->domain_ip;
             
             while(list_ip){
