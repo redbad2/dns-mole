@@ -84,8 +84,8 @@ void domain_child_free(kdomain *domain_free){
     if(domain_free){
         domain_child_free(domain_free->kd_child);
         if(domain_free->name) 
-	    free(domain_free->name);
-        if(domain->method_data)
+	        free(domain_free->name);
+        if(domain_free->method_data)
     	    free(domain->method_data);
         domain_child_free(domain_free->next);
         free(domain_free);
