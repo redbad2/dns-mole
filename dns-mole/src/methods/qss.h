@@ -36,7 +36,7 @@ struct qss_ip{
 
 struct qss_ip_domain{
 
-    struct qss_domain *ip;
+    struct qss_domain *domain;
     struct qss_ip_domain *prev;
     struct qss_ip_domain *next;
 
@@ -70,6 +70,7 @@ typedef struct qss_ip_domain qss_ip_domain;
 
 /* functions: query sort domain structure */
 
+void add_domain_to_list(void **, void **,void *, void *,int);
 qss_domain *new_domain(const char *, float);
 void add_ip_to_domain(qss_domain *, qss_ip *);
 qss_domain *find_domain(qss_domain *, const char *);
@@ -78,12 +79,13 @@ void remove_ip_in_domain(qss_domain_ip *);
 void remove_domain(qss_domain *, qss_domain *);
 void remove_domain_list(qss_domain *);
 qss_domain_ip *find_ip_in_domain(qss_domain_ip *, unsigned int);
-			
 
 /* functions: query sort ip structure */
 
+qss_ip *add_ip_to_list(void **, void **, void *, int , int );
 qss_ip *new_ip(unsigned int);
 qss_ip *find_ip(qss_ip *, unsigned int);
+void add_domain_to_ip(qss_ip *,qss_domain *); // tODO
 void remove_ip(qss_ip **, int);
 void remove_ip_single(qss_ip *);
 

@@ -39,6 +39,35 @@ qss_domain *new_domain(const char *name,float type){
     fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
 }
 
+void add_domain_to_list(void **d_head, void **d_rear,void *t_qry, void *t_ip,int t_type){
+	
+	qss_domain *head = (qss_domain *)*d_head;
+	qss_domain *rear = (qss_domain *)*d_rear;
+	query *t_query = (query *) t_qry;
+	qss_ip *t_ip_store = (qss_ip *) t_ip;
+	
+	qss_domain *t_domain_store = NULL;
+
+	if(head == NULL){
+		head = rear = new_domain(t_query->dname,t_type);
+        add_ip_to_domain(rear,(void *)t_ip_store);   
+     }
+     else{
+		if((t_domain_store = find_domain(head,t_query->dname))){
+			add_ip_to_domain(t_domain_store,(void *)t_ip_store);
+		}
+        else{
+			t_domain_store = new_domain(t_query->dname,t_type);
+            add_ip_to_domain(t_domain_store,(void *)t_ip_store);
+            t_domain_store->prev = rear;
+            rear->next = t_domain_store;
+            rear = rear->next;
+        }
+     }
+	 *d_head = head;
+	 *d_rear = rear;
+}
+
 void add_ip_to_domain(qss_domain *q,qss_ip *t_qss_ip){
     qss_domain_ip *qss_temp_dip;
     
@@ -57,7 +86,6 @@ void add_ip_to_domain(qss_domain *q,qss_ip *t_qss_ip){
     }
 
     else{
-
         qss_temp_dip = q->domain_ip;
 
         while(qss_temp_dip){
@@ -165,6 +193,37 @@ qss_ip *new_ip(unsigned int ip){
     }
 
     fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
+}
+
+qss_ip *add_ip_to_list(void **t_head,void **t_rear,void *qry,int t_type,int index){
+	
+	qss_ip **head = (qss_ip **) t_head;
+	qss_ip **rear = (qss_ip **) t_rear;
+	query *t_query = (query *) qry;
+	
+	qss_ip *t_ip_store = NULL;
+	 
+	if(head[index] == NULL){
+		head[index] = rear[index] = t_ip_store =  new_ip(t_query->srcip);
+	} 
+	else{
+		if((t_ip_store = find_ip(head[index],t_query->srcip)) == 0){
+			t_ip_store = new_ip(t_query->srcip);
+            rear[index]->next = t_ip_store;
+            t_ip_store->prev = rear[index];
+            rear[index] = t_ip_store;
+        }
+	}
+
+    if(t_type == 1)
+		t_ip_store->black_hosts++;
+        
+    if(t_type == 0)
+       t_ip_store->white_hosts++;
+    
+    t_ip_store->all_hosts++;
+    
+    return t_ip_store;
 }
 
 qss_domain_ip *find_ip_in_domain(qss_domain_ip *q,unsigned int ip){

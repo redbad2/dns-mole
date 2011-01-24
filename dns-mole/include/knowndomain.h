@@ -24,13 +24,14 @@
 
 struct KnownDomain {
     char *name;
-    char *cname;
     int name_length;
     struct KnownDomain *kd_child;
     struct KnownDomain *next;
     struct KnownDomain *prev;
     int suspicious;
     unsigned int domain_hash;
+
+    void *method_data;
 };
 
 typedef struct KnownDomain kdomain;
@@ -38,7 +39,6 @@ typedef struct KnownDomain kdomain;
 kdomain *add_domain(kdomain *, kdomain *, int );
 void delete_domain(kdomain *);
 void domain_child_free(kdomain *);
-void domain_add_cname(char *, char *, kdomain *);
 kdomain *search_domain(char *, kdomain *,int);
 kdomain *new_domain_structure(char *, int);
 void load_domain(char *, kdomain *, int);

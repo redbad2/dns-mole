@@ -48,7 +48,6 @@ void ga_process(unsigned  int n_pkt,void *tMole){
     storeMole->ipSpace = pow(2, (storeMole->parameters).subnet);
     
     qss_ip *t_ip_store,*ip_store_head[storeMole->ipSpace],*ip_store_rear[storeMole->ipSpace];
-    qss_domain *d_head, *d_rear, *t_domain_store;
     qss_domain *d_head_1, *d_rear_1;
     qss_domain *d_head_2, *d_rear_2;
     query *t_query;
@@ -56,13 +55,13 @@ void ga_process(unsigned  int n_pkt,void *tMole){
 
     int t_type;
     int do_first = 1;
+    int len_size;
     
     unsigned int half_analyze;
     unsigned int index;
     
     time_t delta_time;
-
-    d_head = d_rear = NULL;
+    
     d_head_1 = d_rear_1 = NULL;
     d_head_2 = d_rear_2 = NULL;
 
@@ -70,12 +69,12 @@ void ga_process(unsigned  int n_pkt,void *tMole){
         ip_store_head[count] = ip_store_rear[count] = NULL;
 
     if((storeMole->parameters).a_analyze_interval > storeMole->qlist_rear->time){
-	delta_time = storeMole->qlist_rear->time;
-	half_analyze = (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2;
+		delta_time = storeMole->qlist_rear->time;
+		half_analyze = (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2;
     }
     else{
-	delta_time = storeMole->qlist_head->time + (storeMole->parameters).a_analyze_interval;
-	half_analyze = (storeMole->parameters).a_analyze_interval/2;
+		delta_time = storeMole->qlist_head->time + (storeMole->parameters).a_analyze_interval;
+		half_analyze = (storeMole->parameters).a_analyze_interval/2;
     }
     
     t_query = storeMole->qlist_head; 
@@ -99,80 +98,17 @@ void ga_process(unsigned  int n_pkt,void *tMole){
        
         t_type = t_query->suspicious;
        
-        if(ip_store_head[index] == NULL){
-            ip_store_head[index] = ip_store_rear[index] = t_ip_store =  new_ip(t_query->srcip);
-        } 
-        else{
-	        if((t_ip_store = find_ip(ip_store_head[index],t_query->srcip)) == 0){
-                t_ip_store = new_ip(t_query->srcip);
-                ip_store_rear[index]->next = t_ip_store;
-                t_ip_store->prev = ip_store_rear[index];
-                ip_store_rear[index] = t_ip_store;
-            }
-        }
-
-        if(t_type == 1)
-            t_ip_store->black_hosts++;
-        
-        if(t_type == 0)
-            t_ip_store->white_hosts++;
-        
-        t_ip_store->all_hosts++;
-
+        t_ip_store = add_ip_to_list((void **) ip_store_head,(void **) ip_store_rear,(void *) t_query,t_type,index);
+                
         if((t_type == -1) || (t_type == 1)){
 
             int difference = delta_time - t_query->time;
 
             if((difference < half_analyze)){
-                do_first = 0;
+				add_domain_to_list((void **)&d_head_2,(void **)&d_rear_2,(void *)t_query,(void *)t_ip_store,t_type);
             }
-            else if(difference >= half_analyze){
-                do_first = 1;
-            }
-
-            if(do_first){
-                d_head = d_head_1;
-                d_rear = d_rear_1;
-            }
-            else{
-                d_head = d_head_2;
-                d_rear = d_rear_2;
-            }
-
-            if(d_head == NULL){
-                d_head = d_rear = new_domain(t_query->dname,t_type);
-                add_ip_to_domain(d_rear,(void *)t_ip_store); 
-                
-                if(do_first){
-                    d_head_1 = d_head;
-                    d_rear_1 = d_rear;
-                }
-                else{
-                    d_head_2 = d_head;
-                    d_rear_2 = d_rear;
-                }
-            }
-        
-            else{
-               
-                if((t_domain_store = find_domain(d_head,t_query->dname))){
-                    add_ip_to_domain(t_domain_store,(void *)t_ip_store);
-                }
-                else{
-                    t_domain_store = new_domain(t_query->dname,t_type);
-                    add_ip_to_domain(t_domain_store,(void *)t_ip_store);
-                    t_domain_store->prev = d_rear;
-                    d_rear->next = t_domain_store;
-                    d_rear = d_rear->next;
-	
-                    if(do_first){
-                        d_rear_1 = d_rear;
-                    }
-                    else{
-                        d_rear_2 = d_rear;
-                    }
-                }
-            }
+            else if(difference >= half_analyze)
+				add_domain_to_list((void **)&d_head_1,(void **)&d_rear_1,(void *)t_query,(void *)t_ip_store,t_type);    
         }
          
         storeMole->qlist_head = storeMole->qlist_head->next;
@@ -180,27 +116,26 @@ void ga_process(unsigned  int n_pkt,void *tMole){
         
         if(storeMole->qlist_head ? (storeMole->qlist_head->time > delta_time): 0){
 
-	    ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
-	    d_head = d_rear = d_head_1 = d_head_2 = d_rear_1 = d_rear_2 = NULL;
+			ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
+			d_head_1 = d_head_2 = d_rear_1 = d_rear_2 = NULL;
 			
-	    remove_ip(ip_store_head,storeMole->ipSpace);
+			remove_ip(ip_store_head,storeMole->ipSpace);
 			
-	    for(inner_count = 0; inner_count < storeMole->ipSpace; inner_count++)
-		ip_store_head[inner_count] = ip_store_rear[inner_count] = NULL;
+			for(inner_count = 0; inner_count < storeMole->ipSpace; inner_count++)
+				ip_store_head[inner_count] = ip_store_rear[inner_count] = NULL;
 			
-	    if(storeMole->qlist_rear->time <= (delta_time + (storeMole->parameters).a_analyze_interval)){
-
-		delta_time = storeMole->qlist_head ? storeMole->qlist_rear->time : time(NULL);
-		half_analyze = storeMole->qlist_head ? (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2 : 0;
-	    }
-	    else
-		delta_time += (storeMole->parameters).a_analyze_interval;
-	}
+			if(storeMole->qlist_rear->time <= (delta_time + (storeMole->parameters).a_analyze_interval)){
+				delta_time = storeMole->qlist_head ? storeMole->qlist_rear->time : time(NULL);
+				half_analyze = storeMole->qlist_head ? (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2 : 0;
+			}
+			else
+				delta_time += (storeMole->parameters).a_analyze_interval;
+		}	
 		
-	else if(storeMole->qlist_head == NULL){
-	    ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
-	    remove_ip(ip_store_head,storeMole->ipSpace);
-	}
+		else if(storeMole->qlist_head == NULL){
+			ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
+			remove_ip(ip_store_head,storeMole->ipSpace);
+		}
     }
 }
 

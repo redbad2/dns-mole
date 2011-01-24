@@ -99,11 +99,8 @@ struct static_RR {
 
 
 int pcap_dloff(pcap_t * pd);
-
 int sniffer_setup(void *);
-
 void _dns_sniffer(int , short , void *);
-
 void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
 		const u_char * packet);
 
