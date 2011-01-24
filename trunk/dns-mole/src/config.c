@@ -69,6 +69,7 @@ configuration *set_config(void *confMole){
     register_config(config,"sClassifyInterval",(void *)&(configMole->parameters).s_classify_interval,0);
     register_config(config,"sAnalyzeInterval",(void *)&(configMole->parameters).s_analyze_interval,0);
     register_config(config,"LogFile",(void *)&(configMole->log_file),2);
+    register_config(config,"nAnalyzeInterval",(void *)&(configMole->parameters).naive_analyze_interval,0);
 
     return config;
 }

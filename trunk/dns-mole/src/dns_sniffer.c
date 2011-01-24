@@ -139,8 +139,6 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
     ehdr = (struct ether_header *) packet;
     ether_type = ntohs(ehdr->ether_type);
  
-    //mWorld->qlist_head = mWorld->qlist_rear = NULL;
-
     if(ether_type == ETHERTYPE_IP){
         
         query *q = (query *)malloc(sizeof(query));
@@ -152,7 +150,6 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
         else {
             q->time = pkthdr->ts.tv_sec;
             if(((mWorld->moleFunctions).filter != 0) && (mWorld->moleFunctions).filter((void *) q)){
-                printf("%s\n",q->dname);
                 if(mWorld->qlist_head == NULL){
                     mWorld->qlist_head = q;
                     mWorld->qlist_rear = q;

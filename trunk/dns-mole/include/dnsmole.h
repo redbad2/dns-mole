@@ -22,6 +22,8 @@
 #ifndef DNM_DNSMOLE_H
 #define DNM_DNSMOLE_H
 
+#include <stdio.h>
+
 #include <event.h>
 #include <time.h>
 #include <pcap.h>
@@ -35,6 +37,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sqlite3.h>
+
 
 #include "query.h"
 #include "knowndomain.h"
@@ -45,6 +49,8 @@
 
 struct parameter{
 
+    int naive_analyze_interval;
+    
     int activity_drop;
     int a_analyze_interval;
     float activity_bl_similarity;
@@ -72,6 +78,7 @@ struct functions{
 
     int (*filter) (void *);
     void (*analyze) (unsigned int,void *);
+    void *function_data;    
 };
 
 struct moleWorld{

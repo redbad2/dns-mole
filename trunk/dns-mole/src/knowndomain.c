@@ -72,9 +72,9 @@ void delete_domain(kdomain *domain){
 
     domain_child_free(domain->kd_child);
     if(domain->name) 
-		free(domain->name);
-    if(domain->cname) 
-		free(domain->cname);
+	free(domain->name);
+    if(domain->method_data)
+        free(domain->method_data);
     
     free(domain);
 }
@@ -84,22 +84,12 @@ void domain_child_free(kdomain *domain_free){
     if(domain_free){
         domain_child_free(domain_free->kd_child);
         if(domain_free->name) 
-			free(domain_free->name);
-        if(domain_free->cname) 
-			free(domain_free->cname);
+	    free(domain_free->name);
+        if(domain->method_data)
+    	    free(domain->method_data);
         domain_child_free(domain_free->next);
         free(domain_free);
     }
-}
-
-void domain_add_cname(char *domain_name,char *name,kdomain *root_domain){
-
-     kdomain *temp_domain = search_domain(domain_name,root_domain,1);
-    
-    if((temp_domain->cname = malloc(strlen(name)*sizeof(char) + 1)) == NULL){
-        fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-    }
-    memcpy(temp_domain->cname,name,strlen(name)+1);
 }
 
 kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
@@ -169,9 +159,9 @@ kdomain *new_domain_structure(char *name,int suspicious){
         }
         memcpy(tmp_domain->name,name,strlen(name)+1);
         tmp_domain->kd_child = tmp_domain->next = tmp_domain->prev = NULL;
-        tmp_domain->cname = NULL;
         tmp_domain->suspicious = suspicious;
         tmp_domain->name_length = strlen(name);
+        tmp_domain->method_data = NULL;
         tmp_domain->domain_hash = (tmp_domain->name_length <= 10 ? hash(name,tmp_domain->name_length): hash(name,10));
     }
 
@@ -249,7 +239,7 @@ void read_list(kdomain *root,char *bl_filename,int type){
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
 			if(isalpha(line[0]) || isdigit(line[0]))
-                            load_domain(line,root,type);
+                load_domain(line,root,type);
 		}
 	}
 	

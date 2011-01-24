@@ -19,11 +19,6 @@
  * $Id$
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <event.h>
 #include <signal.h>
 
 #include "../include/dnsmole.h"
@@ -208,12 +203,12 @@ int main(int argc,char **argv){
     mWorld.root_list = new_domain_structure("ROOT",-1);
 
     if(mWorld.type == 0){
-	fprintf(stderr,"\n[*] Please choose detection method [ -t ])\n");
+	fprintf(stderr,"\n\n[*] Please choose detection method [ -t ])\n\n");
         exit(EXIT_FAILURE);
     }
     
     if(((interface == NULL) && sniffer) && (pcap_file == NULL)){
-        fprintf(stderr,"\n[*] Please set interface for sniffer or provide .pcap file for analysis\n");
+        fprintf(stderr,"\n\n[*] Please set interface for sniffer or provide .pcap file for analysis\n\n");
         exit(EXIT_FAILURE);
     }
 
@@ -263,7 +258,7 @@ int main(int argc,char **argv){
     if(pcap_file){
         if(read_pcap(pcap_file))
 		mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
-        printf("File: %s analyzed\n",pcap_file);
+        printf("\n\n[*] File: %s analyzed\n\n",pcap_file);
     }
 
     pcap_file = NULL;

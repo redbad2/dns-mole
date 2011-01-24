@@ -49,7 +49,7 @@ void cor_process(unsigned int n_pkt,void *tMole){
     storeMole->ipSpace = pow(2, (storeMole->parameters).subnet);
     
     qss_ip *t_ip_store,*ip_store_head[storeMole->ipSpace],*ip_store_rear[storeMole->ipSpace];
-    qss_domain *d_head, *d_rear, *t_domain_store;
+    qss_domain *d_head, *d_rear;	
     query *t_query;
     kdomain *temp_domain;
 
@@ -82,51 +82,16 @@ void cor_process(unsigned int n_pkt,void *tMole){
        
         t_type = t_query->suspicious;
        
-        if(ip_store_head[index] == NULL){
-            ip_store_head[index] = ip_store_rear[index] = t_ip_store =  new_ip(t_query->srcip);
-        } 
-        else{
-	        if((t_ip_store = find_ip(ip_store_head[index],t_query->srcip)) == 0){
-                t_ip_store = new_ip(t_query->srcip);
-                ip_store_rear[index]->next = t_ip_store;
-                t_ip_store->prev = ip_store_rear[index];
-                ip_store_rear[index] = t_ip_store;
-            }
-        }
+		t_ip_store = add_ip_to_list((void **) ip_store_head,(void **) ip_store_rear,(void *) t_query,t_type,index);
 
-        if(t_type == 1)
-            t_ip_store->black_hosts++;
-        
-        if(t_type == 0)
-            t_ip_store->white_hosts++;
-        
-        t_ip_store->all_hosts++;
+        if((t_type == -1) || (t_type == 1))
+			add_domain_to_list((void **)&d_head,(void **)&d_rear,(void *)t_query,(void *)t_ip_store,t_type);
 
-        if((t_type == -1) || (t_type == 1)){
-
-            if(d_head == NULL){
-                d_head = d_rear = new_domain(t_query->dname,t_type);
-                add_ip_to_domain(d_rear,(void *)t_ip_store);   
-            }
-            else{
-                if((t_domain_store = find_domain(d_head,t_query->dname))){
-                    add_ip_to_domain(t_domain_store,(void *)t_ip_store);
-                }
-                else{
-                    t_domain_store = new_domain(t_query->dname,t_type);
-                    add_ip_to_domain(t_domain_store,(void *)t_ip_store);
-                    t_domain_store->prev = d_rear;
-                    d_rear->next = t_domain_store;
-                    d_rear = d_rear->next;
-                }
-            }
-        }
-        
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
     
-    cor_analyze((void *) d_head,(void **) ip_store_head,(void *)storeMole);
+    cor_analyze((void *)d_head,(void **) ip_store_head,(void *)storeMole);
     remove_ip(ip_store_head,storeMole->ipSpace);
 }
 
