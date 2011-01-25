@@ -63,9 +63,11 @@ int dns2query(u_char * packet, int len, query * q_store,int dl_len) {
     q_store->answers = malloc(anum * sizeof(answer));
     data += extract_answers(data, (u_char *)dqhdr, anum, q_store);
 	
-    if(qnum > 1) {
-	    // to do
-	    // if questions number > 1 then
+    if (qnum > 1) {
+	    /* XXX - Though the protocol supports more than one question per
+	     * message, practically, this is unsupported within server
+	     * software.  An anomaly should be logged in this case.
+	     */
     }
 
     return 1;
