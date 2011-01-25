@@ -1,6 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
+# $Id$
+
 AC_PREREQ([2.64])
 AC_INIT(dnsmole, 0.1, dns-mole@googlegroups.com)
 AC_CONFIG_SRCDIR([include/query.h])
