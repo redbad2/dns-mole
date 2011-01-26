@@ -21,6 +21,90 @@
 
 #include "../include/dnsmole.h"
 
+void openDB(void *t,const char *name){
+
+    moleWorld *mW = (moleWorld *) t;
+
+    if(sqlite3_open(name,&mW->db)){
+        fprintf(stderr,"[Error] Can't open database: %s\n",sqlite3_errmsg(mW->db));
+        sqlite3_close(mW->db); exit(EXIT_FAILURE);
+    }
+}
+
+void closeDB(void *t){
+
+    moleWorld *mW = (moleWorld *) t;
+
+    sqlite3_close(mW->db);
+}
+
+void useDB(void *t,const char *query,...){
+    
+    moleWorld *mW = (moleWorld *) t;
+    
+    typedef int (*pointer_callback)(void *, int, char **, char **);
+    pointer_callback dbCallBack;
+
+    va_list args;
+    int count = 0, rc;
+    char new_query[255], *err;
+
+    int int_temp;
+    char *string_temp, char_temp;
+
+    va_start(args,query);
+    
+    while(*query){
+        if(*query == '?'){
+            *query++;
+            switch(*query){
+
+                case 's':
+                    string_temp = va_arg(args,char *);
+                    memcpy(new_query + count,string_temp,strlen(string_temp));
+                    count+=strlen(string_temp);
+                    break;
+                
+                case 'c':
+                    chart_temp = va_arg(args,char);
+                    new_query[count++] = char_temp;
+                    break;
+  
+                case 'i':
+                    int_temp = va_arg(args,int);
+                    snprintf(new_query,255,"%s%d",new_query,int_temp);
+                    count=strlen(new_query);
+                    break;
+
+            }
+            
+            *query++;
+
+        } else
+            new_query[count++] = *query;
+    }
+    
+    new_query[count] = '\0';   
+    dbCallBack = va_arg(args,pointer_callback);
+
+    va_end(args);
+
+    /*
+    if(dbCallBack != NULL)
+        rc = sqlite3_exec(mW->db,new_query,dbCallBack,(void *) mW,NULL,&err);
+    else
+        rc = sqlite3_exec(mW->db,new_query,0,0,&err);
+    
+    if(err != SQLITE_OK){
+        fprintf(stderr,"[SQL Error] %s\n",err);
+        closeDB(mW); exit(EXIT_FAILURE);
+    }
+    */
+    
+}
+
+/*  below functions will be descarded  */
+
 void openLog(void *t,const char *name){
 
     moleWorld *mW = (moleWorld *) t;
