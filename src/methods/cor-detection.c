@@ -76,16 +76,16 @@ void cor_process(unsigned int n_pkt,void *tMole){
    
     for(count = 0; count < n_pkt; count++){
         
-        t_type = -1;
+	t_type = -1;
         t_query = storeMole->qlist_head;
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
        
         t_type = t_query->suspicious;
        
-		t_ip_store = add_ip_to_list((void **) ip_store_head,(void **) ip_store_rear,(void *) t_query,t_type,index);
+	t_ip_store = add_ip_to_list((void **) ip_store_head,(void **) ip_store_rear,(void *) t_query,t_type,index);
 
         if((t_type == -1) || (t_type == 1))
-			add_domain_to_list((void **)&d_head,(void **)&d_rear,(void *)t_query,(void *)t_ip_store,t_type);
+	    add_domain_to_list((void **)&d_head,(void **)&d_rear,(void *)t_query,(void *)t_ip_store,t_type);
 
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);

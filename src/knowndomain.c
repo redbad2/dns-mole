@@ -84,7 +84,7 @@ void domain_child_free(kdomain *domain_free){
     if(domain_free){
         domain_child_free(domain_free->kd_child);
         if(domain_free->name) 
-	        free(domain_free->name);
+	    free(domain_free->name);
         if(domain_free->method_data)
     	    free(domain_free->method_data);
         domain_child_free(domain_free->next);
@@ -174,27 +174,34 @@ kdomain *new_domain_structure(char *name,int suspicious){
     
 void load_domain(char *line,kdomain *domain,int type){
 
-    kdomain *temp_domain = domain, *new_domain;
-    int i = 1;
-    int splitcount;
-    char **split_structure = malloc(sizeof(char *) * 4);;
-    split_domain(line,split_structure);
-    for(splitcount = 0; splitcount < 4;splitcount++){
-        if(split_structure[splitcount] != NULL){
-            if(split_structure[splitcount+1] == NULL){
-                new_domain = new_domain_structure(split_structure[splitcount],type);
-            }
-            else
-                new_domain = new_domain_structure(split_structure[splitcount],-1);
-
-            if(split_structure[splitcount+1] == NULL)
-                i = 0;
-            temp_domain = add_domain(new_domain,temp_domain,i);
-            free(split_structure[splitcount]);
-        }
-    }
+    kdomain *temp_domain = domain, *new_domain,*s_domain;
     
-    free(split_structure);
+    if((s_domain = search_domain(line,domain,type))){
+        if(s_domain->suspicious != type)
+            s_domain->suspicious = type;
+    } else {
+        int i = 1;
+        int splitcount;
+        char **split_structure = malloc(sizeof(char *) * 4);;
+        split_domain(line,split_structure);
+        for(splitcount = 0; splitcount < 4;splitcount++){
+            if(split_structure[splitcount] != NULL){
+                if(split_structure[splitcount+1] == NULL){
+                    new_domain = new_domain_structure(split_structure[splitcount],type);
+                }
+                else
+                    new_domain = new_domain_structure(split_structure[splitcount],-1);
+
+                if(split_structure[splitcount+1] == NULL)
+                    i = 0;
+                temp_domain = add_domain(new_domain,temp_domain,i);
+                free(split_structure[splitcount]);
+            }
+        }
+
+        free(split_structure);
+    }
+
 }
 
 void split_domain(char *line,char **split_structure){
@@ -239,7 +246,7 @@ void read_list(kdomain *root,char *bl_filename,int type){
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
 			if(isalpha(line[0]) || isdigit(line[0]))
-                load_domain(line,root,type);
+            		    load_domain(line,root,type);
 		}
 	}
 	

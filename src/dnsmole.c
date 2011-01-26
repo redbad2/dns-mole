@@ -51,6 +51,7 @@ void cleanup(){
     if(mWorld.p)
         pcap_close(mWorld.p);
         
+    // closeDB(&mWorld);
     closeLog(&mWorld);
 }
 
@@ -121,14 +122,14 @@ int read_pcap(const char *p_file){
 
 void _analyzer(int fd,short event,void *arg){
 	
-	moleWorld *analyzeMole = (moleWorld *) arg;
+    moleWorld *analyzeMole = (moleWorld *) arg;
     int num_packets = analyzeMole->count;
 	
-	if(num_packets != 0){
-		analyzeMole->count = 0;
-		(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
-		event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
-	}
+    if(num_packets != 0){
+	analyzeMole->count = 0;
+	(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
+	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+    }
                     
 }   
 
@@ -153,8 +154,8 @@ int main(int argc,char **argv){
     while((option = getopt(argc,argv,"i:b:w:t:c:dsp:h?")) > 0){
 	switch(option){
 			
-		case 'b':
-		blacklist_file = optarg;
+	    case 'b':
+	        blacklist_file = optarg;
 		break;
 
 	    case 'w':
@@ -187,12 +188,12 @@ int main(int argc,char **argv){
 
 	    case '?':
 	    case 'h':
-	    	usage(argv[0],EXIT_SUCCESS);
+		usage(argv[0],EXIT_SUCCESS);
 
 	    default:
 		break;
-	    }
 	}
+    }
     
     argc -= optind;
     argv += optind;
