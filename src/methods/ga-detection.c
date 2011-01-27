@@ -21,6 +21,9 @@
 
 #include "detection.h"
 
+#define GA_LOG_DOMAIN "INSERT INTO ?s (now,?s,?i)"
+#define GA_LOG_DOMAIN_RELATION "INSERT INTO ?s (now,?s,?s)"
+
 void ga_initialize(void *tMole){
 
     moleWorld *gaMole = (moleWorld *) tMole;
@@ -67,12 +70,12 @@ void ga_process(unsigned  int n_pkt,void *tMole){
         ip_store_head[count] = ip_store_rear[count] = NULL;
 
     if((storeMole->parameters).a_analyze_interval > storeMole->qlist_rear->time){
-	delta_time = storeMole->qlist_rear->time;
-	half_analyze = (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2;
+	    delta_time = storeMole->qlist_rear->time;
+	    half_analyze = (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2;
     }
     else{
-	delta_time = storeMole->qlist_head->time + (storeMole->parameters).a_analyze_interval;
-	half_analyze = (storeMole->parameters).a_analyze_interval/2;
+	    delta_time = storeMole->qlist_head->time + (storeMole->parameters).a_analyze_interval;
+	    half_analyze = (storeMole->parameters).a_analyze_interval/2;
     }
     
     t_query = storeMole->qlist_head; 
@@ -103,10 +106,11 @@ void ga_process(unsigned  int n_pkt,void *tMole){
             int difference = delta_time - t_query->time;
 
             if((difference < half_analyze)){
-		add_domain_to_list((void **)&d_head_2,(void **)&d_rear_2,(void *)t_query,(void *)t_ip_store,t_type);
+	            add_domain_to_list((void **)&d_head_2,(void **)&d_rear_2,(void *)t_query,(void *)t_ip_store,t_type);
             }
+            
             else if(difference >= half_analyze)
-		add_domain_to_list((void **)&d_head_1,(void **)&d_rear_1,(void *)t_query,(void *)t_ip_store,t_type);    
+		        add_domain_to_list((void **)&d_head_1,(void **)&d_rear_1,(void *)t_query,(void *)t_ip_store,t_type);    
         }
          
         storeMole->qlist_head = storeMole->qlist_head->next;
@@ -114,26 +118,26 @@ void ga_process(unsigned  int n_pkt,void *tMole){
         
         if(storeMole->qlist_head ? (storeMole->qlist_head->time > delta_time): 0){
 
-	    ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
-	    d_head_1 = d_head_2 = d_rear_1 = d_rear_2 = NULL;
+	        ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
+	        d_head_1 = d_head_2 = d_rear_1 = d_rear_2 = NULL;
 			
-	    remove_ip(ip_store_head,storeMole->ipSpace);
+	        remove_ip(ip_store_head,storeMole->ipSpace);
 			
-	    for(inner_count = 0; inner_count < storeMole->ipSpace; inner_count++)
-		ip_store_head[inner_count] = ip_store_rear[inner_count] = NULL;
+	        for(inner_count = 0; inner_count < storeMole->ipSpace; inner_count++)
+		        ip_store_head[inner_count] = ip_store_rear[inner_count] = NULL;
 			
-	    if(storeMole->qlist_rear->time <= (delta_time + (storeMole->parameters).a_analyze_interval)){
-		delta_time = storeMole->qlist_head ? storeMole->qlist_rear->time : time(NULL);
-		half_analyze = storeMole->qlist_head ? (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2 : 0;
-	    }
-	    else
-		delta_time += (storeMole->parameters).a_analyze_interval;
-	}	
+	        if(storeMole->qlist_rear->time <= (delta_time + (storeMole->parameters).a_analyze_interval)){
+		        delta_time = storeMole->qlist_head ? storeMole->qlist_rear->time : time(NULL);
+		        half_analyze = storeMole->qlist_head ? (storeMole->qlist_rear->time - storeMole->qlist_head->time) / 2 : 0;
+	        }
+	        else
+		    delta_time += (storeMole->parameters).a_analyze_interval;
+	    }	
 		
-	else if(storeMole->qlist_head == NULL){
-	    ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
-	    remove_ip(ip_store_head,storeMole->ipSpace);
-	}
+	    else if(storeMole->qlist_head == NULL){
+	        ga_analyze((void *) d_head_1,(void *) d_head_2,(void *)storeMole);
+	        remove_ip(ip_store_head,storeMole->ipSpace);
+	    }
     }
 }
 
@@ -216,6 +220,8 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
                 if(similarity > (groupMole->parameters).activity_bl_similarity){
 
                     load_domain(t_domain_1->d_name,groupMole->root_list,1);    
+                    
+                    //useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,1);
                     report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,1,NULL);
 
                 } else if( similarity < (groupMole->parameters).activity_wl_similarity) {
@@ -226,6 +232,8 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
                         d_head_1 = d_head_1->next;
 
                     load_domain(t_domain_1->d_name,groupMole->root_list,0);
+                    
+                    //useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,0)
                     report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,2,NULL);
                     remove_domain(d_head_1,t_domain_1);
 
@@ -273,6 +281,8 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
                                  
                             load_domain(t_domain_1->d_name,groupMole->root_list,1);    
                             load_domain(t_domain_2->d_name,groupMole->root_list,1);
+                        
+                            //useDB((void *)groupMole,GA_LOG_DOMAIN_RELATION,"gaDomainRelation",t_domain_1->d_name,t_domain_2->d_name);
                             report(groupMole->log_fp,t_domain_1->d_name,t_domain_2->d_name,0,2,1,NULL); 
                             
                         }   

@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = src include doc man src/methods
 
 # what flags you want to pass to the C compiler & linker
-CFLAGS = -Wall -O3 -ffast-math -g 
+CFLAGS = -Wall -O3 -ffast-math -g -lsqlite3
 LDFLAGS = -lm
 
 inc = include

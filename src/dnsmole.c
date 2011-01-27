@@ -229,7 +229,7 @@ int main(int argc,char **argv){
             ga_initialize((void *) &mWorld);
             break;
         case 3:
-            fhs_initialize((void *) &mWorld);
+            naive_initialize((void *) &mWorld);
             break;
     }
     
