@@ -21,14 +21,34 @@
 
 #include "../include/dnsmole.h"
 
+
+#define CREATE_domainLIST "CREATE TABLE domainList(id INTEGER PRIMARY KEY, name TEXT, type SMALLINT)"
+#define CREATE_gaDomain "CREATE TABLE gaDomain(id INTEGER PRIMARY KEY,date DATE, name TEXT, type SMALLINT)"
+#define CREATE_corDomain "CREATE TABLE gaDomain(id INTEGER PRIMARY KEY,date DATE, name TEXT, type SMALLINT)"
+#define CREATE_gaDomainRelation "CREATE TABLE gaDomainRelation(id INTEGER PRIMARY KEY, date DATE, domain1 TEXT, domain2 TEXT)"
+#define CREATE_corIP "CREATE TABLE corIp(id INTEGER PRIMARY KEY,date DATE,ip TEXT)"
+
 void openDB(void *t,const char *name){
 
     moleWorld *mW = (moleWorld *) t;
+    int create = 0;
+
+    if(access(name,F_OK) == 0)
+        create = 1;
 
     if(sqlite3_open(name,&mW->db)){
         fprintf(stderr,"[Error] Can't open database: %s\n",sqlite3_errmsg(mW->db));
         sqlite3_close(mW->db); exit(EXIT_FAILURE);
     }
+
+    if(create){
+        useDB((void *)mW,CREATE_domainLIST);
+        useDB((void *)mW,CREATE_gaDomain);
+        useDB((void *)mW,CREATE_corDomain);
+        useDB((void *)mW,CREATE_gaDomainRelation);
+        useDB((void *)mW,CREATE_corIP);
+    }   
+
 }
 
 void closeDB(void *t){
@@ -97,7 +117,7 @@ void useDB(void *t,const char *query,...){
     
     if(err != SQLITE_OK){
         fprintf(stderr,"[SQL Error] %s\n",err);
-        closeDB(mW); exit(EXIT_FAILURE);
+        sqlite3_free(err); closeDB(mW); exit(EXIT_FAILURE);
     }
     */
     
