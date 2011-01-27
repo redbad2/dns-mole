@@ -108,7 +108,8 @@ struct moleWorld{
     struct timeval tv;
     struct timeval analyze_tv;
 	
-	char *log_file;
+    char *log_file;
+    sqlite3 *db;
     FILE *log_fp;
 
 };
@@ -120,6 +121,10 @@ void _analyzer(int , short , void *);
 
 void handler(int);
 void set_signal(int);
+
+void openDB(void *, const char *);
+void closeDB(void *);
+void reportDB(void *,const char *,...);
 
 void openLog(void *, const char *);
 void closeLog(void *);

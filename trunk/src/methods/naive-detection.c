@@ -1,4 +1,4 @@
-/* detection.h
+/* cor-detection.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -18,27 +18,29 @@
  *
  * $Id$
  */
+ 
+#include "detection.h"
 
-#ifndef DETECTION_H
-#define DETECTION_H
+void naive_initialize(void *tMole){
 
-#include "../../include/dnsmole.h"
-#include "qss.h"
+    moleWorld *naiveMole = (moleWorld *) tMole;
 
-void cor_initialize(void *tMole);
-int cor_filter(void *q_filter);
-void cor_process(unsigned int n_pkt,void *tMole);
-void cor_analyze(void *domain,void **ip,void *mWorld);
-float calculate_jaccard_index(void *unknown,void *black);
+    (naiveMole->analyze_tv).tv_sec = (corMole->parameters).naive_analyze_interval;
+    (naiveMole->moleFunctions).filter = naive_filter;
+    (naiveMole->moleFunctions).analyze = naive_process;
+}
 
-void ga_initialize(void *tMole);
-int ga_filter(void *q_filter);
-void ga_process(unsigned int n_pkt,void *tMole);
-void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld);
+int naive_filter(void *q_filter){
 
-void naive_initialize(void *tMole);
-int naive_filter(void *q_filter);
-void naive_process(unsigned int n_pkt,void *tMole);
+    query *query_filter = (query *) q_filter;
 
-#endif
+    if((query_filter->is_answer == 0) && (query_filter->q_type == 1)){
+        return 1;
+    }
 
+    return 0;
+}
+
+void naive_process(unsigned int n_pkt,void *tMole){
+	
+}

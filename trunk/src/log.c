@@ -91,7 +91,7 @@ void useDB(void *t,const char *query,...){
 
     /*
     if(dbCallBack != NULL)
-        rc = sqlite3_exec(mW->db,new_query,dbCallBack,(void *) mW,NULL,&err);
+        rc = sqlite3_exec(mW->db,new_query,dbCallBack,(void *) mW,&err);
     else
         rc = sqlite3_exec(mW->db,new_query,0,0,&err);
     
