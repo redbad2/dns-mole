@@ -25,7 +25,7 @@ void naive_initialize(void *tMole){
 
     moleWorld *naiveMole = (moleWorld *) tMole;
 
-    (naiveMole->analyze_tv).tv_sec = (corMole->parameters).naive_analyze_interval;
+    (naiveMole->analyze_tv).tv_sec = (naiveMole->parameters).naive_analyze_interval;
     (naiveMole->moleFunctions).filter = naive_filter;
     (naiveMole->moleFunctions).analyze = naive_process;
 }
