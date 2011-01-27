@@ -1,4 +1,6 @@
 /* knowndomain.h
+
+                    
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -39,11 +41,12 @@ typedef struct KnownDomain kdomain;
 kdomain *add_domain(kdomain *, kdomain *, int );
 void delete_domain(kdomain *);
 void domain_child_free(kdomain *);
-kdomain *search_domain(char *, kdomain *,int);
+void check_domain(int *, char *, kdomain *, int, int);
+kdomain *search_domain(char *, kdomain *, int);
 kdomain *new_domain_structure(char *, int);
 void load_domain(char *, kdomain *, int);
 void split_domain(char *, char **);
-void read_list(kdomain *, char *, int);
-unsigned int hash(const char *,int);
+void read_list(void *,kdomain *, char *, int);
+unsigned int hash(const char *, int);
 
 #endif

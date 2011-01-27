@@ -22,6 +22,8 @@
 #include "../include/dnsmole.h"
     
 #define FALSE 0
+#define LIST_INSERT "INSERT INTO ?s (?s,?i)"
+#define LIST_UPDATE "UPDATE ?s SET ?s=?i WHERE ?s=?s"
 
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
     kdomain *tdomain = search_domain;
@@ -91,6 +93,23 @@ void domain_child_free(kdomain *domain_free){
         free(domain_free);
     }
 }
+
+void check_domain(void *mole,char *name,kdomain *root,int domain_type,int search_type){
+    kdomin *s_domain;
+    moleWorld *logMole = (moleWorld *) mole;
+
+    if((s_domain = search_domain(name,root,search_type) != NULL)){
+        if(s_domain->suspicious != domain_type){
+            s_domain->suspicious == domain_type;
+            //useDB((void *)logkMole,LIST_UPDATE,"domainList","type",domain_type,"domain",name);
+        }
+    }
+    else{
+        //useDB((void *)logMole,LIST_INSERT,"domainList",name,domain_type);
+        load_domain(name,root,domain_type);
+    }
+}
+
 
 kdomain *search_domain(char *name,kdomain *root_domain,int search_type){
 
@@ -176,31 +195,28 @@ void load_domain(char *line,kdomain *domain,int type){
 
     kdomain *temp_domain = domain, *new_domain,*s_domain;
     
-    if((s_domain = search_domain(line,domain,type))){
-        if(s_domain->suspicious != type)
-            s_domain->suspicious = type;
-    } else {
-        int i = 1;
-        int splitcount;
-        char **split_structure = malloc(sizeof(char *) * 4);;
-        split_domain(line,split_structure);
-        for(splitcount = 0; splitcount < 4;splitcount++){
-            if(split_structure[splitcount] != NULL){
-                if(split_structure[splitcount+1] == NULL){
-                    new_domain = new_domain_structure(split_structure[splitcount],type);
-                }
-                else
-                    new_domain = new_domain_structure(split_structure[splitcount],-1);
-
-                if(split_structure[splitcount+1] == NULL)
-                    i = 0;
-                temp_domain = add_domain(new_domain,temp_domain,i);
-                free(split_structure[splitcount]);
+    int i = 1;
+    int splitcount;
+    char **split_structure = malloc(sizeof(char *) * 4);;
+    split_domain(line,split_structure);
+    for(splitcount = 0; splitcount < 4;splitcount++){
+        if(split_structure[splitcount] != NULL){
+            if(split_structure[splitcount+1] == NULL){
+                new_domain = new_domain_structure(split_structure[splitcount],type);
             }
+            else
+                new_domain = new_domain_structure(split_structure[splitcount],-1);
+
+            if(split_structure[splitcount+1] == NULL)
+                i = 0;
+            
+            temp_domain = add_domain(new_domain,temp_domain,i);
+            free(split_structure[splitcount]);
         }
 
-        free(split_structure);
     }
+    
+    free(split_structure);
 
 }
 
@@ -240,19 +256,22 @@ void split_domain(char *line,char **split_structure){
         split_structure[i] = NULL;
 }
     
-void read_list(kdomain *root,char *bl_filename,int type){
+void read_list(void *readMole,kdomain *root,char *bl_filename,int type){
 	
     FILE *fp; char line[80];
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
 			if(isalpha(line[0]) || isdigit(line[0]))
-            		    load_domain(line,root,type);
+            		    check_domain(readMole,line,root,type,0);
 		}
 	}
 	
     fclose(fp);
 }
 
+int listDomains_insert_sqlite_callback(void *pass_arg,int argc,char **argv,char **colName){
+
+}
 
 unsigned int hash(const char *str, int len){
     

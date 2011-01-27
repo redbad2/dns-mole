@@ -25,7 +25,6 @@
 #define COR_LOG_IP "INSERT INTO ?s (now,?s)"
 
 void cor_initialize(void *tMole){
-    
 
     moleWorld *corMole = (moleWorld *) tMole;
 
@@ -109,10 +108,12 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
     int count = 0;
     int ipIndex = 0;
     int one = 0;
+    int chk_domain;
     qss_ip *t_ip_sort;
     qss_domain *t_domain_1, *t_domain_2, *t_dom = NULL;
     qss_domain_ip *t_domain_ip,*t_ip_for_change;
-    
+    struct in_addr report_ip;
+
     t_domain_1 = d_head;
     
     while(t_domain_1){
@@ -151,11 +152,12 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
         }
 
         if((index < (blackMole->parameters).o_white) && (index >= 0.0) && one){
+            
+            check_domain((void *)blackMole,t_domain_1->d_name,blackMole->root_list,0,0);
+            // useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,0);
+
 
             report(blackMole->log_fp,t_domain_1->d_name,NULL,0,1,2,NULL);
-            // useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,0);
-            
-            load_domain(t_domain_1->d_name,blackMole->root_list,0);
                 
             t_ip_for_change = t_domain_1->domain_ip;
             while(t_ip_for_change){
@@ -174,12 +176,11 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
         }
             
         else if( index > (blackMole->parameters).o_black ){
-
+            
+            check_domain((void *)blackMole,t_domain_1->d_name,blackMole->root_list,1,0);
+            // useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,1);
 
             report(blackMole->log_fp,t_domain_1->d_name,NULL,0,1,1,NULL);
-            // useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,1);
-            
-            load_domain(t_domain_1->d_name,blackMole->root_list,1);
                 
             t_ip_for_change = t_domain_1->domain_ip;
             while(t_ip_for_change){
@@ -202,7 +203,8 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
             while(t_ip_sort){
 
                 if(((float)t_ip_sort->black_hosts/(float)t_ip_sort->all_hosts) >=  (blackMole->parameters).black_ip_treshold){
-                    //useDB((void *)blackMole,COR_LOG_IP,"corIp",inet_ntoa(t_ip_sort->ip));
+                    report_ip.s_addr = t_ip_sort->ip;
+                    //useDB((void *)blackMole,COR_LOG_IP,"corIp",inet_ntoa(report_ip));
                     report(blackMole->log_fp,NULL,NULL,t_ip_sort->ip,1,3,NULL);
                 }
                  

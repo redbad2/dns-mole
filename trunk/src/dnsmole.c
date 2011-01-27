@@ -41,7 +41,7 @@ void usage(char *pname,const int exit_val){
 	"\t\t -t <1|2|3>\t :detection method\n\n"
 	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
 	"\t\t\t\t - 2 - Detection by monitoring group activities\n"
-	"\t\t\t\t - 3 - Detection based on frequent host selection\n\n", pname);
+	"\t\t\t\t - 3 - Naive detection\n\n", pname);
 
 	exit(exit_val);
 }
@@ -242,16 +242,19 @@ int main(int argc,char **argv){
     }
     
     if(!mWorld.log_file){
+        openDB(&mWorld,"dnsmoleLog.db");
         openLog(&mWorld,"dnsmole-log"); 
     }
-    else 
+    else{
+        openDB(&mWorld,mWorld.log_file);
         openLog(&mWorld,mWorld.log_file); 
-    
+    }
+
     if(blacklist_file)
-	    read_list(mWorld.root_list,blacklist_file,1);
+	    read_list((void *)&mWorld,(mWorld.root_list,blacklist_file,1);
         
     if(whitelist_file)
-	    read_list(mWorld.root_list,whitelist_file,0);
+	    read_list((void *)&mWorld.root_list,whitelist_file,0);
 
     if(!mWorld.parameters.subnet)
         mWorld.parameters.subnet = 16;
