@@ -22,10 +22,7 @@
 #ifndef DNSM_QUERY_H
 #define DNSM_QUERY_H
 
-#include <time.h>
-#include <sys/types.h>
-
-#define MAX_LENGTH 256
+#define MAX_LENGTH 64
 
 #define RR_TYPE_A 1
 #define RR_TYPE_NS 2
@@ -39,6 +36,7 @@ typedef enum {
 	PTR = RR_TYPE_PTR,
 	NS = RR_TYPE_NS,
 	CNAME = RR_TYPE_CNAME
+	
 } RR_type;
 
 typedef struct answer {
@@ -48,22 +46,25 @@ typedef struct answer {
 } answer;
 
 typedef struct Query {
-	char dname[MAX_LENGTH];
-	unsigned short q_type;
-	int suspicious; 
 	time_t time;
+	
 	unsigned int srcip;
 	unsigned int dstip;
+	
+	char dname[MAX_LENGTH];
+	unsigned short q_type;
+	
+	int suspicious; 
 	int ansnum;
 	int is_answer;
 	answer * answers;
+	
 	struct Query * prev;
 	struct Query * next;
 } query;
 
-void query_empty(query * q);
-void query_insert_before(query * q1, query * q2);
-void query_insert_after(query * q1, query * q2);
-void query_remove(query * q);
+void query_empty(query *);
+void query_insert(query *, query *);
+void query_remove(query *);
 
 #endif /* DNSM_QUERY_H */

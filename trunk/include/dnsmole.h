@@ -39,13 +39,13 @@
 #include <math.h>
 #include <sqlite3.h>
 
-
 #include "query.h"
 #include "knowndomain.h"
 #include "dns_sniffer.h"
 #include "error.h"
 #include "config.h"
-#include "../src/methods/detection.h"
+#include "detection.h"
+#include "qss.h"
 
 struct parameter{
 
@@ -110,8 +110,6 @@ struct moleWorld{
 	
     char *log_file;
     sqlite3 *db;
-    FILE *log_fp;
-
 };
 
 
@@ -124,10 +122,6 @@ void set_signal(int);
 
 void openDB(void *, const char *);
 void closeDB(void *);
-void reportDB(void *,const char *,...);
-
-void openLog(void *, const char *);
-void closeLog(void *);
-void report(FILE *,char *,char *,unsigned int, int, int, char *);
+void useDB(void *,const char *,...);
 
 #endif

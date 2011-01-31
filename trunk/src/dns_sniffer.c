@@ -69,12 +69,12 @@ int sniffer_setup(void *mW) {
         moleWorld *mWorld = (moleWorld *) mW;
 
         if(getuid()) {
-                return PCAP_ROOT_ERROR;
+            return PCAP_ROOT_ERROR;
         }
 
         /* look up device */
         if (mWorld->interface == NULL) {
-                dev = pcap_lookupdev(errbuf);
+            dev = pcap_lookupdev(errbuf);
         }
         else 
             dev = mWorld->interface;
@@ -154,7 +154,7 @@ void pcap_callback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char 
                     mWorld->qlist_head = q;
                     mWorld->qlist_rear = q;
                 } else{
-                    query_insert_after(mWorld->qlist_rear, q);
+                    query_insert(mWorld->qlist_rear, q);
                     mWorld->qlist_rear = mWorld->qlist_rear->next;
                 }
                 mWorld->count++;

@@ -42,21 +42,7 @@ void query_empty(query * q) {
 	}
 }
 
-void query_insert_before(query * q1, query * q2) {
-	query * prev = q1->prev;
-	if (prev != NULL) {
-		prev->next = q2;
-		q2->prev = prev;
-		q2->next = q1;
-		q1->prev = q2;
-	}
-	else {
-		q1->prev = q2;
-		q2->next = q1;
-	}
-}
-
-void query_insert_after(query * q1, query *q2) {
+void query_insert(query * q1, query *q2) {
     query * next = q1->next;
     if (next != NULL) {
         q1->next = q2; 

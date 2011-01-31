@@ -126,8 +126,8 @@ void read_config(const char *conf,configuration *config){
                             else if(t_config->type == 2){
                                 t_str = (char **)t_config->where;
                                 if((*t_str = (char *) malloc(strlen(variable)*sizeof(char) + 1)) == NULL){
-									fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
-								}
+				    fprintf(stderr,"[malloc] OOM\n"); exit(EXIT_FAILURE);
+				}
                                 memcpy(*t_str,variable,strlen(variable)+1);
                             }
 
