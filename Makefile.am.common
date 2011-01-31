@@ -4,3 +4,5 @@ AUTOMAKE_OPTIONS = foreign no-dependencies
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
+AM_LDFLAGS = -lsqlite3
+

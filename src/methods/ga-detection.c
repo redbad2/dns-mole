@@ -19,10 +19,10 @@
  * $Id$
  */
 
-#include "detection.h"
+#include "../../include/dnsmole.h"
 
-#define GA_LOG_DOMAIN "INSERT INTO ?s (now,?s,?i)"
-#define GA_LOG_DOMAIN_RELATION "INSERT INTO ?s (now,?s,?s)"
+#define GA_LOG_DOMAIN "INSERT INTO ?s(date,name,type) VALUES(datetime('now'),'?s',?i)"
+#define GA_LOG_DOMAIN_RELATION "INSERT INTO ?s(date,domain1,domain2) VALUES(datetime('now','?s','?s')"
 
 void ga_initialize(void *tMole){
 
@@ -220,21 +220,18 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
                 if(similarity > (groupMole->parameters).activity_bl_similarity){
 
                     check_domain((void *)groupMole,t_domain_1->d_name,groupMole->root_list,1,0); 
-                    //useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,1);
-                    
-                    report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,1,NULL);
+                    useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,1);
 
                 } else if( similarity < (groupMole->parameters).activity_wl_similarity) {
                     
                     check_domain((void *)groupMole,t_domain_1->d_name,groupMole->root_list,0,0); 
-                    //useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,0)
+                    useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,0);
                 
                     t_domain = t_domain_1->next;
 
                     if(d_head_1 == t_domain_1)
                         d_head_1 = d_head_1->next;
                     
-                    report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,2,NULL);
                     remove_domain(d_head_1,t_domain_1);
 
                 }
@@ -281,9 +278,8 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
                             
                             check_domain((void *)groupMole,t_domain_1->d_name,groupMole->root_list,1,0); 
                             check_domain((void *)groupMole,t_domain_2->d_name,groupMole->root_list,1,0); 
-                            //useDB((void *)groupMole,GA_LOG_DOMAIN_RELATION,"gaDomainRelation",t_domain_1->d_name,t_domain_2->d_name);
+                            useDB((void *)groupMole,GA_LOG_DOMAIN_RELATION,"gaDomainRelation",t_domain_1->d_name,t_domain_2->d_name);
                             
-                            report(groupMole->log_fp,t_domain_1->d_name,t_domain_2->d_name,0,2,1,NULL); 
                             
                         }   
 

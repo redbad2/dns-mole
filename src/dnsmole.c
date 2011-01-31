@@ -26,10 +26,12 @@
 moleWorld mWorld;
 configuration *config;
 
+#define SELECT_LIST "SELECT * FROM ?s"
+
 void usage(char *pname,const int exit_val){
 	fprintf(stdout,"\nDNSMole - DNS traffic analyzer for detecting botnet activity\n");
-    fprintf(stdout,"( http://code.google.com/p/dns-mole ) \n");
-    fprintf(stdout,"\n\nUsage: %s "
+	fprintf(stdout,"( http://code.google.com/p/dns-mole ) \n");
+	fprintf(stdout,"\n\nUsage: %s "
 	"-b <file>\t :blacklist file\n"
 	"\t\t -w <file>\t :whitelist file\n"
 	"\t\t -c <file>\t :config file\n"
@@ -51,20 +53,16 @@ void cleanup(){
     if(mWorld.p)
         pcap_close(mWorld.p);
         
-    // closeDB(&mWorld);
-    closeLog(&mWorld);
+    closeDB(&mWorld);
 }
 
 void handler(int sig){
 	
     if(sig == SIGILL || sig == SIGTERM){
-        fflush(mWorld.log_fp);
         fflush(stderr); fflush(stdout);
+       
+        cleanup();
         
-        if(mWorld.p)
-            pcap_close(mWorld.p);
-        
-        closeLog(mWorld.log_fp);
         exit(EXIT_SUCCESS);
     }
 
@@ -226,10 +224,10 @@ int main(int argc,char **argv){
             cor_initialize((void *) &mWorld);
             break;
         case 2:
-            ga_initialize((void *) &mWorld);
+            //ga_initialize((void *) &mWorld);
             break;
         case 3:
-            naive_initialize((void *) &mWorld);
+            //naive_initialize((void *) &mWorld);
             break;
     }
     
@@ -243,25 +241,24 @@ int main(int argc,char **argv){
     
     if(!mWorld.log_file){
         openDB(&mWorld,"dnsmoleLog.db");
-        openLog(&mWorld,"dnsmole-log"); 
     }
-    else{
+    else
         openDB(&mWorld,mWorld.log_file);
-        openLog(&mWorld,mWorld.log_file); 
-    }
+   
+    useDB((void *)&mWorld,SELECT_LIST,"domainList",&listDomains_select_callback);
 
     if(blacklist_file)
-	    read_list((void *)&mWorld,(mWorld.root_list,blacklist_file,1);
+	    read_list((void *)&mWorld,mWorld.root_list,blacklist_file,1);
         
     if(whitelist_file)
-	    read_list((void *)&mWorld.root_list,whitelist_file,0);
+	    read_list((void *)&mWorld,mWorld.root_list,whitelist_file,0);
 
     if(!mWorld.parameters.subnet)
         mWorld.parameters.subnet = 16;
    
     if(pcap_file){
         if(read_pcap(pcap_file))
-		mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
+	    mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
         printf("\n\n[*] File: %s analyzed\n\n",pcap_file);
     }
 

@@ -1,4 +1,4 @@
-	/* dns_sniffer.h
+/* dns_sniffer.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -101,7 +101,6 @@ struct static_RR {
 int pcap_dloff(pcap_t * pd);
 int sniffer_setup(void *);
 void _dns_sniffer(int , short , void *);
-void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr,
-		const u_char * packet);
+void pcap_callback(u_char * args, const struct pcap_pkthdr * pkthdr, const u_char * packet);
 
 #endif

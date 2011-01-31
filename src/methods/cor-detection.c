@@ -19,10 +19,10 @@
  * $Id$
  */
  
-#include "detection.h"
+#include "../../include/dnsmole.h"
 
-#define COR_LOG_DOMAIN "INSERT INTO ?s (now,?s,?i)"
-#define COR_LOG_IP "INSERT INTO ?s (now,?s)"
+#define COR_LOG_DOMAIN "INSERT INTO ?s(date,name,type) VALUES(datetime('now'),'?s',?i)"
+#define COR_LOG_IP "INSERT INTO ?s(date,ip) VALUES(datetime('now'),'?s')"
 
 void cor_initialize(void *tMole){
 
@@ -154,10 +154,7 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
         if((index < (blackMole->parameters).o_white) && (index >= 0.0) && one){
             
             check_domain((void *)blackMole,t_domain_1->d_name,blackMole->root_list,0,0);
-            // useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,0);
-
-
-            report(blackMole->log_fp,t_domain_1->d_name,NULL,0,1,2,NULL);
+            useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,0);
                 
             t_ip_for_change = t_domain_1->domain_ip;
             while(t_ip_for_change){
@@ -178,9 +175,7 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
         else if( index > (blackMole->parameters).o_black ){
             
             check_domain((void *)blackMole,t_domain_1->d_name,blackMole->root_list,1,0);
-            // useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,1);
-
-            report(blackMole->log_fp,t_domain_1->d_name,NULL,0,1,1,NULL);
+            useDB((void *)blackMole,COR_LOG_DOMAIN,"corDomain",t_domain_1->d_name,1);
                 
             t_ip_for_change = t_domain_1->domain_ip;
             while(t_ip_for_change){
@@ -204,8 +199,7 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
 
                 if(((float)t_ip_sort->black_hosts/(float)t_ip_sort->all_hosts) >=  (blackMole->parameters).black_ip_treshold){
                     report_ip.s_addr = t_ip_sort->ip;
-                    //useDB((void *)blackMole,COR_LOG_IP,"corIp",inet_ntoa(report_ip));
-                    report(blackMole->log_fp,NULL,NULL,t_ip_sort->ip,1,3,NULL);
+                    useDB((void *)blackMole,COR_LOG_IP,"corIp",inet_ntoa(report_ip));
                 }
                  
                 t_ip_sort = t_ip_sort->next;

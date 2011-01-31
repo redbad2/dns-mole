@@ -24,7 +24,7 @@
 
 #define CREATE_domainLIST "CREATE TABLE domainList(id INTEGER PRIMARY KEY, name TEXT, type SMALLINT)"
 #define CREATE_gaDomain "CREATE TABLE gaDomain(id INTEGER PRIMARY KEY,date DATE, name TEXT, type SMALLINT)"
-#define CREATE_corDomain "CREATE TABLE gaDomain(id INTEGER PRIMARY KEY,date DATE, name TEXT, type SMALLINT)"
+#define CREATE_corDomain "CREATE TABLE corDomain(id INTEGER PRIMARY KEY,date DATE, name TEXT, type SMALLINT)"
 #define CREATE_gaDomainRelation "CREATE TABLE gaDomainRelation(id INTEGER PRIMARY KEY, date DATE, domain1 TEXT, domain2 TEXT)"
 #define CREATE_corIP "CREATE TABLE corIp(id INTEGER PRIMARY KEY,date DATE,ip TEXT)"
 
@@ -33,7 +33,7 @@ void openDB(void *t,const char *name){
     moleWorld *mW = (moleWorld *) t;
     int create = 0;
 
-    if(access(name,F_OK) == 0)
+    if(access(name,F_OK) == -1)
         create = 1;
 
     if(sqlite3_open(name,&mW->db)){
@@ -70,10 +70,12 @@ void useDB(void *t,const char *query,...){
     char new_query[255], *err;
 
     int int_temp;
-    char *string_temp, char_temp;
+    char *string_temp;
+
+    memset(new_query,'\0',255);
 
     va_start(args,query);
-    
+   
     while(*query){
         if(*query == '?'){
             *query++;
@@ -86,13 +88,13 @@ void useDB(void *t,const char *query,...){
                     break;
                 
                 case 'c':
-                    chart_temp = va_arg(args,char);
-                    new_query[count++] = char_temp;
+                    int_temp = va_arg(args,int);
+                    new_query[count++] = (char) int_temp;
                     break;
   
                 case 'i':
                     int_temp = va_arg(args,int);
-                    snprintf(new_query,255,"%s%d",new_query,int_temp);
+                    snprintf(new_query+count,255,"%d",int_temp);
                     count=strlen(new_query);
                     break;
 
@@ -101,15 +103,14 @@ void useDB(void *t,const char *query,...){
             *query++;
 
         } else
-            new_query[count++] = *query;
+            new_query[count++] = *query++;
     }
-    
+  
     new_query[count] = '\0';   
     dbCallBack = va_arg(args,pointer_callback);
 
     va_end(args);
-
-    /*
+    
     if(dbCallBack != NULL)
         rc = sqlite3_exec(mW->db,new_query,dbCallBack,(void *) mW,&err);
     else
@@ -118,93 +119,5 @@ void useDB(void *t,const char *query,...){
     if(err != SQLITE_OK){
         fprintf(stderr,"[SQL Error] %s\n",err);
         sqlite3_free(err); closeDB(mW); exit(EXIT_FAILURE);
-    }
-    */
-    
+    }    
 }
-
-/*  below functions will be descarded  */
-
-void openLog(void *t,const char *name){
-
-    moleWorld *mW = (moleWorld *) t;
-    time_t now = time(NULL);
-
-    if((mW->log_fp = fopen(name,"a+")) == NULL){
-            fprintf(stderr,"[fopen] Can't open log file\n"); 
-            exit(EXIT_FAILURE);
-    }
-
-    fprintf(mW->log_fp,"[dns-mole] Log Started : %s", asctime(localtime(&now)));
-    fflush(mW->log_fp);
-}
-
-
-void closeLog(void *t){
-    
-    moleWorld *mW = (moleWorld *) t;
-    time_t now = time(NULL);
-
-    fprintf(mW->log_fp,"[dns-mole] Log Closed: %s", asctime(localtime(&now)));
-
-    if(fclose(mW->log_fp)){
-        fprintf(stderr,"[fclose] Can't close log file\n"); exit(EXIT_FAILURE);
-    }
-    fflush(mW->log_fp);
-}
-
-void report(FILE *fp,char *d_name_1,char *d_name_2,unsigned int ip,int method,int type,char *additional){
-    
-    time_t rawtime;
-    struct tm *timeinfo;
-    char timeBuf[80];
-
-    char method_string[20];
-    char message[120]; memset(message,'\0',120);
-    struct in_addr report_ip;
-    
-    if(type != 4){
-        if(!ip){
-            if(d_name_2){
-                snprintf(message,120,"Domains: {%s , %s} added",d_name_1,d_name_2);
-            } else
-                snprintf(message,120,"Domain: (%s) added",d_name_1);
-        } else {
-            report_ip.s_addr = ip;
-            if(d_name_2 && d_name_1){
-                snprintf(message,120,"Ip: [%s] - {%s , %s}",inet_ntoa(report_ip),d_name_1,d_name_2);
-            } else if(!d_name_2 && d_name_1){
-                snprintf(message,120,"Ip: [%s] - (%s)",inet_ntoa(report_ip),d_name_1);
-            } else
-                snprintf(message,120,"Ip: [%s]",inet_ntoa(report_ip));
-        }
-    }
-
-    switch(method){
-        case 1:
-            strcpy(method_string,"COR");
-            break;
-        case 2:
-            strcpy(method_string,"GA");
-            break;
-        case 3:
-            strcpy(method_string,"FHS");
-            break;
-    }
-
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(timeBuf,80,"[%x|%X]",timeinfo);
-
-    if(type == 1)
-        fprintf(fp,"[%s][%s][BL] %s\n",timeBuf,method_string,message);
-    if(type == 2)
-        fprintf(fp,"[%s][%s][WL] %s\n",timeBuf,method_string,message);
-    if(type == 3)
-        fprintf(fp,"[%s][%s][IP] %s\n",timeBuf,method_string,message);
-    if(type == 4)
-    	fprintf(fp, "%s",additional);
-
-    fflush(fp);
-}
-

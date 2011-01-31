@@ -22,7 +22,7 @@
 #include "../include/dnsmole.h"
     
 #define FALSE 0
-#define LIST_INSERT "INSERT INTO ?s (?s,?i)"
+#define LIST_INSERT "INSERT INTO ?s(name,type) VALUES('?s',?i)"
 #define LIST_UPDATE "UPDATE ?s SET ?s=?i WHERE ?s=?s"
 
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
@@ -74,7 +74,7 @@ void delete_domain(kdomain *domain){
 
     domain_child_free(domain->kd_child);
     if(domain->name) 
-	free(domain->name);
+	    free(domain->name);
     if(domain->method_data)
         free(domain->method_data);
     
@@ -95,17 +95,17 @@ void domain_child_free(kdomain *domain_free){
 }
 
 void check_domain(void *mole,char *name,kdomain *root,int domain_type,int search_type){
-    kdomin *s_domain;
+    kdomain *s_domain;
     moleWorld *logMole = (moleWorld *) mole;
-
-    if((s_domain = search_domain(name,root,search_type) != NULL)){
+    
+    if((s_domain = search_domain(name,root,search_type)) != NULL){
         if(s_domain->suspicious != domain_type){
-            s_domain->suspicious == domain_type;
-            //useDB((void *)logkMole,LIST_UPDATE,"domainList","type",domain_type,"domain",name);
+            s_domain->suspicious = domain_type;
+            useDB((void *)logMole,LIST_UPDATE,"domainList","type",domain_type,"domain",name);
         }
     }
     else{
-        //useDB((void *)logMole,LIST_INSERT,"domainList",name,domain_type);
+        useDB((void *)logMole,LIST_INSERT,"domainList",name,domain_type);
         load_domain(name,root,domain_type);
     }
 }
@@ -261,16 +261,19 @@ void read_list(void *readMole,kdomain *root,char *bl_filename,int type){
     FILE *fp; char line[80];
 	if((fp = fopen(bl_filename,"r")) != NULL){
 		while(fgets(line,sizeof(line),fp) != NULL){
-			if(isalpha(line[0]) || isdigit(line[0]))
-            		    check_domain(readMole,line,root,type,0);
+			if(isalpha(line[0]) || isdigit(line[0])){
+			    line[strlen(line)-1] = '\0';
+			    check_domain(readMole,line,root,type,0);
+			}
 		}
 	}
 	
     fclose(fp);
 }
 
-int listDomains_insert_sqlite_callback(void *pass_arg,int argc,char **argv,char **colName){
-
+int listDomains_select_callback(void *sqlcallMole,int argc,char **argv,char **colName){
+    moleWorld *insertMole = (moleWorld *) sqlcallMole;
+    load_domain(argv[1],insertMole->root_list,atoi(argv[2]));
 }
 
 unsigned int hash(const char *str, int len){
