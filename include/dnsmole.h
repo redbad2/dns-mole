@@ -44,8 +44,6 @@
 #include "dns_sniffer.h"
 #include "error.h"
 #include "config.h"
-#include "detection.h"
-#include "qss.h"
 
 struct parameter{
 

@@ -11,9 +11,10 @@ AM_INIT_AUTOMAKE
 
 AM_MAINTAINER_MODE
 AC_PROG_CC_STDC
-AC_PROG_RANLIB
 AC_PROG_CC
 AC_PROG_LIBTOOL
+AC_CONFIG_MACRO_DIR([m4])
+LT_INIT
 
 # Checks for libraries.
 AC_CHECK_LIB(pcap, pcap_compile, , AC_MSG_ERROR(pcap libary required))

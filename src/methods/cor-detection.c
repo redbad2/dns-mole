@@ -19,7 +19,8 @@
  * $Id$
  */
  
-#include "../../include/dnsmole.h"
+#include "dnsmole.h"
+#include "detection.h"
 
 #define COR_LOG_DOMAIN "INSERT INTO ?s(date,name,type) VALUES(datetime('now'),'?s',?i)"
 #define COR_LOG_IP "INSERT INTO ?s(date,ip) VALUES(datetime('now'),'?s')"
