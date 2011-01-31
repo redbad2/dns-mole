@@ -9,16 +9,23 @@ AC_CONFIG_SRCDIR([src/dnsmole.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
+m4_pattern_allow([^ACX_])
+
 AM_MAINTAINER_MODE
 AC_PROG_CC_STDC
 AC_PROG_CC
 AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIR([m4])
 LT_INIT
+ACX_PTHREAD
 
 # Checks for libraries.
-AC_CHECK_LIB(pcap, pcap_compile, , AC_MSG_ERROR(pcap libary required))
-AC_CHECK_LIB(event, event_set, , AC_MSG_ERROR(event libary required))
+AC_CHECK_LIB([pcap], [pcap_compile], , AC_MSG_ERROR(pcap libary required))
+AC_CHECK_LIB([event], [event_set], , AC_MSG_ERROR(event libary required))
+AC_CHECK_LIB([pthread], [pthread_mutexattr_init], , AC_MSG_ERROR(pthread libary required))
+AC_CHECK_LIB([dl], [dlopen])
+AC_CHECK_LIB([sqlite3], [sqlite3_open], , AC_MSG_ERROR(sqlite3 libary required))
+AC_CHECK_LIB([m], [pow])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdio.h math.h stdlib.h string.h unistd.h])

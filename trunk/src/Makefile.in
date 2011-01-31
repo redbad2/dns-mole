@@ -39,7 +39,8 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 bin_PROGRAMS = dnsmole$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -52,7 +53,7 @@ am_dnsmole_OBJECTS = dnsmole.$(OBJEXT) dns_parser.$(OBJEXT) \
 	dns_sniffer.$(OBJEXT) knowndomain.$(OBJEXT) log.$(OBJEXT) \
 	query.$(OBJEXT) config.$(OBJEXT)
 dnsmole_OBJECTS = $(am_dnsmole_OBJECTS)
-dnsmole_LDADD = $(LDADD)
+dnsmole_DEPENDENCIES = methods/libmethods.a
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp =
 am__depfiles_maybe =
@@ -162,6 +163,9 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -174,6 +178,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
+acx_pthread_config = @acx_pthread_config@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -225,6 +230,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -lsqlite3
 SUBDIRS = methods
 dnsmole_SOURCES = dnsmole.c dns_parser.c dns_sniffer.c knowndomain.c log.c query.c config.c
+dnsmole_LDADD = methods/libmethods.a
 all: all-recursive
 
 .SUFFIXES:
