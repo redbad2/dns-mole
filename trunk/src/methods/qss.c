@@ -19,7 +19,8 @@
  * $Id$
  */
  
-#include "../../include/dnsmole.h"
+#include "dnsmole.h"
+#include "qss.h"
 
 qss_domain *new_domain(const char *name,float type){
     qss_domain *t_qss_domain;

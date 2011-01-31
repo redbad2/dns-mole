@@ -19,7 +19,8 @@
  * $Id$
  */
  
-#include "../../include/dnsmole.h"
+#include "dnsmole.h"
+#include "detection.h"
 
 void naive_initialize(void *tMole){
 
