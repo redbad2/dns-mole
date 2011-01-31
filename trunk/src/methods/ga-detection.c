@@ -219,14 +219,14 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
             
                 if(similarity > (groupMole->parameters).activity_bl_similarity){
 
-                    check_domain((void *)groupMole,t_domain_1->d_name,group_mole->root_list,1,0); 
+                    check_domain((void *)groupMole,t_domain_1->d_name,groupMole->root_list,1,0); 
                     //useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,1);
                     
                     report(groupMole->log_fp,t_domain_1->d_name,NULL,0,2,1,NULL);
 
                 } else if( similarity < (groupMole->parameters).activity_wl_similarity) {
                     
-                    check_domain((void *)groupMole,t_domain_1->d_name,group_mole->root_list,0,0); 
+                    check_domain((void *)groupMole,t_domain_1->d_name,groupMole->root_list,0,0); 
                     //useDB((void *)groupMole,GA_LOG_DOMAIN,"gaDomain",t_domain_1->d_name,0)
                 
                     t_domain = t_domain_1->next;
@@ -279,8 +279,8 @@ void ga_analyze(void *domain_list_one,void *domain_list_two,void *mWorld){
                     
                         if(similarity > (groupMole->parameters).activity_bl_similarity){
                             
-                            check_domain((void *)groupMole,t_domain_1->d_name,group_mole->root_list,1,0); 
-                            check_domain((void *)groupMole,t_domain_2->d_name,group_mole->root_list,1,0); 
+                            check_domain((void *)groupMole,t_domain_1->d_name,groupMole->root_list,1,0); 
+                            check_domain((void *)groupMole,t_domain_2->d_name,groupMole->root_list,1,0); 
                             //useDB((void *)groupMole,GA_LOG_DOMAIN_RELATION,"gaDomainRelation",t_domain_1->d_name,t_domain_2->d_name);
                             
                             report(groupMole->log_fp,t_domain_1->d_name,t_domain_2->d_name,0,2,1,NULL); 
