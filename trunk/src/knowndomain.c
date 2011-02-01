@@ -23,7 +23,7 @@
     
 #define FALSE 0
 #define LIST_INSERT "INSERT INTO ?s(name,type) VALUES('?s',?i)"
-#define LIST_UPDATE "UPDATE ?s SET ?s=?i WHERE ?s LIKE ?s"
+#define LIST_UPDATE "UPDATE ?s SET ?s=?i WHERE ?s LIKE '?s'"
 
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
     kdomain *tdomain = search_domain;
@@ -101,7 +101,7 @@ void check_domain(void *mole,char *name,kdomain *root,int domain_type,int search
     if((s_domain = search_domain(name,root,search_type)) != NULL){
         if(s_domain->suspicious != domain_type){
             s_domain->suspicious = domain_type;
-            useDB((void *)logMole,LIST_UPDATE,"domainList","type",domain_type,"domain",name);
+            useDB((void *)logMole,LIST_UPDATE,"domainList","type",domain_type,"name",name);
         }
     }
     else{

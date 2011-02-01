@@ -19,7 +19,6 @@
  * $Id$
  */
  
-#include "dnsmole.h"
 #include "detection.h"
 
 #define COR_LOG_DOMAIN "INSERT INTO ?s(date,name,type) VALUES(datetime('now'),'?s',?i)"
@@ -81,11 +80,12 @@ void cor_process(unsigned int n_pkt,void *tMole){
         
 	t_type = -1;
         t_query = storeMole->qlist_head;
+        
         index = (t_query->srcip)&((signed int)1>>((storeMole->parameters).subnet));
        
         t_type = t_query->suspicious;
        
-	t_ip_store = add_ip_to_list((void **) ip_store_head,(void **) ip_store_rear,(void *) t_query,t_type,index);
+	    t_ip_store = add_ip_to_list((void **) ip_store_head,(void **) ip_store_rear,(void *) t_query,t_type,index);
 
         if((t_type == -1) || (t_type == 1))
 	    add_domain_to_list((void **)&d_head,(void **)&d_rear,(void *)t_query,(void *)t_ip_store,t_type);
@@ -131,7 +131,7 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
             t_domain_2 = d_head;
 
             while(t_domain_2){
-
+                
                 if(t_domain_2->type != -1){
                     one = 1;
                     jaccard_index += calculate_jaccard_index(t_domain_1,t_domain_2);
