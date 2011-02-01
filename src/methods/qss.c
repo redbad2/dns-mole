@@ -162,6 +162,7 @@ void remove_domain(qss_domain *start,qss_domain *q){
         remove_ip_in_domain(temp->domain_ip);
         temp->domain_ip = NULL;
         temp->prev = temp->next = NULL;
+        temp->queried_overall = 0;
         free(temp->d_name);
         free(temp);
     }
@@ -170,7 +171,7 @@ void remove_domain(qss_domain *start,qss_domain *q){
 void remove_domain_list(qss_domain *q){
     qss_domain *temp;
 
-    if(q != NULL){
+    if((q != NULL) && q->queried_overall){
         temp = q;
         q = q->next;
         remove_ip_in_domain(temp->domain_ip);

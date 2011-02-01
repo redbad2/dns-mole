@@ -29,21 +29,21 @@ configuration *config;
 #define SELECT_LIST "SELECT * FROM ?s"
 
 void usage(char *pname,const int exit_val){
-	fprintf(stdout,"\nDNSMole - DNS traffic analyzer for detecting botnet activity\n");
+	fprintf(stdout,"\nDNSMole - DNS traffic anomaly analyzer\n");
 	fprintf(stdout,"( http://code.google.com/p/dns-mole ) \n");
 	fprintf(stdout,"\n\nUsage: %s "
-	"-b <file>\t :blacklist file\n"
-	"\t\t -w <file>\t :whitelist file\n"
-	"\t\t -c <file>\t :config file\n"
-	"\t\t -i <interface>\t :set interface\n"
-	"\t\t -d\t\t :daemonize\n"
-	"\t\t -s\t\t :sniffer mode\n"
-	"\t\t -p <file>\t :read pcap file\n" 
-	"\t\t -h\t\t :display this usage screen\n"
-	"\t\t -t <1|2|3>\t :detection method\n\n"
-	"\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
-	"\t\t\t\t - 2 - Detection by monitoring group activities\n"
-	"\t\t\t\t - 3 - Naive detection\n\n", pname);
+	"\t -b <file>\t :blacklist file\n"
+	"\t\t\t -w <file>\t :whitelist file\n"
+	"\t\t\t -c <file>\t :config file\n"
+	"\t\t\t -i <interface>\t :set interface\n"
+	"\t\t\t -d\t\t :daemonize\n"
+	"\t\t\t -s\t\t :sniffer mode\n"
+	"\t\t\t -p <file>\t :read pcap file\n" 
+	"\t\t\t -h\t\t :display this usage screen\n"
+	"\t\t\t -t <1|2|3>\t :detection method\n\n"
+	"\t\t\t\t\t - 1 - Detection based on DNS query co-occurrence relation\n"
+	"\t\t\t\t\t - 2 - Detection by monitoring group activities\n"
+	"\t\t\t\t\t - 3 - Naive detection\n\n", pname);
 
 	exit(exit_val);
 }
