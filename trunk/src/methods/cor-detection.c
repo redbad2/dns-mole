@@ -93,7 +93,7 @@ void cor_process(unsigned int n_pkt,void *tMole){
         storeMole->qlist_head = storeMole->qlist_head->next;
         query_remove(t_query);
     }
-    
+
     cor_analyze((void *)d_head,(void **) ip_store_head,(void *)storeMole);
     remove_ip(ip_store_head,storeMole->ipSpace);
 }
@@ -111,7 +111,7 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
     int one = 0;
     int chk_domain;
     qss_ip *t_ip_sort;
-    qss_domain *t_domain_1, *t_domain_2, *t_dom = NULL;
+    qss_domain *t_domain_1, *t_domain_2, *t_dom = NULL,*look_domain;
     qss_domain_ip *t_domain_ip,*t_ip_for_change;
     struct in_addr report_ip;
 
@@ -121,7 +121,6 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
         if(t_dom){
             t_domain_1 = t_dom; t_dom = NULL;
         }
-
         if(t_domain_1->type == -1){
             
             jaccard_index = 0.0;
@@ -207,7 +206,6 @@ void cor_analyze(void *domain,void **ip,void *mWorld){
             }
         }
     }
-
     d_head = domain;
     remove_domain_list(d_head);
 }
