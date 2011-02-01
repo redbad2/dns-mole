@@ -124,9 +124,9 @@ void _analyzer(int fd,short event,void *arg){
     int num_packets = analyzeMole->count;
 	
     if(num_packets != 0){
-	analyzeMole->count = 0;
-	(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
-	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+	    analyzeMole->count = 0;
+	    (analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
+	    event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
     }
                     
 }   
@@ -224,10 +224,10 @@ int main(int argc,char **argv){
             cor_initialize((void *) &mWorld);
             break;
         case 2:
-            //ga_initialize((void *) &mWorld);
+            ga_initialize((void *) &mWorld);
             break;
         case 3:
-            //naive_initialize((void *) &mWorld);
+            naive_initialize((void *) &mWorld);
             break;
     }
     
@@ -258,7 +258,7 @@ int main(int argc,char **argv){
    
     if(pcap_file){
         if(read_pcap(pcap_file))
-	    mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
+	       mWorld.moleFunctions.analyze(mWorld.count,(void *) &mWorld);
         printf("\n\n[*] File: %s analyzed\n\n",pcap_file);
     }
 

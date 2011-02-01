@@ -22,12 +22,11 @@
 #ifndef DNSM_DNS_PARSER_H
 #define DNSM_DNS_PARSER_H
 
-int dns2query(u_char * packet, int len, query * q_store, int dl_len);
-int get_url_size(u_char * data);
-int extract_question(u_char * ,query *q );
-int extract_answers(u_char * data, u_char * start, int num, query * q);
-void extract_value(u_char * data, u_char * start, int type, u_char ** dst, int length);
-int get_url(u_char * data, u_char * dst);
-int get_dns_value(u_char * value_place, u_char * dns_place, u_char ** dst, int len);
+int dns2query(unsigned char * packet, int len, query * q_store, int dl_len);
+void get_type(unsigned char *,query *);
+int extract_name(unsigned char *, unsigned char *, char *);
+int extract_query_section(unsigned char *, unsigned char *, query *);
+int extract_rr(unsigned char *, unsigned char *, responseSection );
+int check_domain_name(char *);
 
 #endif 

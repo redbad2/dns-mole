@@ -36,17 +36,22 @@ typedef enum {
 	PTR = RR_TYPE_PTR,
 	NS = RR_TYPE_NS,
 	CNAME = RR_TYPE_CNAME
-	
 } RR_type;
 
-typedef struct answer {
-	unsigned int ttl;
+typedef struct responseSection{
 	RR_type type;
-	u_char * value;
-} answer;
+	unsigned int ttl;
+	
+	unsigned char name[MAX_LENGTH];
+	unsigned char value[MAX_LENGTH];
+	unsigned int ip;
+	
+} responseSection;
 
 typedef struct Query {
 	time_t time;
+	int suspicious; 
+	int is_answer;
 	
 	unsigned int srcip;
 	unsigned int dstip;
@@ -54,13 +59,18 @@ typedef struct Query {
 	char dname[MAX_LENGTH];
 	unsigned short q_type;
 	
-	int suspicious; 
-	int ansnum;
-	int is_answer;
-	answer * answers;
+	unsigned int qnum;
+	unsigned int ansnum;
+	unsigned int nsnum;
+	unsigned int addnum;
+	
+	responseSection *answers;
+	responseSection *authority;
+	responseSection *additional;
 	
 	struct Query * prev;
 	struct Query * next;
+		
 } query;
 
 void query_empty(query *);
