@@ -70,13 +70,14 @@ configuration *set_config(void *confMole){
     register_config(config,"sAnalyzeInterval",(void *)&(configMole->parameters).s_analyze_interval,0);
     register_config(config,"LogFile",(void *)&(configMole->log_file),2);
     register_config(config,"nAnalyzeInterval",(void *)&(configMole->parameters).naive_analyze_interval,0);
-
+    register_config(config,"machineIp",(void *)&(configMole->parameters).machineIp,2);
     return config;
 }
             
 void read_config(const char *conf,configuration *config){ 
     FILE *config_file;
     configuration *t_config;
+
     char line[80],config_variable[30],variable[50];
     int first,second,count,variable_count,number_count,line_count = 0;
     int done, *t_int;

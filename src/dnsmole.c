@@ -124,9 +124,9 @@ void _analyzer(int fd,short event,void *arg){
     int num_packets = analyzeMole->count;
 	
     if(num_packets != 0){
-	    analyzeMole->count = 0;
-	    (analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
-	    event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+	analyzeMole->count = 0;
+	(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
+	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
     }
                     
 }   

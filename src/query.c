@@ -21,27 +21,6 @@
 
 #include "dnsmole.h" 
 
-void query_empty(query * q) {
-	query * prev = q->prev;
-	query * next = q->next;
-	query * temp;
-	free(q->answers);
-	free(q);
-
-	while (prev != NULL) {
-		temp = prev->prev;
-		free(prev->answers);
-		free(prev);
-		prev = temp;
-	}
-	while (next != NULL) {
-		temp = next->next;
-		free(next->answers);
-		free(next);
-		next = temp;
-	}
-}
-
 void query_insert(query * q1, query *q2) {
     query * next = q1->next;
     if (next != NULL) {
@@ -57,21 +36,24 @@ void query_insert(query * q1, query *q2) {
     
 }
 
-void query_remove(query * q) {
-	query *prev = q->prev;
-	query *next = q->next;
+void query_remove(query *q) {
+
+    query *prev = q->prev;
+    query *next = q->next;
+
+    if (prev != NULL && next != NULL) {
+	prev->next = next;
+	next->prev = prev;
+    }
+    else if (prev != NULL)
+	prev->next = NULL;
+    else if (next != NULL)
+	next->prev = NULL;
 	
-	if (prev != NULL && next != NULL) {
-		prev->next = next;
-		next->prev = prev;
-	}
-	else if (prev != NULL)
-		prev->next = NULL;
-	else if (next != NULL)
-		next->prev = NULL;
-	
-	free(q->answers);
-	free(q);
+    free(q->answers);
+    free(q->authority);
+    free(q->additional);
+    free(q);
 }
 
 

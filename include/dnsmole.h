@@ -50,7 +50,8 @@
 struct parameter{
 
     int naive_analyze_interval;
-    
+    char machineIp[15];
+
     int activity_drop;
     int a_analyze_interval;
     float activity_bl_similarity;

@@ -22,7 +22,7 @@
 #ifndef DETECTION_H
 #define DETECTION_H
 
-#include "../../include/dnsmole.h"
+#include "dnsmole.h"
 #include "qss.h"
 
 void cor_initialize(void *tMole);

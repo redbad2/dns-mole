@@ -73,7 +73,6 @@ typedef struct Query {
 		
 } query;
 
-void query_empty(query *);
 void query_insert(query *, query *);
 void query_remove(query *);
 

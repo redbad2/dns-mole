@@ -19,7 +19,6 @@
  * $Id$
  */
 
-#include "dnsmole.h"
 #include "detection.h"
 
 #define GA_LOG_DOMAIN "INSERT INTO ?s(date,name,type) VALUES(datetime('now'),'?s',?i)"
