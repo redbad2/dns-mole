@@ -19,17 +19,7 @@
  * $Id$
  */
 
-#include <time.h>
-#include <pcap.h>
-#include <net/ethernet.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../include/dnsmole.h"
-#include "../include/dns_sniffer.h"
-#include "../include/error.h"
-#include "../include/dns_parser.h"
-
+#include "dnsmole.h"
 
 /* stolen from jscan */
 int pcap_dloff(pcap_t *pd)

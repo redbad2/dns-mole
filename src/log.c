@@ -117,6 +117,7 @@ void useDB(void *t,const char *query,...){
         rc = sqlite3_exec(mW->db,new_query,0,0,&err);
     
     if(err != SQLITE_OK){
+		printf("%s\n",new_query);
         fprintf(stderr,"[SQL Error] %s\n",err);
         sqlite3_free(err); closeDB(mW); exit(EXIT_FAILURE);
     }    

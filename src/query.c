@@ -19,7 +19,7 @@
  * $Id$
  */
 
-#include "../include/dnsmole.h" 
+#include "dnsmole.h" 
 
 void query_empty(query * q) {
 	query * prev = q->prev;
@@ -58,8 +58,9 @@ void query_insert(query * q1, query *q2) {
 }
 
 void query_remove(query * q) {
-	query * prev = q->prev;
-	query * next = q->next;
+	query *prev = q->prev;
+	query *next = q->next;
+	
 	if (prev != NULL && next != NULL) {
 		prev->next = next;
 		next->prev = prev;
@@ -68,6 +69,7 @@ void query_remove(query * q) {
 		prev->next = NULL;
 	else if (next != NULL)
 		next->prev = NULL;
+	
 	free(q->answers);
 	free(q);
 }

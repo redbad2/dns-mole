@@ -23,7 +23,7 @@
     
 #define FALSE 0
 #define LIST_INSERT "INSERT INTO ?s(name,type) VALUES('?s',?i)"
-#define LIST_UPDATE "UPDATE ?s SET ?s=?i WHERE ?s=?s"
+#define LIST_UPDATE "UPDATE ?s SET ?s=?i WHERE ?s LIKE ?s"
 
 kdomain *add_domain(kdomain *new_domain,kdomain *search_domain,int level){
     kdomain *tdomain = search_domain;
@@ -274,6 +274,7 @@ void read_list(void *readMole,kdomain *root,char *bl_filename,int type){
 int listDomains_select_callback(void *sqlcallMole,int argc,char **argv,char **colName){
     moleWorld *insertMole = (moleWorld *) sqlcallMole;
     load_domain(argv[1],insertMole->root_list,atoi(argv[2]));
+    return 0;
 }
 
 unsigned int hash(const char *str, int len){

@@ -31,6 +31,7 @@
 #include <unistd.h>
 
 #include <netinet/in.h>
+#include <net/ethernet.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
@@ -42,6 +43,7 @@
 #include "query.h"
 #include "knowndomain.h"
 #include "dns_sniffer.h"
+#include "dns_parser.h"
 #include "error.h"
 #include "config.h"
 
