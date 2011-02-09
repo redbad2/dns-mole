@@ -266,13 +266,12 @@ int main(int argc,char **argv){
    
     if(sniffer && interface){
        
-        printf("i'm here\n");
     	event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
-	        fprintf(stderr,"[sniffer_setup] error\n");
-	        exit(EXIT_FAILURE);
-	    }
+	    fprintf(stderr,"[sniffer_setup] error\n");
+	    exit(EXIT_FAILURE);
+	}
     
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
