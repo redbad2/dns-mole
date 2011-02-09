@@ -38,8 +38,13 @@ int dns2query(u_char *packet, int len, query * q_store,int dl_len) {
 	
     q_store->is_answer = dqhdr->qr;
     
-    if(dqhdr->rcode)
-	return 0;
+    if((dqhdr->rcode) == 0x1)
+        q_store->is_nxdomain = 1;
+    else
+        q_store->is_nxdomain = 0;
+
+    if(dqhdr->rcode || !q_store->is_nxdomain)
+	    return 0;
 		
     q_store->qnum = ntohs(dqhdr->dq_qc);
     q_store->ansnum = ntohs(dqhdr->dq_ac);
@@ -52,15 +57,15 @@ int dns2query(u_char *packet, int len, query * q_store,int dl_len) {
 	
     memset(q_store->dname,'\0',MAX_LENGTH);
     data += extract_query_section(data,dns_start,q_store);
-    
+   
     if(!check_domain_name(q_store->dname))
 	    return 0;
     
+    if(q_store->is_nxdomain || q_store->is_answer)
+        return 1;
+
     if(q_store->qnum > 1) // More the one question in packet, unsupported ATM
 	    return 0;
-		
-    if(q_store->is_answer)
-    	return 1;	
    
     for(count = 0; count < q_store->ansnum; count++)
 	    data += extract_rr(data,dns_start,q_store->answers[count]);
