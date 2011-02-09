@@ -265,7 +265,8 @@ int main(int argc,char **argv){
     pcap_file = NULL;
    
     if(sniffer && interface){
-        
+       
+        printf("i'm here\n");
     	event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){

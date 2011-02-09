@@ -52,7 +52,8 @@ typedef struct Query {
 	time_t time;
 	int suspicious; 
 	int is_answer;
-	
+    int is_nxdomain;
+
 	unsigned int srcip;
 	unsigned int dstip;
 	
