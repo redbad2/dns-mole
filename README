@@ -6,9 +6,8 @@ It can be used as passive sniffer,  and it can analyse already  sniffed network 
 format. Algorithms implemented in this tool are based on work from  academic circle. 
 You can find out about method implemented in this tool in papers:
 
-    1. Anomaly detection for DNS Servers using frequent host selection
-    2. Botnet detection by monitoring group activities in DNS traffic
-    3. Extending black domain name list by using co-occurrence relation between DNS queres
+    1. Botnet detection by monitoring group activities in DNS traffic
+    2. Extending black domain name list by using co-occurrence relation between DNS queres
 
 Since all this methods heavily depend on threshold parameters, you can define your own parameters 
 in dnsMole configuration file and  in that way increase ( or decrease :) ) chanches of positive detection.
@@ -16,6 +15,8 @@ dnsMole support storing  black/white list in memory and in that way help classif
 
 dnsmole.conf
 ============	
+
+LogFile ../doc/dnsmole.db 
 
 #detection based on group activity
 
@@ -35,29 +36,17 @@ oBlack 0.9              -- report black if index is higher or equal
 
 nSubnet 16              -- define subnet where program is running, used for storing hosts ip in hash table
 
-#detection based on statistics
-
-sThresholdTotal 5		-- the threshold for the number of a host's queries/responses for a time period
-sThresholdPTR 5			-- for the number of PTR queries
-sThresholdMX 5			-- for the number of MX queries
-sThresholdBalance 0.9	-- for the difference between the number of queries and responses
-sThresholdPTRRate 0.9	-- for the rate of PTR queries
-sThresholdMXRate 0.9	-- for the rate of MX queries
-sClassifyInterval 30	-- period to classify queries into host's statistics
-sAnalyzeInterval 1800	-- the interval to collect data before sending to analyze
 
 dnsMole program parameters
 ==========================
 
   -b <file> and -w <file> - black/white list filename
   -c <file>  - configuration filename
-  -l <file>	 - define name of log file, if it is not used default dnsmole-log will be used
   -i <interface> - set interface for sniffing
   -s - sniffer mode
   -d - run programm in backgroun
   -p <file> - use .pcap file for analysis
-  -a <interval> - it MUST be used with method 2 in pcap analysis mode, defines interval of .pcap file
-  -t <1|2|3> - analysis method
+  -t <1|2> - analysis method
   
 Installation
 ============
@@ -76,21 +65,21 @@ it isn't required.
 
 $  dnsmole -c doc/dnsmole.conf -p example.pcap -b bl.txt -t 1 -d
 
-~ example.pcap for analysis with method 2, pcap interval is n, and use bl.txt as blacklist and wl.txt as whitelist
+~ example.pcap for analysis with method 2, and use bl.txt as blacklist and wl.txt as whitelist
 
-$ dnsmole -c doc/dnsmole.conf -p example.pcap -b bl.txt -w wl.txt -t 2 -a n
+$ dnsmole -c doc/dnsmole.conf -p example.pcap -b bl.txt -w wl.txt -t 2
 
 2. sniffer mode ( root privileges )
 
-~ use wlan0 as interface with wl.txt as whitelist, define log001 as output log and use method 3, put in background
+~ use wlan0 as interface with wl.txt as whitelist, use method 3, put in background
 
-# dnsmole -i wlan0 -s -d -c doc/dnsmole.conf -w wl.txt -l log001 -t 3
+# dnsmole -i wlan0 -s -d -c doc/dnsmole.conf -w wl.txt -t 3
 
 3. combined ( root privileges )
 
 ~ first use analysis on example.pcap and than run sniffer in background
 
-# dnsmole -t 2 -a n -p example.pcap -w wl.txt -b bl.txt -s -d -i wlan0 -l dnsmoleLog
+# dnsmole -t 2 -p example.pcap -w wl.txt -b bl.txt -s -d -i wlan0
 
 Dependencies
 ============
@@ -99,4 +88,5 @@ dnsMole is using:
 	
 	1. event library ( -levent )
 	2. pcap libirary ( -lpcap )
-	3. mathematic library ( -lm )					
+	3. mathematic library ( -lm )	
+	4. sqlite3 library ( -lsqlite3 )				
