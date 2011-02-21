@@ -43,7 +43,7 @@ int dns2query(u_char *packet, int len, query * q_store,int dl_len) {
     else
         q_store->is_nxdomain = 0;
 
-    if(dqhdr->rcode || !q_store->is_nxdomain)
+    if(dqhdr->rcode && !q_store->is_nxdomain)
 	    return 0;
 		
     q_store->qnum = ntohs(dqhdr->dq_qc);
@@ -100,21 +100,21 @@ int extract_name(unsigned char *data, unsigned char *beginning, char *name){
 	
     count = strlen(name);
     while(*data && exit_now){
-	if(((*data >> 6) == 0x03) ){
-	    offset_copy = *data & 0x3f;
-	    offset_copy = offset_copy << 8;
-	    offset_copy |= *(data+1);	
-	    extract_name(beginning+offset_copy,beginning,name);
-	    data+=2; exit_now = 0;
-	}
-	else{
-	    readChr = *data++;
-	    for(inner_loop = 0; inner_loop < (int)readChr; inner_loop++)
-		name[count++] = *data++;
+	    if(((*data >> 6) == 0x03) ){
+	        offset_copy = *data & 0x3f;
+	        offset_copy = offset_copy << 8;
+	        offset_copy |= *(data+1);	
+	        extract_name(beginning+offset_copy,beginning,name);
+	        data+=2; exit_now = 0;
+	    }
+	    else{
+	        readChr = *data++;
+	        for(inner_loop = 0; inner_loop < (int)readChr; inner_loop++)
+		        name[count++] = *data++;
 			
-	    if(*data)
-		name[count++] ='.';	
-	}
+	        if(*data)
+		        name[count++] ='.';	
+	    }
     }
 	
     count+=2;
