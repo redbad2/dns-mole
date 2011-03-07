@@ -1,4 +1,4 @@
-/* dns_parser.h
+/* dns_parser.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 2 as
@@ -38,34 +38,37 @@ int dns2query(u_char *packet, int len, query * q_store,int dl_len) {
 	
     q_store->is_answer = dqhdr->qr;
     
-    if((dqhdr->rcode) == 0x1)
+    if((dqhdr->rcode) == 0x3)
         q_store->is_nxdomain = 1;
     else
         q_store->is_nxdomain = 0;
 
-    if(dqhdr->rcode && !q_store->is_nxdomain)
-	    return 0;
+    if(dqhdr->rcode){
+        if(!q_store->is_nxdomain)
+    	    return 0;
+    }
 		
     q_store->qnum = ntohs(dqhdr->dq_qc);
+    
+    if(q_store->qnum > 1) // More the one question in packet, unsupported ATM
+	    return 0;
+    
     q_store->ansnum = ntohs(dqhdr->dq_ac);
     q_store->nsnum = ntohs(dqhdr->dq_nc);
     q_store->addnum = ntohs(dqhdr->dq_arc);
     
-    q_store->answers = (responseSection *) malloc(q_store->ansnum * sizeof(struct responseSection));
-    q_store->authority = (responseSection *) malloc(q_store->nsnum * sizeof(struct responseSection));
-    q_store->additional = (responseSection *) malloc(q_store->addnum * sizeof(struct responseSection));
-	
     memset(q_store->dname,'\0',MAX_LENGTH);
     data += extract_query_section(data,dns_start,q_store);
    
     if(!check_domain_name(q_store->dname))
 	    return 0;
     
-    if(q_store->is_nxdomain || q_store->is_answer)
+    if(!q_store->is_answer)
         return 1;
 
-    if(q_store->qnum > 1) // More the one question in packet, unsupported ATM
-	    return 0;
+    q_store->answers = (responseSection *) malloc(q_store->ansnum * sizeof(struct responseSection));
+    q_store->authority = (responseSection *) malloc(q_store->nsnum * sizeof(struct responseSection));
+    q_store->additional = (responseSection *) malloc(q_store->addnum * sizeof(struct responseSection));
    
     for(count = 0; count < q_store->ansnum; count++)
 	    data += extract_rr(data,dns_start,q_store->answers[count]);

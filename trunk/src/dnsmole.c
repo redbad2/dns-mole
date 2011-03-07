@@ -122,13 +122,13 @@ void _analyzer(int fd,short event,void *arg){
 	
     moleWorld *analyzeMole = (moleWorld *) arg;
     int num_packets = analyzeMole->count;
-	
+
+    analyzeMole->count = 0;
     if(num_packets != 0){
-	analyzeMole->count = 0;
-	(analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
-	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
+	    (analyzeMole->moleFunctions).analyze(num_packets,(void *)analyzeMole);
     }
-                    
+	
+	event_add(&analyzeMole->analyze_ev,&analyzeMole->analyze_tv);
 }   
 
 int main(int argc,char **argv){
@@ -269,9 +269,9 @@ int main(int argc,char **argv){
     	event_init();
         
         if(sniffer_setup((void *)&mWorld) < 0){
-	    fprintf(stderr,"[sniffer_setup] error\n");
-	    exit(EXIT_FAILURE);
-	}
+	        fprintf(stderr,"[sniffer_setup] error\n");
+	        exit(EXIT_FAILURE);
+	    }
     
         mWorld.tv.tv_sec = 0;
         mWorld.tv.tv_usec = 500;
