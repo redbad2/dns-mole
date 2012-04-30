@@ -13,4 +13,4 @@ Add your content here.  Format your content with:
   * Automatic links to other wiki pages
 <b> oj </b>
 
-<wiki:gadget url="hello%25%32%32" />
+<wiki:gadget url="hello%25%32%32"  border="%%322"/>
